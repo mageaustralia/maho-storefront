@@ -1,0 +1,13 @@
+{
+  "slot": "order-summary",
+  "domain": "checkout",
+  "description": "Checkout order review and totals summary panel",
+  "variants": {
+    "standard": {
+      "label": "Standard",
+      "description": "Right-side order summary with line items, thumbnails, and subtotal/shipping/tax/total breakdown.",
+      "file": "OrderSummaryStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

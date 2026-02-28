@@ -1,0 +1,13 @@
+{
+  "slot": "step-indicator",
+  "domain": "checkout",
+  "description": "Checkout progress step indicator",
+  "variants": {
+    "standard": {
+      "label": "Standard",
+      "description": "Horizontal step indicator using DaisyUI steps component with completed/active state tracking.",
+      "file": "StepIndicatorStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

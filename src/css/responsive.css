@@ -1,0 +1,154 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ====================================================================
+   RESPONSIVE — Tablet
+   ==================================================================== */
+
+@media (max-width: 1024px) {
+  .product-page {
+    gap: var(--sp-8);
+  }
+}
+
+
+
+/* ====================================================================
+   RESPONSIVE — Small tablet / large phone
+   ==================================================================== */
+
+@media (max-width: 768px) {
+  :root {
+    --content-padding: 16px;
+    --header-height: 56px;
+  }
+
+  .product-page {
+    grid-template-columns: 1fr;
+    gap: var(--sp-6);
+    padding: var(--sp-6) var(--sp-0);
+  }
+
+  .product-gallery {
+    position: static;
+    margin: 0 calc(-1 * var(--content-padding));
+  }
+
+  .gallery-carousel {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .product-price-block .price-current,
+  .product-price-block .price-now {
+    font-size: var(--font-size-2xl);
+  }
+
+  .product-price-block .price-was {
+    font-size: var(--font-size-md);
+  }
+
+  /* Orders table: horizontal scroll on narrow screens */
+  .orders-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .order-items-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Order detail header stacks */
+  .order-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-2);
+  }
+
+  /* Account review header stacks */
+  .account-review-header {
+    flex-direction: column;
+  }
+}
+
+
+
+/* ====================================================================
+   RESPONSIVE — Phone
+   ==================================================================== */
+
+@media (max-width: 480px) {
+  .product-add-to-cart {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: var(--sp-0);
+    margin: var(--sp-0);
+  }
+
+  .qty-stepper {
+    flex-shrink: 0;
+  }
+
+  .add-to-cart-btn {
+    min-width: unset;
+    flex: 1;
+  }
+
+  .wishlist-btn-lg {
+    width: var(--sp-10);
+    height: var(--sp-10);
+    flex-shrink: 0;
+  }
+
+  .option-select,
+  .option-input {
+    max-width: none;
+  }
+
+  .breadcrumbs {
+    font-size: var(--font-size-xxs);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .breadcrumbs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .breadcrumb-truncate {
+    max-width: 150px;
+  }
+
+  .breadcrumbs a,
+  .breadcrumb-current {
+    flex-shrink: 0;
+  }
+
+  /* Account tabs scroll hint */
+  .account-tabs {
+    gap: var(--sp-0);
+    margin-left: calc(var(--content-padding) * -1);
+    margin-right: calc(var(--content-padding) * -1);
+    padding-left: var(--content-padding);
+    padding-right: var(--content-padding);
+  }
+
+  /* Orders table: hide date + items columns on phone */
+  .orders-table th:nth-child(2),
+  .orders-table td:nth-child(2),
+  .orders-table th:nth-child(4),
+  .orders-table td:nth-child(4) {
+    display: none;
+  }
+}

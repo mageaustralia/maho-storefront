@@ -1,0 +1,116 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ====================================================================
+   LAYOUT SHELL — Grid definitions for rootTemplate layouts
+   ==================================================================== */
+
+/* --- Base layout --- */
+.layout {
+  width: 100%;
+}
+
+.layout-main {
+  min-width: 0; /* prevent grid blowout from long content */
+}
+
+/* --- Empty / One Column / Minimal --- */
+.layout-empty .layout-main,
+.layout-one-column .layout-main,
+.layout-minimal .layout-main {
+  max-width: 100%;
+}
+
+/* --- Two Columns Left (sidebar | main) --- */
+.layout-two-columns-left {
+  display: grid;
+  grid-template-columns: var(--size-sidebar-width) 1fr;
+  gap: var(--sp-8);
+  align-items: start;
+}
+
+/* --- Two Columns Right (main | sidebar) --- */
+.layout-two-columns-right {
+  display: grid;
+  grid-template-columns: 1fr var(--size-sidebar-width);
+  gap: var(--sp-8);
+  align-items: start;
+}
+
+/* --- Three Columns (sidebar | main | sidebar) --- */
+.layout-three-columns {
+  display: grid;
+  grid-template-columns: var(--size-sidebar-width) 1fr var(--size-sidebar-width);
+  gap: var(--sp-8);
+  align-items: start;
+}
+
+/* --- Sidebar styling --- */
+.layout-sidebar {
+  position: sticky;
+  top: calc(var(--size-header-height) + var(--sp-4));
+}
+
+.sidebar-blocks {
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.sidebar-blocks > *:not(:last-child) {
+  margin-bottom: var(--sp-6);
+}
+
+/* CMS block content inside sidebars */
+.sidebar-blocks h2,
+.sidebar-blocks h3 {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-heading);
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: var(--border-width) solid var(--color-border-light);
+}
+
+.sidebar-blocks ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar-blocks ul li {
+  padding: var(--sp-1-5) 0;
+}
+
+.sidebar-blocks ul li a {
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.sidebar-blocks ul li a:hover {
+  color: var(--color-accent);
+}
+
+.sidebar-blocks img {
+  border-radius: var(--radius-sm);
+}
+
+/* --- Responsive: collapse to single column on mobile --- */
+@media (max-width: 767px) {
+  .layout-two-columns-left,
+  .layout-two-columns-right,
+  .layout-three-columns {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-6);
+  }
+
+  .layout-sidebar {
+    position: static;
+    order: 2; /* sidebars after main content on mobile */
+  }
+
+  .layout-main {
+    order: 1;
+  }
+}

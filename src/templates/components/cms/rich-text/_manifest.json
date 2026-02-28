@@ -1,0 +1,13 @@
+{
+  "slot": "rich-text",
+  "domain": "cms",
+  "description": "WYSIWYG content wrapper with typography styling for CMS page content",
+  "variants": {
+    "standard": {
+      "label": "Standard Rich Text",
+      "description": "Prose container with proper typography classes for HTML content.",
+      "file": "CmsRichText.tsx"
+    }
+  },
+  "default": "standard"
+}

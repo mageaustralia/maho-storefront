@@ -1,0 +1,13 @@
+{
+  "slot": "sort",
+  "domain": "filtering",
+  "description": "Sort order selector for product listings",
+  "variants": {
+    "standard": {
+      "label": "Standard Select",
+      "description": "DaisyUI select dropdown with sort options (relevance, price, name, newest).",
+      "file": "SortStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

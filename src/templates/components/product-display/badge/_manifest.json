@@ -1,0 +1,13 @@
+{
+  "slot": "badge",
+  "domain": "product-display",
+  "description": "Product badges (sale, new, low-stock, bestseller)",
+  "variants": {
+    "standard": {
+      "label": "Standard Badge",
+      "description": "DaisyUI badge positioned top-left of product image. Colored by type.",
+      "file": "BadgeStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

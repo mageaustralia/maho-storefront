@@ -1,0 +1,13 @@
+{
+  "slot": "results",
+  "domain": "search",
+  "description": "Search results page layout",
+  "variants": {
+    "standard": {
+      "label": "Standard Results",
+      "description": "Grid of product cards with search summary and sort options.",
+      "file": "ResultsStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

@@ -1,0 +1,13 @@
+{
+  "slot": "collection-spotlight",
+  "domain": "homepage",
+  "description": "Featured collection or category showcase with product row",
+  "variants": {
+    "standard": {
+      "label": "Standard Spotlight",
+      "description": "Section header with scrollable product card row. Shows collection title and 'View All' link.",
+      "file": "SpotlightStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

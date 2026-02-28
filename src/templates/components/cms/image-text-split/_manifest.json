@@ -1,0 +1,13 @@
+{
+  "slot": "image-text-split",
+  "domain": "cms",
+  "description": "Image alongside text content with optional CTA button",
+  "variants": {
+    "standard": {
+      "label": "Standard Image Text Split",
+      "description": "Image on one side, text content on the other with optional CTA. Responsive stacking.",
+      "file": "ImageTextSplitStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

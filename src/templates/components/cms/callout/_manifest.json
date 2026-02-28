@@ -1,0 +1,13 @@
+{
+  "slot": "callout",
+  "domain": "cms",
+  "description": "Tip, warning, note, and error callout boxes with icons",
+  "variants": {
+    "standard": {
+      "label": "Standard Callout",
+      "description": "Colored callout box with icon using DaisyUI alert classes.",
+      "file": "CmsCalloutStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

@@ -1,0 +1,32 @@
+name = "maho-storefront"
+account_id = "your_cloudflare_account_id"
+main = "src/index.tsx"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+jsx_factory = "jsx"
+jsx_fragment = "Fragment"
+
+# Embed static assets as text modules
+[[rules]]
+type = "Text"
+globs = ["**/*.css", "**/*.txt"]
+fallthrough = false
+
+[[kv_namespaces]]
+binding = "CONTENT"
+id = "your_kv_namespace_id"
+preview_id = "your_kv_namespace_id"
+
+[vars]
+MAHO_API_URL = "https://your-maho-backend.example.com"
+SYNC_SECRET = "your_sync_secret"
+STORES = '[{"code":"en","name":"Store 1","url":"https://store1.example.com"},{"code":"sv_2","name":"Store 2","url":"https://store2.example.com"}]'
+
+# Routes — add one per storefront domain
+[[routes]]
+pattern = "store1.example.com/*"
+zone_name = "example.com"
+
+[[routes]]
+pattern = "store2.example.com/*"
+zone_name = "example.com"

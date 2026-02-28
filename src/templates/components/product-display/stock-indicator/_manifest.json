@@ -1,0 +1,13 @@
+{
+  "slot": "stock-indicator",
+  "domain": "product-display",
+  "description": "Stock availability display on product page",
+  "variants": {
+    "standard": {
+      "label": "Standard Stock",
+      "description": "Text with colored dot indicator. Green for in-stock, red for out-of-stock.",
+      "file": "StockStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

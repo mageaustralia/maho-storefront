@@ -1,0 +1,18 @@
+{
+  "slot": "testimonial",
+  "domain": "reviews",
+  "description": "Marketing testimonial displays with customer quotes and attribution",
+  "variants": {
+    "carousel": {
+      "label": "Testimonial Carousel",
+      "description": "Horizontal scrolling testimonial cards with scroll-snap. Quote, author name, and optional role/image.",
+      "file": "TestimonialCarousel.tsx"
+    },
+    "grid": {
+      "label": "Testimonial Grid",
+      "description": "3-column responsive grid of testimonial cards.",
+      "file": "TestimonialGrid.tsx"
+    }
+  },
+  "default": "carousel"
+}

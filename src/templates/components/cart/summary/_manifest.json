@@ -1,0 +1,13 @@
+{
+  "slot": "summary",
+  "domain": "cart",
+  "description": "Cart totals summary with subtotal, shipping, and checkout CTA",
+  "variants": {
+    "standard": {
+      "label": "Standard Summary",
+      "description": "Stacked totals with prominent checkout button. Sticky on desktop.",
+      "file": "SummaryStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

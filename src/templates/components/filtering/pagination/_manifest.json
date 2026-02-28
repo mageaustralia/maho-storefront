@@ -1,0 +1,18 @@
+{
+  "slot": "pagination",
+  "domain": "filtering",
+  "description": "Page navigation for product listings",
+  "variants": {
+    "standard": {
+      "label": "Standard Pagination",
+      "description": "DaisyUI join group with numbered page buttons and prev/next arrows.",
+      "file": "PaginationStandard.tsx"
+    },
+    "load-more": {
+      "label": "Load More Button",
+      "description": "Single 'Load More' button that appends products. Simpler, mobile-friendly.",
+      "file": "PaginationLoadMore.tsx"
+    }
+  },
+  "default": "standard"
+}

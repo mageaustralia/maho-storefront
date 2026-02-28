@@ -1,0 +1,12 @@
+{
+  "slot": "product-info-panel",
+  "description": "Product information panel with title, price, options, and add-to-cart",
+  "variants": {
+    "compact": {
+      "label": "Compact",
+      "description": "Slim sidebar-friendly panel. Title, price, stock, options, add-to-cart in a narrow column.",
+      "file": "InfoPanelCompact.tsx"
+    }
+  },
+  "default": "compact"
+}

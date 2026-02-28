@@ -1,0 +1,267 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ====================================================================
+   HEADER
+   ==================================================================== */
+
+.site-header {
+  position: sticky;
+  top: var(--sp-0);
+  z-index: 100;
+  background: var(--color-bg);
+  border-bottom: none;
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  max-width: var(--content-max);
+  margin: var(--sp-0) auto;
+  padding: 0 var(--content-padding);
+  height: var(--header-height);
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  color: var(--color-primary);
+}
+
+.logo:hover {
+  color: var(--color-primary);
+}
+
+.logo-img {
+  height: var(--sp-9);
+  width: auto;
+}
+
+.logo-text {
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  text-transform: lowercase;
+}
+
+/* Navigation */
+.main-nav {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.nav-list {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  display: block;
+  padding: var(--sp-2) var(--sp-3-5);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--color-text);
+  background: var(--color-bg-muted);
+}
+
+/* Dropdown */
+.nav-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: var(--sp-0);
+  min-width: 220px;
+  padding: var(--sp-2);
+  background: var(--color-bg);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+}
+
+.nav-item:hover > .nav-dropdown {
+  display: block;
+}
+
+.nav-dropdown-link {
+  display: block;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.nav-dropdown-link:hover {
+  color: var(--color-text);
+  background: var(--color-bg-muted);
+}
+
+/* Header actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.cart-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sp-10);
+  height: var(--sp-10);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  text-decoration: none;
+}
+
+.cart-link:hover {
+  color: var(--color-text);
+  background: var(--color-bg-muted);
+}
+
+.cart-link svg {
+  width: 22px;
+  height: 22px;
+}
+
+.cart-count {
+  position: absolute;
+  top: var(--sp-0-5);
+  right: var(--sp-0-5);
+  display: none;
+  min-width: 18px;
+  height: 18px;
+  padding: var(--sp-0) 5px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  color: var(--color-white);
+  background: var(--color-accent);
+  border-radius: 9px;
+}
+
+/* Store Switcher */
+.store-switcher {
+  position: relative;
+}
+
+.store-switcher-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1-5);
+  padding: var(--sp-1-5) var(--sp-3);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-muted);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.store-switcher-btn:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-secondary);
+}
+
+.store-switcher-label {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-switcher-chevron {
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.store-switcher:hover .store-switcher-chevron,
+.store-switcher:focus-within .store-switcher-chevron {
+  transform: rotate(180deg);
+}
+
+.store-switcher-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + var(--sp-2));
+  right: 0;
+  min-width: 180px;
+  padding: var(--sp-1-5);
+  background: var(--color-bg);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+}
+
+.store-switcher:hover .store-switcher-dropdown,
+.store-switcher:focus-within .store-switcher-dropdown {
+  display: block;
+}
+
+.store-switcher-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.store-switcher-option:hover {
+  color: var(--color-text);
+  background: var(--color-bg-muted);
+}
+
+.store-switcher-option.active {
+  color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.store-switcher-option.active:hover {
+  background: var(--color-accent-light);
+}
+
+.store-switcher-option svg {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}

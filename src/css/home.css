@@ -1,0 +1,288 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ====================================================================
+   HERO
+   ==================================================================== */
+
+.hero {
+  padding: var(--sp-20) var(--sp-0) var(--sp-16);
+  text-align: center;
+}
+
+.hero-content h1 {
+  font-size: clamp(var(--font-size-3xl), 5vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-primary);
+  margin-bottom: var(--sp-3);
+}
+
+.hero-content p {
+  font-size: clamp(var(--font-size-md), 2.5vw, var(--font-size-xl));
+  color: var(--color-text-secondary);
+  max-width: 520px;
+  margin: var(--sp-0) auto;
+}
+
+
+
+/* ====================================================================
+   FEATURED CATEGORIES
+   ==================================================================== */
+
+.featured-categories {
+  padding: var(--sp-6) var(--sp-0) var(--sp-16);
+}
+
+.featured-categories h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  margin-bottom: var(--sp-6);
+  letter-spacing: -0.02em;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sp-5);
+}
+
+.category-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow var(--transition-base), border-color var(--transition-base), transform var(--transition-base);
+}
+
+.category-card:hover {
+  color: inherit;
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.category-card-image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: var(--color-bg-muted);
+}
+
+.category-card-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: linear-gradient(135deg, var(--color-bg-muted) 0%, var(--color-border-light) 100%);
+}
+
+.category-card-info {
+  padding: var(--sp-4);
+}
+
+.category-card-info h3 {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin-bottom: var(--sp-1);
+}
+
+.category-product-count {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+
+
+/* ====================================================================
+   HOMEPAGE CMS CONTENT
+   ==================================================================== */
+
+.home-cms-content {
+  margin: var(--sp-0) auto;
+  padding: var(--sp-0) var(--sp-0) var(--sp-12);
+}
+
+.home-cms-content h1,
+.home-cms-content h2,
+.home-cms-content h3,
+.home-cms-content h4 {
+  margin-bottom: var(--sp-3);
+}
+
+.home-cms-content p {
+  margin-bottom: var(--sp-4);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.home-cms-content img {
+  border-radius: var(--radius-lg);
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.home-cms-content a {
+  text-decoration: none;
+  display: block;
+}
+
+.home-cms-content a:hover {
+  opacity: 0.9;
+}
+
+/* Remove all list styling from CMS content */
+.home-cms-content ul,
+.home-cms-content ol {
+  margin: var(--sp-0);
+  padding: var(--sp-0);
+  list-style: none;
+}
+
+.home-cms-content li {
+  margin: var(--sp-0);
+  padding: var(--sp-0);
+}
+
+/* Slideshow = carousel slider */
+.home-cms-content .slideshow {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--sp-6);
+}
+
+.home-cms-content .slideshow ul {
+  margin: var(--sp-0);
+  padding: var(--sp-0);
+}
+
+.home-cms-content .slideshow li {
+  display: none;
+}
+
+.home-cms-content .slideshow li.active {
+  display: block;
+}
+
+.home-cms-content .slideshow li img {
+  border-radius: 0;
+}
+
+/* Carousel navigation dots */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-2-5);
+  margin-top: var(--sp-4);
+  margin-bottom: var(--sp-6);
+}
+
+.carousel-dot {
+  width: var(--sp-2-5);
+  height: var(--sp-2-5);
+  border-radius: 50%;
+  border: none;
+  background: var(--color-border);
+  cursor: pointer;
+  padding: var(--sp-0);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.carousel-dot:hover {
+  background: var(--color-text-muted);
+}
+
+.carousel-dot.active {
+  background: var(--color-primary);
+  transform: scale(1.2);
+}
+
+/* Carousel prev/next arrows */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: var(--sp-11);
+  height: var(--sp-11);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.carousel-arrow:hover {
+  background: var(--color-white);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.carousel-arrow-prev {
+  left: var(--sp-4);
+}
+
+.carousel-arrow-next {
+  right: var(--sp-4);
+}
+
+/* Promos = three-column grid */
+.home-cms-content ul.promos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-5);
+  margin-bottom: var(--sp-6);
+}
+
+.home-cms-content ul.promos li {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.home-cms-content ul.promos li:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.home-cms-content ul.promos li img {
+  border-radius: 0;
+}
+
+/* Hide any inline styles injected by CMS */
+.home-cms-content > div > style {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .home-cms-content ul.promos {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+
+  .carousel-arrow {
+    width: var(--sp-9);
+    height: var(--sp-9);
+  }
+
+  .carousel-arrow-prev {
+    left: var(--sp-2);
+  }
+
+  .carousel-arrow-next {
+    right: var(--sp-2);
+  }
+}

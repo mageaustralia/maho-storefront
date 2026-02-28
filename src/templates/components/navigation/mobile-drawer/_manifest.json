@@ -1,0 +1,13 @@
+{
+  "slot": "mobile-drawer",
+  "domain": "navigation",
+  "description": "Mobile navigation drawer (hamburger menu)",
+  "variants": {
+    "standard": {
+      "label": "Standard Drawer",
+      "description": "Full-height slide-out drawer with accordion category navigation.",
+      "file": "MobileDrawerStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

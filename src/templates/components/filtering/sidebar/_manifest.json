@@ -1,0 +1,23 @@
+{
+  "slot": "filter",
+  "domain": "filtering",
+  "description": "Product filtering interface for category pages",
+  "variants": {
+    "sidebar": {
+      "label": "Sidebar Filters",
+      "description": "Left sidebar with collapsible filter groups. Desktop default, becomes drawer on mobile.",
+      "file": "FilterSidebar.tsx"
+    },
+    "drawer": {
+      "label": "Drawer Filters",
+      "description": "Full-height drawer that slides in from the left. Always off-canvas.",
+      "file": "FilterDrawer.tsx"
+    },
+    "inline": {
+      "label": "Inline Filters",
+      "description": "Horizontal filter bar above products. Good for fewer filter options.",
+      "file": "FilterInline.tsx"
+    }
+  },
+  "default": "sidebar"
+}

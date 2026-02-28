@@ -1,0 +1,13 @@
+{
+  "slot": "address-form",
+  "domain": "checkout",
+  "description": "Shipping and billing address entry form",
+  "variants": {
+    "standard": {
+      "label": "Standard",
+      "description": "Full address entry form with first/last name, company, street, city, state, postcode, country, and phone fields.",
+      "file": "AddressFormStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

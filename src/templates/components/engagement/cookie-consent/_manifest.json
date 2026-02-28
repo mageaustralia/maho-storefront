@@ -1,0 +1,18 @@
+{
+  "slot": "cookie-consent",
+  "domain": "engagement",
+  "description": "Cookie consent notification bar for privacy compliance",
+  "variants": {
+    "standard": {
+      "label": "Standard",
+      "description": "Fixed bottom bar with privacy message, Accept and Settings buttons.",
+      "file": "CookieConsentBar.tsx"
+    },
+    "minimal": {
+      "label": "Minimal",
+      "description": "Simple bar with message and a single OK button, no settings.",
+      "file": "CookieConsentMinimal.tsx"
+    }
+  },
+  "default": "standard"
+}

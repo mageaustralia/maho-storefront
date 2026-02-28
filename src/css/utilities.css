@@ -1,0 +1,29 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ====================================================================
+   LOADING & ANIMATION
+   ==================================================================== */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.cart-loading p {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+
+
+/* ====================================================================
+   TURBO PROGRESS BAR
+   ==================================================================== */
+
+.turbo-progress-bar {
+  height: var(--sp-0-5);
+  background: var(--color-primary);
+}

@@ -1,0 +1,23 @@
+{
+  "slot": "gallery",
+  "domain": "product-display",
+  "description": "Product image gallery on the product detail page",
+  "variants": {
+    "carousel": {
+      "label": "Carousel with Thumbnails",
+      "description": "Swipeable main image with thumbnail strip below. Supports fullscreen zoom. Best for products with many images.",
+      "file": "GalleryCarousel.tsx"
+    },
+    "grid": {
+      "label": "Image Grid",
+      "description": "2-column grid showing all images at once. Click to zoom. Best for showing multiple angles.",
+      "file": "GalleryGrid.tsx"
+    },
+    "single": {
+      "label": "Single Image",
+      "description": "One large image with thumbnails. Clean and minimal. Best for simple products.",
+      "file": "GallerySingle.tsx"
+    }
+  },
+  "default": "carousel"
+}

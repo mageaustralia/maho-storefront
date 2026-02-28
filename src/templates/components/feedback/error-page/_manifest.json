@@ -1,0 +1,13 @@
+{
+  "slot": "error-page",
+  "domain": "feedback",
+  "description": "Error page display (404, 500)",
+  "variants": {
+    "standard": {
+      "label": "Standard Error Page",
+      "description": "Centered error code, message, and 'Go Home' button.",
+      "file": "ErrorPageStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

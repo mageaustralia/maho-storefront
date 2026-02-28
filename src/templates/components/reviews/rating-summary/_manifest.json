@@ -1,0 +1,13 @@
+{
+  "slot": "rating-summary",
+  "domain": "reviews",
+  "description": "Star rating breakdown display showing overall rating and per-star distribution",
+  "variants": {
+    "standard": {
+      "label": "Standard Rating Summary",
+      "description": "Large overall rating with stars, horizontal bar breakdown by star level, and total review count.",
+      "file": "RatingSummaryStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

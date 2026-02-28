@@ -1,0 +1,23 @@
+{
+  "slot": "newsletter",
+  "domain": "engagement",
+  "description": "Newsletter signup forms for collecting email subscribers",
+  "variants": {
+    "inline": {
+      "label": "Inline",
+      "description": "Horizontal inline form with heading and description. Sits inside a page section.",
+      "file": "NewsletterInline.tsx"
+    },
+    "popup": {
+      "label": "Popup Modal",
+      "description": "DaisyUI modal dialog shown after a configurable delay. Shows once per visitor.",
+      "file": "NewsletterPopup.tsx"
+    },
+    "flyout": {
+      "label": "Flyout",
+      "description": "Small floating card that slides in from the bottom-right corner.",
+      "file": "NewsletterFlyout.tsx"
+    }
+  },
+  "default": "inline"
+}

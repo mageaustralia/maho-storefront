@@ -1,0 +1,12 @@
+{
+  "slot": "dashboard",
+  "domain": "account",
+  "description": "Customer account dashboard with profile, password, wishlist, and reviews tabs",
+  "variants": {
+    "standard": {
+      "label": "Standard Dashboard",
+      "description": "Tabbed account dashboard with profile management, password change, wishlist, and reviews"
+    }
+  },
+  "default": "standard"
+}

@@ -1,0 +1,13 @@
+{
+  "slot": "delivery-date",
+  "domain": "product-utility",
+  "description": "Estimated delivery date display with truck icon",
+  "variants": {
+    "standard": {
+      "label": "Delivery Date Standard",
+      "description": "Inline delivery estimate with green truck icon and estimated date text.",
+      "file": "DeliveryDateStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

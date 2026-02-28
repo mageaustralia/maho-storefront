@@ -1,0 +1,13 @@
+{
+  "slot": "hero",
+  "domain": "category",
+  "description": "Category page hero banner with title, description, and optional background image",
+  "variants": {
+    "standard": {
+      "label": "Standard Hero",
+      "description": "Full-width banner with category name, description, optional background image with dark overlay, and product count badge.",
+      "file": "CategoryHeroStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

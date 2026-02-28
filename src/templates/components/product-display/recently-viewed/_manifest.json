@@ -1,0 +1,13 @@
+{
+  "slot": "recently-viewed",
+  "domain": "product-display",
+  "description": "Recently viewed products section populated from localStorage via client-side JS",
+  "variants": {
+    "row": {
+      "label": "Horizontal Row",
+      "description": "Horizontal scrollable row of recently viewed product cards. Client-side populated from localStorage.",
+      "file": "RecentlyViewedRow.tsx"
+    }
+  },
+  "default": "row"
+}

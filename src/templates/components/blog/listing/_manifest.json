@@ -1,0 +1,18 @@
+{
+  "slot": "listing",
+  "domain": "blog",
+  "description": "Blog listing layout for index and archive pages",
+  "variants": {
+    "grid": {
+      "label": "Grid Layout",
+      "description": "Responsive grid of blog cards (1/2/3 columns). Uses the configured BlogCard variant.",
+      "file": "BlogListingGrid.tsx"
+    },
+    "list": {
+      "label": "List Layout",
+      "description": "Vertical list with horizontal entries. Image left, content right. Good for archive pages.",
+      "file": "BlogListingList.tsx"
+    }
+  },
+  "default": "grid"
+}

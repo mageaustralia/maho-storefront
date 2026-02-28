@@ -1,0 +1,13 @@
+{
+  "slot": "comparison-table",
+  "domain": "data",
+  "description": "Side-by-side product comparison table with difference highlighting",
+  "variants": {
+    "standard": {
+      "label": "Standard Comparison Table",
+      "description": "Product images/names as column headers, spec rows below, differing values highlighted, sticky first column with horizontal scroll on mobile.",
+      "file": "ComparisonTableStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

@@ -1,0 +1,18 @@
+{
+  "slot": "bar",
+  "domain": "search",
+  "description": "Search input interface",
+  "variants": {
+    "overlay": {
+      "label": "Search Overlay",
+      "description": "Full-screen overlay with large search input and predictive results.",
+      "file": "SearchOverlay.tsx"
+    },
+    "inline": {
+      "label": "Inline Search",
+      "description": "Search bar in the header with dropdown results panel.",
+      "file": "SearchInline.tsx"
+    }
+  },
+  "default": "overlay"
+}

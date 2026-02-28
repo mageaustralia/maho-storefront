@@ -1,0 +1,23 @@
+{
+  "slot": "variant-picker",
+  "domain": "product-display",
+  "description": "Product variant selection (color, size, etc.)",
+  "variants": {
+    "swatch": {
+      "label": "Visual Swatches",
+      "description": "Circular color swatches and button-style size selectors. Most visual option.",
+      "file": "VariantSwatch.tsx"
+    },
+    "dropdown": {
+      "label": "Dropdown Selects",
+      "description": "Standard select dropdowns. Compact, works well for many options.",
+      "file": "VariantDropdown.tsx"
+    },
+    "button": {
+      "label": "Button Group",
+      "description": "Pill-style buttons in a row. Good for size selection with few options.",
+      "file": "VariantButton.tsx"
+    }
+  },
+  "default": "swatch"
+}

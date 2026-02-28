@@ -1,0 +1,13 @@
+{
+  "slot": "toolbar",
+  "domain": "category",
+  "description": "Category toolbar with results count, view toggle, and sort",
+  "variants": {
+    "standard": {
+      "label": "Standard Toolbar",
+      "description": "Horizontal bar with product count, sort select, and grid/list toggle.",
+      "file": "ToolbarStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

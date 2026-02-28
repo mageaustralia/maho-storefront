@@ -1,0 +1,12 @@
+{
+  "slot": "address-book",
+  "domain": "account",
+  "description": "Customer address book with add/edit form and saved address cards",
+  "variants": {
+    "standard": {
+      "label": "Standard Address Book",
+      "description": "Grid of address cards with inline add/edit form, country/region selectors"
+    }
+  },
+  "default": "standard"
+}

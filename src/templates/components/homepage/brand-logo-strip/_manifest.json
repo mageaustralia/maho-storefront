@@ -1,0 +1,18 @@
+{
+  "slot": "brand-logo-strip",
+  "domain": "homepage",
+  "description": "Brand logo display section on the homepage",
+  "variants": {
+    "strip": {
+      "label": "Logo Strip (Marquee)",
+      "description": "Horizontal auto-scrolling marquee of brand logos. Grayscale by default, color on hover.",
+      "file": "BrandLogoStrip.tsx"
+    },
+    "grid": {
+      "label": "Logo Grid",
+      "description": "Static grid layout of brand logos in 4-6 columns.",
+      "file": "BrandLogoGrid.tsx"
+    }
+  },
+  "default": "strip"
+}

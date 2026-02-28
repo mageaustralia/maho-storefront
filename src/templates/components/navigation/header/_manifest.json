@@ -1,0 +1,33 @@
+{
+  "slot": "header",
+  "domain": "navigation",
+  "description": "Site header with logo, navigation, search, and cart",
+  "variants": {
+    "sticky": {
+      "label": "Sticky Header",
+      "description": "Fixed header that stays visible on scroll. Compact with dropdown nav. Default.",
+      "file": "HeaderSticky.tsx"
+    },
+    "minimal": {
+      "label": "Minimal Header",
+      "description": "Centered logo, uppercase nav links, thin icon strokes. Editorial/fashion feel.",
+      "file": "HeaderMinimal.tsx"
+    },
+    "centered": {
+      "label": "Centered Header",
+      "description": "Two-tier: utility bar on top, centered logo, nav bar below. Premium/luxury.",
+      "file": "HeaderCentered.tsx"
+    },
+    "mega": {
+      "label": "Mega Menu Header",
+      "description": "Full-width dropdown panels with subcategories in columns and optional category image. E-commerce/tech.",
+      "file": "HeaderMega.tsx"
+    },
+    "visual": {
+      "label": "Visual Menu Header",
+      "description": "Megamenu with subcategories as image cards with label overlays. Lifestyle/visual brands.",
+      "file": "HeaderVisual.tsx"
+    }
+  },
+  "default": "sticky"
+}

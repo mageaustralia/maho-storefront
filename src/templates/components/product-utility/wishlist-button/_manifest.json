@@ -1,0 +1,13 @@
+{
+  "slot": "wishlist-button",
+  "domain": "product-utility",
+  "description": "Wishlist/favorites toggle button for adding products to a wishlist",
+  "variants": {
+    "standard": {
+      "label": "Wishlist Button Standard",
+      "description": "Heart icon toggle button with ghost circle styling. Outlined when inactive, filled when active.",
+      "file": "WishlistButtonStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

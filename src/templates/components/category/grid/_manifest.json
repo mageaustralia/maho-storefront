@@ -1,0 +1,18 @@
+{
+  "slot": "grid",
+  "domain": "category",
+  "description": "Product grid layout on category pages",
+  "variants": {
+    "standard": {
+      "label": "Standard Grid",
+      "description": "Responsive CSS grid. 2 cols mobile, 3 tablet, 4 desktop (configurable).",
+      "file": "GridStandard.tsx"
+    },
+    "list": {
+      "label": "List View",
+      "description": "Vertical list with horizontal product cards. Shows more detail per product.",
+      "file": "GridList.tsx"
+    }
+  },
+  "default": "standard"
+}

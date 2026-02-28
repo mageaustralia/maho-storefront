@@ -1,0 +1,13 @@
+{
+  "slot": "contact-form",
+  "domain": "engagement",
+  "description": "Contact us form for customer enquiries",
+  "variants": {
+    "standard": {
+      "label": "Standard",
+      "description": "Full contact form with name, email, subject, and message fields.",
+      "file": "ContactFormStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

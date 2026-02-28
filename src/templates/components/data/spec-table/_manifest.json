@@ -1,0 +1,13 @@
+{
+  "slot": "spec-table",
+  "domain": "data",
+  "description": "Product specification table with grouped key-value rows",
+  "variants": {
+    "standard": {
+      "label": "Standard Spec Table",
+      "description": "Zebra-striped key-value table with optional group headers. Two columns: label (~40% width) and value.",
+      "file": "SpecTableStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

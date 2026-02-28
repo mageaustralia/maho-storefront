@@ -1,0 +1,18 @@
+{
+  "slot": "columns",
+  "domain": "cms",
+  "description": "Multi-column layouts for CMS content sections",
+  "variants": {
+    "two-column": {
+      "label": "Two Column",
+      "description": "Two-column layout with configurable split ratio (50-50, 60-40, 40-60).",
+      "file": "CmsTwoColumn.tsx"
+    },
+    "three-column": {
+      "label": "Three Column",
+      "description": "Three equal columns, stacking to single column on mobile.",
+      "file": "CmsThreeColumn.tsx"
+    }
+  },
+  "default": "two-column"
+}

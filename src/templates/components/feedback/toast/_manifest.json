@@ -1,0 +1,13 @@
+{
+  "slot": "toast",
+  "domain": "feedback",
+  "description": "Toast notification popup",
+  "variants": {
+    "standard": {
+      "label": "Standard Toast",
+      "description": "DaisyUI toast positioned bottom-right. Auto-dismisses after 3 seconds.",
+      "file": "ToastStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

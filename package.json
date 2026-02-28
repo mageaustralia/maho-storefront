@@ -1,0 +1,36 @@
+{
+  "name": "maho-storefront",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run generate && npm run build:css && npm run build:js && wrangler dev --config wrangler.toml --local",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "test": "vitest run",
+    "build:js": "esbuild src/js/app.js --bundle --minify --format=esm --outfile=public/controllers.js.txt --external:https://cdn.jsdelivr.net/*",
+    "build:css": "unocss \"src/**/*.tsx\" \"src/**/*.ts\" \"src/**/*.js\" --out-file public/styles.css",
+    "build:css:legacy": "node scripts/build-theme.js",
+    "generate": "node scripts/generate-store-registry.js",
+    "build": "npm run generate && npm run build:css && npm run build:js",
+    "manifest": "node scripts/generate-manifest.js",
+    "split-css": "node scripts/split-css.js",
+    "docs:dev": "cd docs && npx vitepress dev",
+    "docs:build": "cd docs && npx vitepress build"
+  },
+  "dependencies": {
+    "hono": "latest"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "@hotwired/stimulus": "^3.2.2",
+    "@unocss/cli": "^66.1.0",
+    "@unocss/preset-typography": "^66.6.2",
+    "daisyui": "^5.5.19",
+    "esbuild": "^0.20.0",
+    "typescript": "latest",
+    "unocss": "^66.1.0",
+    "vitest": "^4.0.18",
+    "wrangler": "latest"
+  }
+}

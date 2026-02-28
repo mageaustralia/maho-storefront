@@ -1,0 +1,18 @@
+{
+  "slot": "layout",
+  "domain": "product-display",
+  "description": "Product page layout — gallery and info arrangement",
+  "variants": {
+    "standard": {
+      "label": "Standard 50/50",
+      "description": "Equal two-column layout. Gallery left (carousel), product info right. Description/reviews below as full-width sections.",
+      "file": "LayoutStandard.tsx"
+    },
+    "masonry": {
+      "label": "Masonry Gallery + Slim Sidebar",
+      "description": "Wide masonry image grid left (~65%), slim product info right (~35%). Description/reviews/related as accordion below the sidebar.",
+      "file": "LayoutMasonry.tsx"
+    }
+  },
+  "default": "standard"
+}

@@ -1,0 +1,23 @@
+{
+  "slot": "promo-grid",
+  "domain": "homepage",
+  "description": "Promotional content grid on the homepage",
+  "variants": {
+    "2up": {
+      "label": "Two Column",
+      "description": "Two equal-width promo cards side by side.",
+      "file": "PromoGrid2Up.tsx"
+    },
+    "3up": {
+      "label": "Three Column",
+      "description": "Three equal-width promo cards. Default homepage layout.",
+      "file": "PromoGrid3Up.tsx"
+    },
+    "4up": {
+      "label": "Four Column",
+      "description": "Four cards across. Compact, good for many promos.",
+      "file": "PromoGrid4Up.tsx"
+    }
+  },
+  "default": "3up"
+}

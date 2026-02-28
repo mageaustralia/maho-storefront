@@ -1,0 +1,13 @@
+{
+  "slot": "sticky-atc",
+  "domain": "product-display",
+  "description": "Sticky add-to-cart bar that appears on scroll past the main product actions",
+  "variants": {
+    "standard": {
+      "label": "Standard Sticky Bar",
+      "description": "Fixed bottom bar with product name, price, and Add to Cart button. Slides up on scroll.",
+      "file": "StickyAtcStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

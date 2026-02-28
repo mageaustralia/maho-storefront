@@ -1,0 +1,13 @@
+{
+  "slot": "coupon-field",
+  "domain": "cart",
+  "description": "Coupon/discount code input field in cart",
+  "variants": {
+    "standard": {
+      "label": "Standard Coupon",
+      "description": "Collapsible input with apply button. Shows applied coupons as badges.",
+      "file": "CouponStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

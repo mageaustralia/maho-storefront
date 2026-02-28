@@ -1,0 +1,12 @@
+{
+  "slot": "orders",
+  "domain": "account",
+  "description": "Order history list with detail view and pagination",
+  "variants": {
+    "standard": {
+      "label": "Standard Orders List",
+      "description": "Paginated order history with expandable order details"
+    }
+  },
+  "default": "standard"
+}

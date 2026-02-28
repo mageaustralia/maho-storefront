@@ -1,0 +1,13 @@
+{
+  "slot": "promo-strip",
+  "domain": "homepage",
+  "description": "Horizontal row of icon + text feature callouts (shipping, returns, support)",
+  "variants": {
+    "standard": {
+      "label": "Standard Strip",
+      "description": "4-column grid of icon + text feature highlights. Responsive 2-col on mobile.",
+      "file": "PromoStrip.tsx"
+    }
+  },
+  "default": "standard"
+}

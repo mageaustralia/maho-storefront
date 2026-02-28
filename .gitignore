@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Bun (auto-downloaded by ./maho storefront:build)
+.bun/
+bun.lock
+
+# Build output (regenerated from src/js/)
+# public/controllers.js.txt
+
+# Wrangler
+.wrangler/
+.dev.vars
+wrangler.toml
+wrangler.*.toml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# Docs (separate repo: mageaustralia/maho-storefront-docs)
+docs/
+
+# Build artifacts
+src/generated/
+theme-output/
+*.bak
+
+# Sync/deploy scripts (contain credentials)
+sync.sh
+sync-local.sh
+
+# Temporary files
+*.tmp

@@ -1,0 +1,13 @@
+{
+  "slot": "subcategory-tiles",
+  "domain": "category",
+  "description": "Subcategory navigation tiles above the product grid",
+  "variants": {
+    "standard": {
+      "label": "Standard Tiles",
+      "description": "Horizontal scrollable row of subcategory tiles with images.",
+      "file": "SubcategoryStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

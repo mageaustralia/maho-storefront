@@ -1,0 +1,139 @@
+/* Dev Toolbar — only rendered for authenticated dev sessions */
+.dev-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+}
+
+.dt-bar {
+  display: flex;
+  align-items: center;
+  background: #1e1e2e;
+  border-top: 1px solid #313244;
+  color: #cdd6f4;
+  padding: 0;
+  min-height: 32px;
+}
+
+.dt-collapsed {
+  justify-content: center;
+}
+
+.dt-toggle {
+  padding: 6px 12px;
+  cursor: pointer;
+  color: #89b4fa;
+  font-weight: 600;
+  user-select: none;
+  white-space: nowrap;
+  border-right: 1px solid #313244;
+}
+.dt-toggle:hover {
+  background: #313244;
+}
+
+.dt-items {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  flex: 1;
+}
+
+.dt-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-right: 1px solid #313244;
+  transition: background 0.15s;
+  text-decoration: none;
+  color: inherit;
+}
+.dt-item:hover {
+  background: #313244;
+}
+
+.dt-preview.dt-active {
+  background: #1e1e2e;
+  color: #a6e3a1;
+  font-weight: 600;
+}
+
+.dt-logout {
+  margin-left: auto;
+  color: #f38ba8;
+}
+
+/* Panels */
+.dt-panel {
+  position: fixed;
+  bottom: 32px;
+  left: 0;
+  right: 0;
+  background: #1e1e2e;
+  border-top: 1px solid #313244;
+  color: #cdd6f4;
+  padding: 16px;
+  max-height: 50vh;
+  overflow-y: auto;
+  z-index: 99998;
+}
+
+.dt-mono {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 11px;
+  padding: 2px 0;
+  color: #bac2de;
+}
+
+.dt-config-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.dt-config-btn {
+  padding: 4px 10px;
+  background: #313244;
+  border: 1px solid #45475a;
+  border-radius: 4px;
+  color: #cdd6f4;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+}
+.dt-config-btn:hover {
+  background: #45475a;
+}
+.dt-config-btn.dt-active {
+  background: #89b4fa;
+  color: #1e1e2e;
+  border-color: #89b4fa;
+}
+
+.dt-action-btn {
+  display: block;
+  padding: 6px 14px;
+  background: #313244;
+  border: 1px solid #45475a;
+  border-radius: 4px;
+  color: #cdd6f4;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  margin-bottom: 6px;
+  transition: background 0.15s;
+}
+.dt-action-btn:hover {
+  background: #45475a;
+}
+
+.dt-action-status {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #a6e3a1;
+}

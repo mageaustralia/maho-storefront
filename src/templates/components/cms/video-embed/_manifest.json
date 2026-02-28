@@ -1,0 +1,13 @@
+{
+  "slot": "video-embed",
+  "domain": "cms",
+  "description": "Responsive video embed wrapper for YouTube, Vimeo, and other iframe sources",
+  "variants": {
+    "standard": {
+      "label": "Standard Video Embed",
+      "description": "Responsive 16:9 iframe wrapper with rounded corners.",
+      "file": "VideoEmbedStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

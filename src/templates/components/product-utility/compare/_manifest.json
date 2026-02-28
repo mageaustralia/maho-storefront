@@ -1,0 +1,18 @@
+{
+  "slot": "compare",
+  "domain": "product-utility",
+  "description": "Product comparison components for side-by-side spec comparison",
+  "variants": {
+    "tray": {
+      "label": "Compare Tray",
+      "description": "Fixed bottom tray showing selected products with thumbnails and a Compare button.",
+      "file": "CompareTray.tsx"
+    },
+    "table": {
+      "label": "Compare Table",
+      "description": "Full comparison table with product images as column headers and spec rows.",
+      "file": "CompareTable.tsx"
+    }
+  },
+  "default": "tray"
+}

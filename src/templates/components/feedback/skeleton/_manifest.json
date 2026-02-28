@@ -1,0 +1,13 @@
+{
+  "slot": "skeleton",
+  "domain": "feedback",
+  "description": "Loading skeleton placeholder",
+  "variants": {
+    "standard": {
+      "label": "Standard Skeleton",
+      "description": "Animated pulse placeholder matching component dimensions. Prevents CLS.",
+      "file": "SkeletonStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

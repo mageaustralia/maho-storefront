@@ -1,0 +1,13 @@
+{
+  "slot": "progress-bar",
+  "domain": "cart",
+  "description": "Free shipping threshold progress bar",
+  "variants": {
+    "standard": {
+      "label": "Standard Progress",
+      "description": "DaisyUI progress bar showing distance to free shipping threshold.",
+      "file": "ProgressStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

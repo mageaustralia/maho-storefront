@@ -1,0 +1,13 @@
+{
+  "slot": "shop-by-category",
+  "domain": "homepage",
+  "description": "Category navigation tiles on the homepage",
+  "variants": {
+    "tiles": {
+      "label": "Category Tiles",
+      "description": "Grid of category cards with images and titles. Links to category pages.",
+      "file": "ShopByCategoryTiles.tsx"
+    }
+  },
+  "default": "tiles"
+}

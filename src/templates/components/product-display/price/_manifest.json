@@ -1,0 +1,18 @@
+{
+  "slot": "price",
+  "domain": "product-display",
+  "description": "Product price display (regular, sale, range)",
+  "variants": {
+    "standard": {
+      "label": "Standard Price",
+      "description": "Shows current price with strikethrough for sale items. Compact inline display.",
+      "file": "PriceStandard.tsx"
+    },
+    "stacked": {
+      "label": "Stacked Price",
+      "description": "Vertical layout with 'Was/Now' labels. More prominent sale display.",
+      "file": "PriceStacked.tsx"
+    }
+  },
+  "default": "standard"
+}

@@ -1,0 +1,13 @@
+{
+  "slot": "accordion-faq",
+  "domain": "cms",
+  "description": "Collapsible FAQ accordion for question and answer content",
+  "variants": {
+    "standard": {
+      "label": "Standard Accordion FAQ",
+      "description": "List of collapsible Q&A items using DaisyUI collapse with join container.",
+      "file": "AccordionFaqStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

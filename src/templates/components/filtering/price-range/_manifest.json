@@ -1,0 +1,13 @@
+{
+  "slot": "price-range",
+  "domain": "filtering",
+  "description": "Price range dual-slider filter",
+  "variants": {
+    "standard": {
+      "label": "Dual Slider",
+      "description": "Two-thumb range slider with min/max labels. Native HTML range inputs.",
+      "file": "PriceRangeStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

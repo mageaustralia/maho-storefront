@@ -1,0 +1,13 @@
+{
+  "slot": "promo-banner",
+  "domain": "homepage",
+  "description": "Sitewide announcement banner at the top of the page",
+  "variants": {
+    "standard": {
+      "label": "Standard Banner",
+      "description": "Full-width colored bar with text and optional link. Dismissible.",
+      "file": "PromoBannerTop.tsx"
+    }
+  },
+  "default": "standard"
+}

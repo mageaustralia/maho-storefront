@@ -1,0 +1,184 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ====================================================================
+   NOT FOUND
+   ==================================================================== */
+
+.not-found {
+  text-align: center;
+  padding: var(--sp-20) var(--sp-0);
+}
+
+.not-found h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  margin-bottom: var(--sp-3);
+}
+
+.not-found p {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-6);
+}
+
+.not-found a {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--sp-3) var(--sp-7);
+  font-weight: 600;
+  color: var(--color-white);
+  background: var(--color-accent);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+
+.not-found a:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-white);
+}
+
+
+
+/* ====================================================================
+   BLOG
+   ==================================================================== */
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-6);
+  padding: var(--sp-2) var(--sp-0) var(--sp-10);
+}
+
+.blog-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow var(--transition-base), border-color var(--transition-base), transform var(--transition-base);
+}
+
+.blog-card:hover {
+  color: inherit;
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.blog-card-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--color-bg-muted);
+}
+
+.blog-card-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, var(--color-bg-muted) 0%, var(--color-border-light) 100%);
+}
+
+.blog-card-info {
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1-5);
+}
+
+.blog-card-date {
+  font-size: var(--font-size-xxs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.blog-card-title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.blog-card-excerpt {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blog-post-page {
+  padding: var(--sp-10) var(--sp-0);
+  max-width: 800px;
+}
+
+.blog-post-header {
+  margin-bottom: var(--sp-8);
+}
+
+.blog-post-header h1 {
+  font-size: clamp(var(--font-size-2xl), 4vw, var(--font-size-5xl));
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-2);
+}
+
+.blog-post-date {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+}
+
+.blog-post-hero {
+  width: 100%;
+  max-height: var(--size-modal-width);
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--sp-8);
+}
+
+.blog-post-nav {
+  padding-top: var(--sp-8);
+  border-top: var(--border-width) solid var(--color-border);
+  margin-top: var(--sp-8);
+}
+
+@media (max-width: 768px) {
+  .blog-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .blog-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* ====================================================================
+   CMS PAGE
+   ==================================================================== */
+
+.cms-page {
+  padding: var(--sp-10) var(--sp-0);
+  max-width: 800px;
+}
+
+.cms-page h1 {
+  font-size: clamp(var(--font-size-2xl), 4vw, var(--font-size-5xl));
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-6);
+}

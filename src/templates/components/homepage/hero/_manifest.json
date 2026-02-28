@@ -1,0 +1,28 @@
+{
+  "slot": "hero",
+  "domain": "homepage",
+  "description": "Hero section at the top of the homepage",
+  "variants": {
+    "fullwidth": {
+      "label": "Full Width Hero",
+      "description": "Edge-to-edge image/gradient with overlay text and CTA. High impact.",
+      "file": "HeroFullwidth.tsx"
+    },
+    "split": {
+      "label": "Split Hero",
+      "description": "50/50 split with content on one side and image on the other.",
+      "file": "HeroSplit.tsx"
+    },
+    "minimal": {
+      "label": "Minimal Hero",
+      "description": "Text-focused with subtle background. Clean, editorial feel.",
+      "file": "HeroMinimal.tsx"
+    },
+    "slideshow": {
+      "label": "Slideshow Hero",
+      "description": "Auto-rotating slides with different images and messages.",
+      "file": "HeroSlideshow.tsx"
+    }
+  },
+  "default": "fullwidth"
+}

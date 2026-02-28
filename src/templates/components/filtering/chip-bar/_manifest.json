@@ -1,0 +1,13 @@
+{
+  "slot": "chip-bar",
+  "domain": "filtering",
+  "description": "Active filter chips displayed above product grid",
+  "variants": {
+    "standard": {
+      "label": "Standard Chips",
+      "description": "Horizontal row of DaisyUI badges with remove buttons. Scrollable on mobile.",
+      "file": "ChipBarStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

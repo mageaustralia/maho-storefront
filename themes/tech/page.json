@@ -1,0 +1,74 @@
+{
+  "pages": {
+    "product": {
+      "components": {
+        "layout": "masonry",
+        "gallery": "masonry",
+        "info-panel": "compact",
+        "card": "standard",
+        "price": "standard",
+        "variant-picker": "swatch",
+        "quantity-stepper": "standard",
+        "tabs": "tabbed"
+      },
+      "sections": {
+        "showBreadcrumbs": true,
+        "showSizeGuide": false,
+        "showRelated": true,
+        "showUpsell": true,
+        "showRecentlyViewed": true,
+        "showSpecifications": true,
+        "showReviews": true,
+        "reviewsPosition": "tabbed"
+      }
+    },
+    "category": {
+      "components": {
+        "card": "standard",
+        "filter": "sidebar",
+        "sort": "standard",
+        "pagination": "standard"
+      },
+      "gridColumns": { "mobile": 2, "tablet": 3, "desktop": 3 },
+      "filterPosition": "sidebar-left",
+      "showSubcategories": true,
+      "cmsInsertion": "row",
+      "cmsInsertPosition": 3
+    },
+    "cart": {
+      "components": {
+        "drawer": "slide",
+        "line-item": "standard",
+        "summary": "standard"
+      },
+      "showRecommendations": true,
+      "showProgressBar": true
+    },
+    "header": {
+      "variant": "mega"
+    },
+    "footer": {
+      "variant": "standard"
+    },
+    "homepage": {
+      "components": {
+        "hero": "fullwidth",
+        "promo-grid": "3up"
+      }
+    },
+    "search": {
+      "components": {
+        "bar": "overlay",
+        "results": "standard"
+      }
+    },
+    "account": {
+      "components": {
+        "auth": "standard",
+        "dashboard": "standard",
+        "orders": "standard",
+        "address-book": "standard"
+      }
+    }
+  }
+}

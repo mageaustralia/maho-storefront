@@ -1,0 +1,13 @@
+{
+  "slot": "featured-products",
+  "domain": "homepage",
+  "description": "Featured product row section for the homepage. Reusable for New Arrivals, Trending, Bestsellers — just different heading and data.",
+  "variants": {
+    "row": {
+      "label": "Scrolling Row",
+      "description": "Horizontal scrolling row of product cards with section heading and View All link. Uses scroll-snap.",
+      "file": "FeaturedProductsRow.tsx"
+    }
+  },
+  "default": "row"
+}

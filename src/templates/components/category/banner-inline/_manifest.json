@@ -1,0 +1,13 @@
+{
+  "slot": "banner-inline",
+  "domain": "category",
+  "description": "Promotional banner injected between product rows in category grid",
+  "variants": {
+    "standard": {
+      "label": "Standard Inline Banner",
+      "description": "Full-width promo card with image-full pattern, ~3:1 aspect ratio on desktop, CTA button.",
+      "file": "BannerInlineStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

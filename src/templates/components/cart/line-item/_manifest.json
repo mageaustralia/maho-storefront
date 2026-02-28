@@ -1,0 +1,13 @@
+{
+  "slot": "line-item",
+  "domain": "cart",
+  "description": "Individual item row in the cart page",
+  "variants": {
+    "standard": {
+      "label": "Standard Line Item",
+      "description": "Horizontal layout with image, details, quantity stepper, and remove button.",
+      "file": "LineItemStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

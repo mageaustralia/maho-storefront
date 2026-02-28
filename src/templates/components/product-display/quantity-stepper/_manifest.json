@@ -1,0 +1,13 @@
+{
+  "slot": "quantity-stepper",
+  "domain": "product-display",
+  "description": "Quantity input with increment/decrement buttons",
+  "variants": {
+    "standard": {
+      "label": "Standard Stepper",
+      "description": "DaisyUI join group with -/+ buttons flanking the quantity input.",
+      "file": "QuantityStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

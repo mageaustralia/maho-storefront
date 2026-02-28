@@ -1,0 +1,28 @@
+{
+  "slot": "card",
+  "domain": "product-display",
+  "description": "Product card shown in grids, search results, and recommendations",
+  "variants": {
+    "standard": {
+      "label": "Standard Card",
+      "description": "Vertical card with image, title, price, and quick-add button. DaisyUI card with shadow hover.",
+      "file": "CardStandard.tsx"
+    },
+    "minimal": {
+      "label": "Minimal Card",
+      "description": "Clean card without shadows or borders. Image + text only, modern aesthetic.",
+      "file": "CardMinimal.tsx"
+    },
+    "horizontal": {
+      "label": "Horizontal Card",
+      "description": "Side-by-side image and content. Good for list view or search results.",
+      "file": "CardHorizontal.tsx"
+    },
+    "featured": {
+      "label": "Featured Card",
+      "description": "Larger, prominent card for hero/spotlight positions. Bigger image, rating stars, sale badge with savings percentage, and Quick Add button.",
+      "file": "CardFeatured.tsx"
+    }
+  },
+  "default": "standard"
+}

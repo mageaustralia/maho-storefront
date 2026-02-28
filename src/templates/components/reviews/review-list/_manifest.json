@@ -1,0 +1,18 @@
+{
+  "slot": "review-list",
+  "domain": "reviews",
+  "description": "List of customer product reviews with ratings, text, and metadata",
+  "variants": {
+    "standard": {
+      "label": "Standard Review List",
+      "description": "Vertical stack of review cards with name, date, star rating, title, body, and verified badge.",
+      "file": "ReviewListStandard.tsx"
+    },
+    "compact": {
+      "label": "Compact Review List",
+      "description": "Condensed inline layout — no title, shorter body text, tighter spacing.",
+      "file": "ReviewListCompact.tsx"
+    }
+  },
+  "default": "standard"
+}

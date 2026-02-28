@@ -1,0 +1,13 @@
+{
+  "slot": "breadcrumb",
+  "domain": "navigation",
+  "description": "Breadcrumb navigation trail",
+  "variants": {
+    "standard": {
+      "label": "Standard Breadcrumb",
+      "description": "Horizontal breadcrumb with separator arrows. Truncates long names on mobile.",
+      "file": "BreadcrumbStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

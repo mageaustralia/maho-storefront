@@ -1,0 +1,29 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ===================================================================
+   TechZone Theme Override (sv_2 store)
+   Cool blue-silver tech aesthetic over the base fashion theme
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+body[data-store="sv_2"] {
+  /* Accent: electric blue → deeper blue on hover */
+  --color-accent: #0091ff;
+  --color-accent-hover: #0070cc;
+  --color-accent-light: #eef6ff;
+
+  /* Input focus ring matches accent */
+  --input-focus-color: var(--color-accent);
+
+  /* Slightly cooler text tones */
+  --color-text-secondary: #4b5563;
+
+  /* Font: Inter for a cleaner tech feel */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}

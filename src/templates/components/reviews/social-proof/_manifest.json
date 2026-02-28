@@ -1,0 +1,13 @@
+{
+  "slot": "social-proof",
+  "domain": "reviews",
+  "description": "Social proof indicators showing trust signals and store statistics",
+  "variants": {
+    "strip": {
+      "label": "Social Proof Strip",
+      "description": "Thin horizontal bar with icon-text stat items like customer count, average rating, and return policy.",
+      "file": "SocialProofStrip.tsx"
+    }
+  },
+  "default": "strip"
+}

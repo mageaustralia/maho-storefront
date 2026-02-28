@@ -1,0 +1,18 @@
+{
+  "slot": "tabs",
+  "domain": "product-display",
+  "description": "Product info tabs (description, specs, reviews, shipping)",
+  "variants": {
+    "tabbed": {
+      "label": "Tabbed",
+      "description": "DaisyUI tabs with underline style. Standard horizontal tabs below product info.",
+      "file": "TabsTabbed.tsx"
+    },
+    "accordion": {
+      "label": "Accordion",
+      "description": "Collapsible accordion sections. Better for mobile, shows all section titles at once.",
+      "file": "TabsAccordion.tsx"
+    }
+  },
+  "default": "tabbed"
+}

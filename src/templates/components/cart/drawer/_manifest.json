@@ -1,0 +1,18 @@
+{
+  "slot": "drawer",
+  "domain": "cart",
+  "description": "Cart drawer that slides out when items are added",
+  "variants": {
+    "slide": {
+      "label": "Slide Panel",
+      "description": "Slides in from the right. Shows items, totals, and checkout button.",
+      "file": "DrawerSlide.tsx"
+    },
+    "modal": {
+      "label": "Modal Overlay",
+      "description": "Centered modal showing cart contents. Less intrusive for content-heavy pages.",
+      "file": "DrawerModal.tsx"
+    }
+  },
+  "default": "slide"
+}

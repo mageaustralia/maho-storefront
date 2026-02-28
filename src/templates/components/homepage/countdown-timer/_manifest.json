@@ -1,0 +1,13 @@
+{
+  "slot": "countdown-timer",
+  "domain": "homepage",
+  "description": "Sale countdown timer banner for the homepage",
+  "variants": {
+    "standard": {
+      "label": "Standard Countdown",
+      "description": "Banner with countdown boxes showing days/hours/minutes/seconds, heading, subtext, and CTA link.",
+      "file": "CountdownStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

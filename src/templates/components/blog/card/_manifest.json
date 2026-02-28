@@ -1,0 +1,18 @@
+{
+  "slot": "card",
+  "domain": "blog",
+  "description": "Blog post card for use in grids, listings, and sidebar widgets",
+  "variants": {
+    "standard": {
+      "label": "Standard Blog Card",
+      "description": "Card with featured image, title, excerpt, date, author, and read-more link.",
+      "file": "BlogCardStandard.tsx"
+    },
+    "minimal": {
+      "label": "Minimal Blog Card",
+      "description": "Text-only card without image. Title, date, and short excerpt in a clean layout.",
+      "file": "BlogCardMinimal.tsx"
+    }
+  },
+  "default": "standard"
+}

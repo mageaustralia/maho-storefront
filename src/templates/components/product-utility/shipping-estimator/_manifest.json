@@ -1,0 +1,13 @@
+{
+  "slot": "shipping-estimator",
+  "domain": "product-utility",
+  "description": "Shipping cost and delivery date estimator with postcode entry",
+  "variants": {
+    "standard": {
+      "label": "Shipping Estimator Standard",
+      "description": "Inline postcode entry with join input group pattern. Shows shipping methods and costs.",
+      "file": "ShippingEstimatorStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

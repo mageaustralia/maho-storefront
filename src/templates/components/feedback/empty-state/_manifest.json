@@ -1,0 +1,13 @@
+{
+  "slot": "empty-state",
+  "domain": "feedback",
+  "description": "Empty state display (no results, empty cart, no orders)",
+  "variants": {
+    "standard": {
+      "label": "Standard Empty State",
+      "description": "Centered icon, message, and CTA button. Used for empty cart, no search results, etc.",
+      "file": "EmptyStateStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

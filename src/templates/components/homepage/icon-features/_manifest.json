@@ -1,0 +1,18 @@
+{
+  "slot": "icon-features",
+  "domain": "homepage",
+  "description": "Feature highlight cards with icons for the homepage (e.g. Free Shipping, Easy Returns, VIP Rewards)",
+  "variants": {
+    "row": {
+      "label": "Feature Row",
+      "description": "Horizontal row of 3-4 feature cards with icon, title, and description.",
+      "file": "IconFeatureRow.tsx"
+    },
+    "grid": {
+      "label": "Feature Grid",
+      "description": "2x2 grid layout for displaying more features.",
+      "file": "IconFeatureGrid.tsx"
+    }
+  },
+  "default": "row"
+}

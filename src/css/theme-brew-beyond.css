@@ -1,0 +1,110 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ===================================================================
+   Brew & Beyond Theme Override (store_view_3)
+   Warm, artisanal coffee aesthetic with earth tones and craft sensibility
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&display=swap');
+
+body[data-store="store_view_3"] {
+  /* Primary: deep coffee brown */
+  --color-primary: #2c1810;
+  --color-primary-light: #3d2316;
+
+  /* Accent: warm gold/caramel */
+  --color-accent: #c9a86c;
+  --color-accent-hover: #b8944f;
+  --color-accent-light: #faf7f2;
+
+  /* Success: forest green for organic feel */
+  --color-success: #166534;
+  --color-success-bg: #dcfce7;
+
+  /* Error: muted red */
+  --color-error: #dc2626;
+  --color-error-bg: #fee2e2;
+
+  /* Sale: deep red */
+  --color-sale: #b91c1c;
+
+  /* Out of stock: warm gray */
+  --color-out-of-stock: #78716c;
+
+  /* Text: warm stone tones */
+  --color-text: #1c1917;
+  --color-text-secondary: #57534e;
+  --color-text-muted: #a8a29e;
+
+  /* Borders: warm stone */
+  --color-border: #e7e5e4;
+  --color-border-light: #f5f5f4;
+
+  /* Backgrounds: warm off-whites */
+  --color-bg: #ffffff;
+  --color-bg-subtle: #fafaf9;
+  --color-bg-muted: #f5f5f4;
+  --color-bg-overlay: rgba(28, 25, 23, 0.04);
+
+  /* Overlay */
+  --color-overlay: rgba(28, 25, 23, 0.5);
+  --color-overlay-light: rgba(0, 0, 0, 0.4);
+
+  /* Typography: Elegant serif fonts */
+  --font-sans: 'Lora', Georgia, serif;
+  --font-heading: 'Playfair Display', Georgia, serif;
+
+  /* Slightly larger base for readability with serif */
+  --font-size-base: 16px;
+  --line-height-base: 1.7;
+
+  /* Heading sizes */
+  --heading-h1-size: 2.5rem;
+  --heading-h2-size: 1.75rem;
+  --heading-h3-size: 1.375rem;
+  --heading-h4-size: 1.125rem;
+  --heading-weight: 600;
+
+  /* Input focus ring */
+  --input-focus-color: var(--color-accent);
+
+  /* Smaller border radius for a more traditional feel */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Softer shadows with warm tones */
+  --shadow-xs: 0 1px 2px rgba(28, 25, 23, 0.04);
+  --shadow-sm: 0 2px 4px rgba(28, 25, 23, 0.05);
+  --shadow-md: 0 4px 12px rgba(28, 25, 23, 0.08);
+  --shadow-lg: 0 8px 24px rgba(28, 25, 23, 0.1);
+  --shadow-xl: 0 16px 48px rgba(28, 25, 23, 0.12);
+
+  /* Button styles */
+  --btn-border-radius: var(--radius-sm);
+  --btn-font-weight: 600;
+
+  /* Slightly larger header */
+  --header-height: 64px;
+}
+
+/* Additional style refinements for Brew & Beyond */
+body[data-store="store_view_3"] .product-card {
+  border: 1px solid var(--color-border);
+}
+
+body[data-store="store_view_3"] .btn-primary {
+  letter-spacing: 0.02em;
+}
+
+body[data-store="store_view_3"] h1,
+body[data-store="store_view_3"] h2,
+body[data-store="store_view_3"] h3 {
+  letter-spacing: -0.01em;
+}

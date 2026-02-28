@@ -1,0 +1,23 @@
+{
+  "slot": "size-guide",
+  "domain": "product-utility",
+  "description": "Product size guide display with measurements and sizing information",
+  "variants": {
+    "table": {
+      "label": "Size Guide Table",
+      "description": "Standard table-based size guide with zebra striping and horizontal scroll.",
+      "file": "SizeGuideTable.tsx"
+    },
+    "visual": {
+      "label": "Visual Size Guide",
+      "description": "Visual body/racket diagram with measurement list displayed side by side.",
+      "file": "SizeGuideVisual.tsx"
+    },
+    "modal": {
+      "label": "Size Guide Modal",
+      "description": "Table-based size guide wrapped in a DaisyUI modal dialog with trigger button.",
+      "file": "SizeGuideModal.tsx"
+    }
+  },
+  "default": "table"
+}

@@ -1,0 +1,186 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ===================================================================
+   Theme Variables
+   Auto-generated from theme.json — DO NOT EDIT DIRECTLY
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Colors — defaults for the 'maho' base theme.
+     DaisyUI palette themes override --color-primary, --color-base-100,
+     --color-base-content, etc. via [data-theme]. Legacy CSS variables
+     reference those DaisyUI tokens so all components adapt automatically. */
+  --color-primary: #111111;
+  --color-primary-light: #1a1a1a;
+  --color-accent: var(--color-primary);
+  --color-accent-hover: var(--color-primary);
+  --color-accent-light: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --color-success: #10b981;
+  --color-success-bg: #ecfdf5;
+  --color-error: #ef4444;
+  --color-error-bg: #fef2f2;
+  --color-sale: #ef4444;
+  --color-out-of-stock: #9ca3af;
+  --color-text: var(--color-base-content, #111111);
+  --color-text-secondary: color-mix(in srgb, var(--color-base-content, #525252) 70%, transparent);
+  --color-text-muted: color-mix(in srgb, var(--color-base-content, #9ca3af) 50%, transparent);
+  --color-border: var(--color-base-300, #e5e5e5);
+  --color-border-light: var(--color-base-200, #f5f5f5);
+  --color-bg: var(--color-base-100, #ffffff);
+  --color-bg-subtle: var(--color-base-200, #fafafa);
+  --color-bg-muted: var(--color-base-200, #f5f5f5);
+  --color-bg-overlay: rgba(17, 17, 17, 0.04);
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-overlay: rgba(15, 23, 42, 0.4);
+  --color-overlay-light: rgba(0, 0, 0, 0.5);
+  --input-border-color: var(--color-base-300, #e5e5e5);
+
+  /* Fonts */
+  --font-sans: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --font-heading: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Typography */
+  --font-size-root: 15px;
+  --line-height-base: 1.6;
+  --font-size-h1: 2.25rem;
+  --font-size-h2: 1.625rem;
+  --font-size-h3: 1.25rem;
+  --font-size-h4: 1.125rem;
+  --letter-spacing: -0.01em;
+  --font-weight-heading: 700;
+  --font-weight-body: 400;
+  --font-size-xs: 11px;
+  --font-size-xxs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-xxl: 22px;
+  --font-size-2xl: 24px;
+  --font-size-2xl-plus: 26px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 32px;
+  --font-size-5xl: 36px;
+
+  /* Space Scale */
+  --sp-0: 0;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 28px;
+  --sp-8: 32px;
+  --sp-9: 36px;
+  --sp-10: 40px;
+  --sp-11: 44px;
+  --sp-12: 48px;
+  --sp-14: 56px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+  --sp-px: 1px;
+  --sp-0-5: 2px;
+  --sp-1-5: 6px;
+  --sp-2-5: 10px;
+  --sp-3-5: 14px;
+
+  /* Breakpoints */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 640px;
+  --breakpoint-lg: 768px;
+  --breakpoint-xl: 1024px;
+  --breakpoint-2xl: 1280px;
+
+  /* Sizes */
+  --size-header-height: 60px;
+  --size-header-height-mobile: 56px;
+  --size-content-max: 1320px;
+  --size-content-padding: 20px;
+  --size-content-padding-mobile: 16px;
+  --size-sidebar-width: 240px;
+  --size-icon-sm: 16px;
+  --size-icon-md: 20px;
+  --size-icon-lg: 24px;
+  --size-icon-xl: 32px;
+  --size-avatar-sm: 32px;
+  --size-avatar-md: 44px;
+  --size-avatar-lg: 52px;
+  --size-avatar-xl: 64px;
+  --size-thumbnail-sm: 48px;
+  --size-thumbnail-md: 64px;
+  --size-thumbnail-lg: 72px;
+  --size-thumbnail-xl: 80px;
+  --size-thumbnail-xxl: 100px;
+  --size-input-height: 44px;
+  --size-input-height-sm: 36px;
+  --size-button-height: 44px;
+  --size-button-height-sm: 36px;
+  --size-button-min-width: 180px;
+  --size-touch-target: 44px;
+  --size-drawer-width: 380px;
+  --size-drawer-width-mobile: 320px;
+  --size-modal-width: 480px;
+  --size-modal-width-lg: 640px;
+  --size-form-max-width: 440px;
+  --size-form-max-width-lg: 560px;
+  --size-card-min-width: 200px;
+  --size-card-max-width: 300px;
+
+  /* Borders */
+  --border-width: 1px;
+  --border-width-md: 2px;
+
+  /* Border Radii */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
+
+  /* Transitions */
+  --transition-fast: 120ms ease;
+  --transition-base: 180ms ease;
+  --transition-slow: 280ms ease;
+
+  /* Component Tokens */
+  --btn-radius: var(--radius-xl);
+  --btn-text-transform: none;
+  --btn-font-weight: 600;
+  --btn-padding: 12px 28px;
+  --card-radius: var(--radius-md);
+  --card-shadow: none;
+  --card-hover-shadow: var(--shadow-md);
+  --badge-radius: var(--radius-sm);
+  --badge-text-transform: uppercase;
+  --badge-font-size: 0.7rem;
+  --badge-font-weight: 700;
+  --input-radius: var(--radius-lg);
+  --input-border-color: var(--color-border);
+  --input-focus-color: var(--color-accent);
+
+  /* Legacy Aliases (for backward compatibility) */
+  --header-height: var(--size-header-height);
+  --content-max: var(--size-content-max);
+  --content-padding: var(--size-content-padding);
+
+}

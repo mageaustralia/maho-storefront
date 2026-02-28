@@ -1,0 +1,28 @@
+{
+  "slot": "footer",
+  "domain": "navigation",
+  "description": "Site footer with branding, links, newsletter, and copyright",
+  "variants": {
+    "standard": {
+      "label": "Standard Footer",
+      "description": "4-column layout with newsletter, link columns, and copyright bar. Full-featured.",
+      "file": "FooterStandard.tsx"
+    },
+    "minimal": {
+      "label": "Minimal Footer",
+      "description": "Single row with copyright and social icons. Maximum simplicity.",
+      "file": "FooterMinimal.tsx"
+    },
+    "centered": {
+      "label": "Centered Footer",
+      "description": "Centered logo, horizontal nav links, social icons, and copyright. Brand-focused.",
+      "file": "FooterCentered.tsx"
+    },
+    "mega": {
+      "label": "Mega Footer",
+      "description": "Two-row footer: logo + columns + newsletter on top, social + copyright on bottom. Content-rich.",
+      "file": "FooterMega.tsx"
+    }
+  },
+  "default": "standard"
+}

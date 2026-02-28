@@ -1,0 +1,13 @@
+{
+  "slot": "stats-counter",
+  "domain": "data",
+  "description": "Row of statistic counters with values and labels",
+  "variants": {
+    "row": {
+      "label": "Stats Counter Row",
+      "description": "Horizontal stats row using DaisyUI stats component. Responsive: vertical on mobile, horizontal on desktop.",
+      "file": "StatsCounterRow.tsx"
+    }
+  },
+  "default": "row"
+}

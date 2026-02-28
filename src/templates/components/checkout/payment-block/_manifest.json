@@ -1,0 +1,13 @@
+{
+  "slot": "payment-block",
+  "domain": "checkout",
+  "description": "Payment method selection block",
+  "variants": {
+    "standard": {
+      "label": "Standard",
+      "description": "Radio-based payment method selector with bordered cards that highlight when selected.",
+      "file": "PaymentBlockStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

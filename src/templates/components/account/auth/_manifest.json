@@ -1,0 +1,12 @@
+{
+  "slot": "auth",
+  "domain": "account",
+  "description": "Authentication forms (login, register, forgot password)",
+  "variants": {
+    "standard": {
+      "label": "Standard Auth Forms",
+      "description": "Traditional email/password forms with field validation"
+    }
+  },
+  "default": "standard"
+}

@@ -1,0 +1,13 @@
+{
+  "slot": "trust-badges",
+  "domain": "checkout",
+  "description": "Checkout-specific trust and security indicator badges",
+  "variants": {
+    "standard": {
+      "label": "Standard",
+      "description": "Centered row of trust indicators with lock, shield, and credit card icons for checkout reassurance.",
+      "file": "CheckoutTrustBadges.tsx"
+    }
+  },
+  "default": "standard"
+}

@@ -1,0 +1,29 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ====================================================================
+   SEARCH OVERLAY — positioning & animation only
+   (inner styling handled by utility classes in SearchOverlay.tsx)
+   ==================================================================== */
+
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  display: flex;
+  justify-content: center;
+  padding-top: 10vh;
+}
+
+.search-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}

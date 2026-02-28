@@ -1,0 +1,143 @@
+/**
+ * Maho Storefront
+ * Copyright (c) 2026 Mage Australia Pty Ltd
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ====================================================================
+   FOOTER
+   ==================================================================== */
+
+.site-footer {
+  margin-top: var(--sp-20);
+  border-top: none;
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.footer-inner {
+  max-width: var(--content-max);
+  margin: var(--sp-0) auto;
+  padding: var(--sp-12) var(--content-padding) var(--sp-8);
+}
+
+/* Newsletter section */
+.footer-newsletter {
+  text-align: center;
+  margin-bottom: var(--sp-10);
+  padding-bottom: var(--sp-8);
+  border-bottom: var(--border-width) solid rgba(255, 255, 255, 0.12);
+}
+
+.footer-newsletter h4 {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-white);
+  margin: var(--sp-0) var(--sp-0) var(--sp-2);
+}
+
+.footer-newsletter p {
+  font-size: var(--font-size-base);
+  color: rgba(255, 255, 255, 0.6);
+  margin: var(--sp-0) var(--sp-0) var(--sp-4);
+}
+
+.newsletter-form {
+  display: flex;
+  gap: var(--sp-2);
+  max-width: 400px;
+  margin: var(--sp-0) auto;
+}
+
+.newsletter-input {
+  flex: 1;
+  padding: var(--sp-2-5) var(--sp-3-5);
+  font-size: var(--font-size-base);
+  border: var(--border-width) solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-white);
+  transition: border-color var(--transition-fast);
+}
+
+.newsletter-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.newsletter-input:focus {
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.newsletter-btn {
+  padding: var(--sp-2-5) var(--sp-6);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-white);
+  background: var(--color-accent);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.newsletter-btn:hover {
+  background: var(--color-accent-hover);
+  box-shadow: 0 2px 12px rgba(255, 45, 135, 0.4);
+}
+
+.newsletter-message {
+  font-size: var(--font-size-sm);
+  margin-top: var(--sp-2);
+}
+
+/* Footer link columns */
+.footer-columns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-8);
+}
+
+.footer-col h4 {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-white);
+  margin: var(--sp-0) var(--sp-0) var(--sp-3);
+}
+
+.footer-col ul {
+  list-style: none;
+  padding: var(--sp-0);
+  margin: var(--sp-0);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.footer-col a {
+  font-size: var(--font-size-base);
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.footer-col a:hover {
+  color: var(--color-accent);
+}
+
+/* Footer bottom bar */
+.footer-bottom {
+  padding-top: var(--sp-6);
+  border-top: var(--border-width) solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.footer-copy {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.35);
+}

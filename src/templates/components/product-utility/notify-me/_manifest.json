@@ -1,0 +1,13 @@
+{
+  "slot": "notify-me",
+  "domain": "product-utility",
+  "description": "Back in stock notification signup for out-of-stock products",
+  "variants": {
+    "standard": {
+      "label": "Notify Me Standard",
+      "description": "Inline email form shown when a product is out of stock. Uses DaisyUI fieldset pattern.",
+      "file": "NotifyMeStandard.tsx"
+    }
+  },
+  "default": "standard"
+}

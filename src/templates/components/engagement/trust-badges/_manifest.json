@@ -1,0 +1,13 @@
+{
+  "slot": "trust-badges",
+  "domain": "engagement",
+  "description": "Trust indicator badges for building customer confidence",
+  "variants": {
+    "standard": {
+      "label": "Badge Row",
+      "description": "Horizontal row of trust badges with icons, titles, and optional descriptions. Wraps on mobile.",
+      "file": "TrustBadgeRow.tsx"
+    }
+  },
+  "default": "standard"
+}
