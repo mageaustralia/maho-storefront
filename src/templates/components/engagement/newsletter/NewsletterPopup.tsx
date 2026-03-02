@@ -27,14 +27,14 @@ export const NewsletterPopup: FC<NewsletterPopupProps> = ({
 }) => (
   <dialog
     id="newsletter-modal"
-    class="modal"
+    class="modal max-md:modal-bottom"
     data-controller="newsletter-popup"
     data-newsletter-popup-delay-value={delay}
   >
     <div class="modal-box max-w-md">
       <form method="dialog">
         <button
-          class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3"
+          class="btn btn-circle absolute right-3 top-3 bg-base-200 hover:bg-base-300 border-none text-base-content"
           aria-label="Close"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

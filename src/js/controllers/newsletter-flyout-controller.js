@@ -6,8 +6,32 @@
 
 import { Controller } from '../stimulus.js';
 
-export default class NewsletterController extends Controller {
-  static targets = ['email', 'form', 'submit', 'success', 'error'];
+const STORAGE_KEY = 'newsletter_dismissed';
+
+export default class NewsletterFlyoutController extends Controller {
+  static targets = ['container', 'email', 'form', 'submit', 'success', 'error'];
+
+  connect() {
+    const path = window.location.pathname;
+    if (localStorage.getItem(STORAGE_KEY) || path.startsWith('/cart') || path.startsWith('/checkout')) {
+      this.element.remove();
+      return;
+    }
+    this._timer = setTimeout(() => this.show(), 3000);
+  }
+
+  disconnect() {
+    clearTimeout(this._timer);
+  }
+
+  show() {
+    this.element.classList.remove('translate-y-[120%]');
+  }
+
+  dismiss() {
+    this.element.classList.add('translate-y-[120%]');
+    localStorage.setItem(STORAGE_KEY, '1');
+  }
 
   async submit(e) {
     e.preventDefault();
@@ -17,7 +41,7 @@ export default class NewsletterController extends Controller {
     const btn = this.submitTarget;
     const origText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = 'Subscribing...';
+    btn.textContent = '...';
 
     try {
       const resp = await fetch('/api/newsletter/subscribe', {
@@ -31,13 +55,14 @@ export default class NewsletterController extends Controller {
         if (this.hasFormTarget) this.formTarget.classList.add('hidden');
         if (this.hasSuccessTarget) {
           this.successTarget.classList.remove('hidden');
-          this.successTarget.textContent = data.message || 'Thanks for subscribing!';
+          this.successTarget.textContent = data.message || 'Subscribed!';
         }
         if (this.hasErrorTarget) this.errorTarget.classList.add('hidden');
+        setTimeout(() => this.dismiss(), 2000);
       } else {
         if (this.hasErrorTarget) {
           this.errorTarget.classList.remove('hidden');
-          this.errorTarget.textContent = data.message || 'Subscription failed. Please try again.';
+          this.errorTarget.textContent = data.message || 'Please try again.';
         }
       }
     } catch {

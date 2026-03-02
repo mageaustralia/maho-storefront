@@ -22,7 +22,7 @@ export const NewsletterFlyout: FC<NewsletterFlyoutProps> = ({
   heading = 'Stay updated',
 }) => (
   <div
-    class="fixed bottom-4 right-4 z-50 w-80 card bg-base-100 shadow-xl border border-base-300 translate-y-[120%] transition-transform duration-300"
+    class="fixed bottom-4 right-4 z-50 w-80 max-md:bottom-0 max-md:right-0 max-md:left-0 max-md:w-full max-md:min-h-[150px] max-md:rounded-b-none card bg-base-100 shadow-xl border border-base-300 max-md:border-b-0 translate-y-[120%] transition-transform duration-300"
     data-controller="newsletter-flyout"
     data-newsletter-flyout-target="container"
   >

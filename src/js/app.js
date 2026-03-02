@@ -22,6 +22,8 @@ import AccountController from './controllers/account-controller.js';
 import HomeCarouselController from './controllers/home-carousel-controller.js';
 import WishlistController from './controllers/wishlist-controller.js';
 import NewsletterController from './controllers/newsletter-controller.js';
+import NewsletterPopupController from './controllers/newsletter-popup-controller.js';
+import NewsletterFlyoutController from './controllers/newsletter-flyout-controller.js';
 import ReviewController from './controllers/review-controller.js';
 import ContactController from './controllers/contact-controller.js';
 import SizeGuideController from './controllers/size-guide-controller.js';
@@ -51,6 +53,8 @@ if (!window.__stimulusApp) {
   application.register('home-carousel', HomeCarouselController);
   application.register('wishlist', WishlistController);
   application.register('newsletter', NewsletterController);
+  application.register('newsletter-popup', NewsletterPopupController);
+  application.register('newsletter-flyout', NewsletterFlyoutController);
   application.register('review', ReviewController);
   application.register('contact', ContactController);
   application.register('size-guide', SizeGuideController);

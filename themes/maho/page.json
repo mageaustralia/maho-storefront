@@ -55,6 +55,11 @@
         "promo-grid": "3up"
       }
     },
+    "engagement": {
+      "components": {
+        "newsletter": "popup-image"
+      }
+    },
     "search": {
       "components": {
         "bar": "overlay",
