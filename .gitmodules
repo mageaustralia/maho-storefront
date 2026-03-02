@@ -1,0 +1,3 @@
+[submodule "maho-storefront-docs"]
+	path = maho-storefront-docs
+	url = git@github.com:mageaustralia/maho-storefront-docs.git
