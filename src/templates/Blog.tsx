@@ -6,7 +6,7 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
-import type { Category, StoreConfig, StorefrontStore } from '../types';
+import type { Category, StoreConfig, StorefrontStore, BlogCategory } from '../types';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { LayoutShell } from './components/LayoutShell';
@@ -19,12 +19,15 @@ export interface BlogPostSummary {
   shortContent: string | null;
   imageUrl: string | null;
   createdAt: string | null;
+  categoryIds?: number[];
 }
 
 interface BlogPageProps {
   config: StoreConfig;
   categories: Category[];
   posts: BlogPostSummary[];
+  blogCategories?: BlogCategory[];
+  activeCategory?: BlogCategory | null;
   stores?: StorefrontStore[];
   currentStoreCode?: string;
   sidebarLeft?: string | null;
@@ -33,9 +36,12 @@ interface BlogPageProps {
   devData?: DevData | null;
 }
 
-export const BlogPage: FC<BlogPageProps> = ({ config, categories, posts, stores, currentStoreCode, sidebarLeft, sidebarRight, lastChecked, devData }) => (
+export const BlogPage: FC<BlogPageProps> = ({ config, categories, posts, blogCategories, activeCategory, stores, currentStoreCode, sidebarLeft, sidebarRight, lastChecked, devData }) => (
   <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
-    <Seo title={`Blog | ${config.storeName}`} description="Latest news and articles" />
+    <Seo
+      title={activeCategory ? `${activeCategory.name} | Blog | ${config.storeName}` : `Blog | ${config.storeName}`}
+      description={activeCategory?.metaDescription ?? 'Latest news and articles'}
+    />
     <div hidden
       data-freshness-type="blog-list"
       data-freshness-key="blog-posts"
@@ -49,11 +55,28 @@ export const BlogPage: FC<BlogPageProps> = ({ config, categories, posts, stores,
       <nav class="text-sm breadcrumbs mb-4" aria-label="Breadcrumb">
         <ul>
           <li><a href="/" data-turbo-prefetch="true">Home</a></li>
-          <li>Blog</li>
+          {activeCategory ? (
+            <>
+              <li><a href="/blog" data-turbo-prefetch="true">Blog</a></li>
+              <li>{activeCategory.name}</li>
+            </>
+          ) : (
+            <li>Blog</li>
+          )}
         </ul>
       </nav>
 
-      <h1 class="text-3xl font-bold tracking-tight mb-6">Blog</h1>
+      <h1 class="text-3xl font-bold tracking-tight mb-6">{activeCategory ? activeCategory.name : 'Blog'}</h1>
+
+      {/* Category filter tabs */}
+      {blogCategories && blogCategories.length > 0 && (
+        <div class="flex flex-wrap gap-2 mb-6">
+          <a href="/blog" class={`badge badge-lg ${!activeCategory ? 'badge-primary' : 'badge-ghost'}`} data-turbo-prefetch="true">All</a>
+          {blogCategories.map(cat => (
+            <a key={cat.id} href={`/blog/category/${cat.urlKey}`} class={`badge badge-lg ${activeCategory?.id === cat.id ? 'badge-primary' : 'badge-ghost'}`} data-turbo-prefetch="true">{cat.name}</a>
+          ))}
+        </div>
+      )}
 
       {posts.length > 0 ? (
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

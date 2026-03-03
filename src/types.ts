@@ -169,10 +169,11 @@ export interface CmsPage {
   imageUrl?: string | null;
   metaKeywords: string | null;
   metaDescription: string | null;
-  rootTemplate: string | null;
+  pageLayout: string | null;
   status: string;
   createdAt: string | null;
   updatedAt: string | null;
+  categoryIds?: number[];   // blog posts only
 }
 
 export interface CartItem {
@@ -280,8 +281,23 @@ export interface BlogPost {
   metaDescription: string | null;
   metaKeywords: string | null;
   status: string;
+  categoryIds: number[];
   createdAt: string | null;
   updatedAt: string | null;
+}
+
+export interface BlogCategory {
+  id: number;
+  name: string;
+  urlKey: string;
+  parentId: number | null;
+  path: string | null;
+  level: number;
+  position: number;
+  isActive: boolean;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  metaKeywords: string | null;
 }
 
 export interface WishlistItem {

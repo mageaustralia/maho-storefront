@@ -19,7 +19,7 @@ interface LayoutShellProps {
 
 /**
  * LayoutShell — wraps page content in the correct grid layout
- * based on the rootTemplate value from the API.
+ * based on the pageLayout value from the API.
  *
  * Sidebar content is CMS block HTML fetched from KV/API.
  * If a sidebar slot has no content, it renders empty (CSS handles collapse).

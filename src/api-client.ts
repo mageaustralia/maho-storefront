@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Product, Category, StoreConfig, CmsPage, Country, BlogPost } from './types';
+import type { Product, Category, StoreConfig, CmsPage, Country, BlogPost, BlogCategory } from './types';
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -168,6 +168,10 @@ export class MahoApiClient {
 
   async fetchBlogPosts(): Promise<BlogPost[]> {
     return this.fetchAllPages<BlogPost>('/api/blog-posts?order[publishDate]=desc', 50);
+  }
+
+  async fetchBlogCategories(): Promise<BlogCategory[]> {
+    return this.fetchAllPages<BlogCategory>('/api/blog-categories', 100);
   }
 
   async fetchAllCmsPages(): Promise<CmsPage[]> {

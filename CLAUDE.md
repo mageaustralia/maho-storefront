@@ -33,6 +33,20 @@ CI=true npm run build  # Non-interactive (required for SSH/CI)
 Deploys to demo.mageaustralia.com.au (and demo2, demo3, cafe).
 Credentials in `.env` (gitignored).
 
+## Deploy (Docs Site)
+
+Docs live at `maho-storefront-docs/` (git submodule → `mageaustralia/maho-storefront-docs`).
+Hosted on Cloudflare Pages at https://docs.mageaustralia.com.au/
+
+```bash
+cd maho-storefront-docs
+CLOUDFLARE_API_KEY=<key> CLOUDFLARE_EMAIL=<email> npm run deploy
+```
+
+Credentials are `CLOUDFLARE_API_KEY` + `CLOUDFLARE_EMAIL` from `.env` (global API key, not a token).
+`npm run deploy` = `vitepress build` + `wrangler pages deploy .vitepress/dist --project-name maho-storefront-docs`
+No auto-deploy — must run manually after pushing docs changes.
+
 ## Directory Structure
 
 ```

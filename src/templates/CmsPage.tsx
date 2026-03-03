@@ -27,7 +27,7 @@ interface CmsPageProps {
 }
 
 export const CmsPageTemplate: FC<CmsPageProps> = ({ config, categories, page, stores, currentStoreCode, sidebarLeft, sidebarRight, devData }) => {
-  const template = (page.rootTemplate ?? 'one_column') as RootTemplate;
+  const template = (page.pageLayout ?? 'one_column') as RootTemplate;
 
   return (
     <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
@@ -41,7 +41,7 @@ export const CmsPageTemplate: FC<CmsPageProps> = ({ config, categories, page, st
         data-freshness-key={`cms:${page.identifier}`}
         data-freshness-api={`/api/cms-pages?identifier=${encodeURIComponent(page.identifier)}`}
         data-freshness-checked={(page as any)._lastChecked ?? '0'}
-        data-freshness-version={djb2(`${page.updatedAt}|${page.title ?? ''}|${page.content ?? ''}`)}
+        data-freshness-version={djb2(`${page.updatedAt}|${page.pageLayout ?? ''}|${page.title ?? ''}|${page.content ?? ''}`)}
       />
 
       <LayoutShell template={template} sidebarLeft={sidebarLeft} sidebarRight={sidebarRight}>

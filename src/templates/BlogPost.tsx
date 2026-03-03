@@ -6,7 +6,7 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
-import type { Category, StoreConfig, CmsPage, StorefrontStore } from '../types';
+import type { Category, StoreConfig, CmsPage, StorefrontStore, BlogCategory } from '../types';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { LayoutShell } from './components/LayoutShell';
@@ -18,6 +18,8 @@ interface BlogPostPageProps {
   config: StoreConfig;
   categories: Category[];
   post: CmsPage;
+  postCategories?: BlogCategory[];
+  blogCategories?: BlogCategory[];
   stores?: StorefrontStore[];
   currentStoreCode?: string;
   sidebarLeft?: string | null;
@@ -25,7 +27,7 @@ interface BlogPostPageProps {
   devData?: DevData | null;
 }
 
-export const BlogPostPage: FC<BlogPostPageProps> = ({ config, categories, post, stores, currentStoreCode, sidebarLeft, sidebarRight, devData }) => {
+export const BlogPostPage: FC<BlogPostPageProps> = ({ config, categories, post, postCategories, blogCategories, stores, currentStoreCode, sidebarLeft, sidebarRight, devData }) => {
   // Support both CmsPage (identifier) and BlogPost (urlKey) types
   const postSlug = post.identifier ?? (post as any).urlKey ?? '';
 
@@ -58,9 +60,18 @@ export const BlogPostPage: FC<BlogPostPageProps> = ({ config, categories, post, 
         <header class="mb-6">
           {post.contentHeading && <h1 class="text-3xl font-bold tracking-tight">{post.contentHeading}</h1>}
           {!post.contentHeading && <h1 class="text-3xl font-bold tracking-tight">{post.title}</h1>}
-          {post.createdAt && (
-            <time class="text-sm text-base-content/50 mt-2 block">{new Date(post.createdAt).toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
-          )}
+          <div class="flex flex-wrap items-center gap-3 mt-2">
+            {post.createdAt && (
+              <time class="text-sm text-base-content/50">{new Date(post.createdAt).toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+            )}
+            {postCategories && postCategories.length > 0 && (
+              <div class="flex flex-wrap gap-1.5">
+                {postCategories.map(cat => (
+                  <a key={cat.id} href={`/blog/category/${cat.urlKey}`} class="badge badge-sm badge-ghost" data-turbo-prefetch="true">{cat.name}</a>
+                ))}
+              </div>
+            )}
+          </div>
         </header>
         {post.imageUrl && (
           <img src={post.imageUrl} alt={post.title} class="w-full rounded-lg mb-6" />

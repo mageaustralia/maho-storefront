@@ -26,7 +26,7 @@ export const FooterMega: FC<FooterProps> = ({ config, footerPages }) => (
     <div class="border-b border-neutral-content/10" data-controller="newsletter">
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 p-6 max-w-[var(--content-max)] mx-auto">
         <h6 class="font-semibold text-sm uppercase tracking-wider shrink-0">Subscribe to our newsletter</h6>
-        <form class="join w-full sm:w-auto" data-action="submit->newsletter#subscribe">
+        <form class="join w-full sm:w-auto" data-newsletter-target="form" data-action="submit->newsletter#submit">
           <input
             type="email"
             name="email"
@@ -35,9 +35,10 @@ export const FooterMega: FC<FooterProps> = ({ config, footerPages }) => (
             class="input join-item w-full sm:w-72"
             data-newsletter-target="email"
           />
-          <button type="submit" class="btn btn-primary join-item" data-newsletter-target="button">Subscribe</button>
+          <button type="submit" class="btn btn-primary join-item" data-newsletter-target="submit">Subscribe</button>
         </form>
-        <p class="text-sm hidden" data-newsletter-target="message"></p>
+        <p class="text-sm text-success hidden" data-newsletter-target="success">Thanks for subscribing!</p>
+        <p class="text-sm text-error hidden" data-newsletter-target="error">Something went wrong. Please try again.</p>
       </div>
     </div>
 

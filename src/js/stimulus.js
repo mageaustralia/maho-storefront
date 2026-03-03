@@ -5,4 +5,4 @@
  */
 
 // Re-export Stimulus from CDN for use throughout the app
-export { Application, Controller } from 'https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js';
+export { Application, Controller } from 'https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.min.js';

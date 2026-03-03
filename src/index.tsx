@@ -6,7 +6,7 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import { Hono } from 'hono';
-import type { Env, Category, Product, StoreConfig, PulseData, CmsPage, Country, BlogPost, StorefrontStore } from './types';
+import type { Env, Category, Product, StoreConfig, PulseData, CmsPage, Country, BlogPost, BlogCategory, StorefrontStore } from './types';
 import { CloudflareKVStore, TrackedKVStore, type ContentStore } from './content-store';
 import { ASSET_HASH } from './asset-version';
 import { MahoApiClient } from './api-client';
@@ -663,14 +663,14 @@ app.get('/', withEdgeCache(CACHE_HOME), async (c) => {
   const cmsPrefix = currentStoreCode ? `${currentStoreCode}:` : '';
   // Fetch store data and the default CMS home page in parallel.
   // We can't know the real homePageId until config resolves, so we speculatively fetch 'home'.
-  // If cmsHomePage differs we re-fetch below (rare). Sidebars are gated on rootTemplate.
+  // If cmsHomePage differs we re-fetch below (rare). Sidebars are gated on pageLayout.
   const [{ config, categories }, defaultCmsPage] = await Promise.all([
     getStoreData(store, currentStoreCode),
     store.get<CmsPage>(`${cmsPrefix}cms:home`),
   ]);
   const homePageId = config.cmsHomePage || 'home';
   const cmsPage = homePageId !== 'home' ? await store.get<CmsPage>(`${cmsPrefix}cms:${homePageId}`) : defaultCmsPage;
-  const needsSidebars = cmsPage?.rootTemplate && !['one_column', 'empty', 'minimal'].includes(cmsPage.rootTemplate);
+  const needsSidebars = cmsPage?.pageLayout && !['one_column', 'empty', 'minimal'].includes(cmsPage.pageLayout);
   const sidebars = needsSidebars ? await getSidebarBlocks(store, 'home', currentStoreCode) : { left: null, right: null };
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<Home config={config} categories={categories} cmsPage={cmsPage} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={sidebars.left} sidebarRight={sidebars.right} devData={devData} />);
@@ -827,14 +827,38 @@ app.get('/blog', withEdgeCache(CACHE_BLOG), async (c) => {
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
   const blogPrefix = currentStoreCode ? `${currentStoreCode}:` : '';
-  const [{ config, categories }, postsRaw] = await Promise.all([
+  const [{ config, categories }, postsRaw, blogCategories] = await Promise.all([
     getStoreData(store, currentStoreCode),
     store.get<any>(`${blogPrefix}blog-posts`),
+    store.get<BlogCategory[]>(`${blogPrefix}blog-categories`),
   ]);
   const posts: BlogPostSummary[] = Array.isArray(postsRaw) ? postsRaw : [];
   const lastChecked = (postsRaw as any)?._lastChecked ?? 0;
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
-  return c.html(<BlogPage config={config} categories={categories} posts={posts} stores={stores} currentStoreCode={currentStoreCode} lastChecked={lastChecked} sidebarLeft={null} sidebarRight={null} devData={devData} />);
+  return c.html(<BlogPage config={config} categories={categories} posts={posts} blogCategories={blogCategories ?? []} stores={stores} currentStoreCode={currentStoreCode} lastChecked={lastChecked} sidebarLeft={null} sidebarRight={null} devData={devData} />);
+});
+
+app.get('/blog/category/:slug', withEdgeCache(CACHE_BLOG), async (c) => {
+  const devSession = c.get('devSession') as DevSession | undefined;
+  const timer = devSession ? createDevTimer() : null;
+  const store = createStore(c.env, timer);
+  const { stores, currentStoreCode } = await getStoreContext(c);
+  const slug = c.req.param('slug');
+  const blogPrefix = currentStoreCode ? `${currentStoreCode}:` : '';
+  const [{ config, categories }, postsRaw, blogCategories] = await Promise.all([
+    getStoreData(store, currentStoreCode),
+    store.get<any>(`${blogPrefix}blog-posts`),
+    store.get<BlogCategory[]>(`${blogPrefix}blog-categories`),
+  ]);
+  const allPosts: BlogPostSummary[] = Array.isArray(postsRaw) ? postsRaw : [];
+  const lastChecked = (postsRaw as any)?._lastChecked ?? 0;
+  const cats = blogCategories ?? [];
+  const activeCategory = cats.find(cat => cat.urlKey === slug) ?? null;
+  const posts = activeCategory
+    ? allPosts.filter(p => (p.categoryIds ?? []).includes(activeCategory.id))
+    : allPosts;
+  const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
+  return c.html(<BlogPage config={config} categories={categories} posts={posts} blogCategories={cats} activeCategory={activeCategory} stores={stores} currentStoreCode={currentStoreCode} lastChecked={lastChecked} sidebarLeft={null} sidebarRight={null} devData={devData} />);
 });
 
 // Blog post detail (edge cached 4 hours)
@@ -843,9 +867,13 @@ app.get('/blog/:slug', withEdgeCache(CACHE_BLOG), async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
   const slug = c.req.param('slug');
   const blogPrefix = currentStoreCode ? `${currentStoreCode}:` : '';
+
+  const [{ config, categories }, blogCategories] = await Promise.all([
+    getStoreData(store, currentStoreCode),
+    store.get<BlogCategory[]>(`${blogPrefix}blog-categories`),
+  ]);
 
   // Try KV cache first
   let post = await store.get<CmsPage>(`${blogPrefix}blog:${slug}`);
@@ -873,7 +901,8 @@ app.get('/blog/:slug', withEdgeCache(CACHE_BLOG), async (c) => {
     );
   }
 
-  return c.html(<BlogPostPage config={config} categories={categories} post={post} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={null} sidebarRight={null} devData={devData} />);
+  const postCategories = (blogCategories ?? []).filter(c => (post.categoryIds ?? []).includes(c.id));
+  return c.html(<BlogPostPage config={config} categories={categories} post={post} postCategories={postCategories} blogCategories={blogCategories ?? []} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={null} sidebarRight={null} devData={devData} />);
 });
 
 // Auth pages
@@ -984,7 +1013,7 @@ app.get('/page/:identifier', withEdgeCache(CACHE_CMS), async (c) => {
       const livePage = await cmsApiClient.fetchCmsPage(identifier);
       if (livePage) {
         await store.put(`${cmsPrefix}cms:${identifier}`, livePage, 86400); // 24h KV TTL
-        const needsSidebars = livePage.rootTemplate && !['one_column', 'empty', 'minimal'].includes(livePage.rootTemplate);
+        const needsSidebars = livePage.pageLayout && !['one_column', 'empty', 'minimal'].includes(livePage.pageLayout);
         const sidebars = needsSidebars ? await getSidebarBlocks(store, 'cms', currentStoreCode) : { left: null, right: null };
         return c.html(<CmsPageTemplate config={config} categories={categories} page={livePage} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={sidebars.left} sidebarRight={sidebars.right} devData={devData} />);
       }
@@ -999,7 +1028,7 @@ app.get('/page/:identifier', withEdgeCache(CACHE_CMS), async (c) => {
     );
   }
 
-  const needsSidebars = page.rootTemplate && !['one_column', 'empty', 'minimal'].includes(page.rootTemplate);
+  const needsSidebars = page.pageLayout && !['one_column', 'empty', 'minimal'].includes(page.pageLayout);
   const sidebars = needsSidebars ? await getSidebarBlocks(store, 'cms', currentStoreCode) : { left: null, right: null };
   return c.html(<CmsPageTemplate config={config} categories={categories} page={page} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={sidebars.left} sidebarRight={sidebars.right} devData={devData} />);
 });
@@ -1366,7 +1395,15 @@ app.post('/sync', async (c) => {
       }
       results[`${storeCode || 'default'}:products`] = `${storeProductCount} in category listings`;
 
-      // 4. Sync blog posts (per store - posts are assigned to specific stores)
+      // 4. Sync blog categories + posts (per store)
+      try {
+        const blogCategories = await storeApiClient.fetchBlogCategories();
+        await store.put(`${prefix}blog-categories`, blogCategories);
+        results[`${storeCode || 'default'}:blogCategories`] = `${blogCategories.length} synced`;
+      } catch (e) {
+        results[`${storeCode || 'default'}:blogCategories`] = `error: ${(e as Error).message}`;
+      }
+
       try {
         const blogTimestamp = Math.floor(Date.now() / 1000);
         const blogPosts = await storeApiClient.fetchBlogPosts();
@@ -1376,6 +1413,7 @@ app.post('/sync', async (c) => {
           shortContent: p.excerpt,
           imageUrl: p.imageUrl,
           createdAt: p.publishDate ?? p.createdAt,
+          categoryIds: p.categoryIds ?? [],
         }));
         await store.put(`${prefix}blog-posts`, summaries);
         for (const post of blogPosts) {
@@ -1391,6 +1429,7 @@ app.post('/sync', async (c) => {
             status: post.status,
             createdAt: post.publishDate ?? post.createdAt,
             updatedAt: post.updatedAt,
+            categoryIds: post.categoryIds ?? [],
           };
           (detail as any)._lastChecked = blogTimestamp;
           await store.put(`${prefix}blog:${post.urlKey}`, detail);
@@ -1618,6 +1657,7 @@ app.post('/sync/:type', async (c) => {
         const summaries = blogPosts.map((p: any) => ({
           identifier: p.urlKey, title: p.title, shortContent: p.excerpt,
           imageUrl: p.imageUrl, createdAt: p.publishDate ?? p.createdAt,
+          categoryIds: p.categoryIds ?? [],
         }));
         await store.put(`${prefix}blog-posts`, summaries);
         for (const post of blogPosts) {
@@ -1627,6 +1667,7 @@ app.post('/sync/:type', async (c) => {
             imageUrl: post.imageUrl, metaKeywords: post.metaKeywords,
             metaDescription: post.metaDescription, status: post.status,
             createdAt: post.publishDate ?? post.createdAt, updatedAt: post.updatedAt,
+            categoryIds: post.categoryIds ?? [],
             _lastChecked: blogTimestamp,
           };
           await store.put(`${prefix}blog:${post.urlKey}`, detail);
@@ -1854,7 +1895,7 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
   // Try CMS page from KV
   const cmsPage = await store.get<CmsPage>(`${prefix}cms:${slug}`) ?? await store.get<CmsPage>(`cms:${slug}`);
   if (cmsPage) {
-    const needsSidebars = cmsPage.rootTemplate && !['one_column', 'empty', 'minimal'].includes(cmsPage.rootTemplate);
+    const needsSidebars = cmsPage.pageLayout && !['one_column', 'empty', 'minimal'].includes(cmsPage.pageLayout);
     const cmsSidebars = needsSidebars ? await getSidebarBlocks(store, 'cms', currentStoreCode) : { left: null, right: null };
     return c.html(<CmsPageTemplate config={config} categories={categories} page={cmsPage} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={cmsSidebars.left} sidebarRight={cmsSidebars.right} devData={devData} />);
   }
@@ -1891,7 +1932,7 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
       const fullCms = await apiClient.fetchCmsPage(resolved.identifier);
       if (fullCms) {
         c.executionCtx.waitUntil(store.put(`${prefix}cms:${slug}`, fullCms, 86400));
-        const needsSidebars = fullCms.rootTemplate && !['one_column', 'empty', 'minimal'].includes(fullCms.rootTemplate);
+        const needsSidebars = fullCms.pageLayout && !['one_column', 'empty', 'minimal'].includes(fullCms.pageLayout);
         const cmsSidebars = needsSidebars ? await getSidebarBlocks(store, 'cms', currentStoreCode) : { left: null, right: null };
         return c.html(<CmsPageTemplate config={config} categories={categories} page={fullCms} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={cmsSidebars.left} sidebarRight={cmsSidebars.right} devData={devData} />);
       }

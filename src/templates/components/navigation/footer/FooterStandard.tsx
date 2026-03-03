@@ -22,7 +22,7 @@ export const Footer: FC<FooterProps> = ({ config, footerPages }) => (
       <div class="text-center mb-10 pb-8 border-b border-secondary-content/12" data-controller="newsletter">
         <h4 class="text-lg font-bold mb-2">Newsletter</h4>
         <p class="text-sm opacity-60 mb-4">Sign up for our newsletter to receive updates and exclusive offers.</p>
-        <form class="flex gap-2 max-w-[400px] mx-auto" data-action="submit->newsletter#subscribe">
+        <form class="flex gap-2 max-w-[400px] mx-auto" data-newsletter-target="form" data-action="submit->newsletter#submit">
           <input
             type="email"
             name="email"
@@ -31,9 +31,10 @@ export const Footer: FC<FooterProps> = ({ config, footerPages }) => (
             class="flex-1 h-12 px-5 bg-secondary-content/8 border border-secondary-content/20 text-secondary-content text-sm placeholder:text-secondary-content/40 focus:border-primary focus:bg-secondary-content/12 focus:outline-none rounded-full"
             data-newsletter-target="email"
           />
-          <button type="submit" class="btn btn-primary rounded-full whitespace-nowrap" data-newsletter-target="button">Subscribe</button>
+          <button type="submit" class="btn btn-primary rounded-full whitespace-nowrap" data-newsletter-target="submit">Subscribe</button>
         </form>
-        <p class="text-sm mt-2 hidden" data-newsletter-target="message"></p>
+        <p class="text-sm text-success mt-2 hidden" data-newsletter-target="success">Thanks for subscribing!</p>
+        <p class="text-sm text-error mt-2 hidden" data-newsletter-target="error">Something went wrong. Please try again.</p>
       </div>
 
       {/* Link columns */}

@@ -16,8 +16,11 @@ import { SearchOverlay } from './components/SearchOverlay';
 import { MobileMenu } from './components/MobileMenu';
 import { StimulusTemplates } from './components/StimulusTemplates';
 import { getThemeForStore } from '../theme-resolver';
-import { getRenderApiUrl, getAnnouncementBar } from '../page-config';
+import { getRenderApiUrl, getAnnouncementBar, getVariant } from '../page-config';
 import { AnnouncementBar } from './components/navigation/announcement-bar/AnnouncementBar';
+import { NewsletterPopup } from './components/engagement/newsletter/NewsletterPopup';
+import { NewsletterPopupImage } from './components/engagement/newsletter/NewsletterPopupImage';
+import { NewsletterFlyout } from './components/engagement/newsletter/NewsletterFlyout';
 
 interface FooterPage { identifier: string; title: string; }
 
@@ -47,7 +50,7 @@ export const Layout: FC<LayoutProps> = ({ config, categories, footerPages, store
         <link rel="stylesheet" href={googleFontsUrl} />
         <link rel="stylesheet" href={`/styles.css${v}`} data-turbo-track="reload" />
         <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];window.MAHO_API_URL=${JSON.stringify(apiUrl)};window.MAHO_STORE_CODE=${JSON.stringify(currentStoreCode || '')};window.MAHO_CURRENCY=${JSON.stringify(config.baseCurrencyCode || 'USD')};window.MAHO_THEME=${JSON.stringify(themeName)};` }} />
-        <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-esm.js" data-turbo-track="reload"></script>
+        <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-esm.min.js" data-turbo-track="reload"></script>
         <script type="module" src={`/controllers.js${v}`} data-turbo-track="reload"></script>
       </head>
       <body class="bg-base-100 text-base-content" data-controller="freshness wishlist" data-store={currentStoreCode || ''}>
@@ -64,6 +67,13 @@ export const Layout: FC<LayoutProps> = ({ config, categories, footerPages, store
         <SearchOverlay />
         <MobileMenu categories={categories} config={config} stores={stores} currentStoreCode={currentStoreCode} />
         <StimulusTemplates />
+        {(() => {
+          const variant = getVariant('engagement', 'newsletter', 'inline');
+          if (variant === 'popup') return <NewsletterPopup />;
+          if (variant === 'popup-image') return <NewsletterPopupImage />;
+          if (variant === 'flyout') return <NewsletterFlyout />;
+          return null;
+        })()}
         {devData && (
           <>
             <script dangerouslySetInnerHTML={{

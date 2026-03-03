@@ -1,5 +1,5 @@
-name = "maho-storefront"
-account_id = "your_cloudflare_account_id"
+name = "my-storefront"
+account_id = "your-cloudflare-account-id"
 main = "src/index.tsx"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
@@ -14,19 +14,21 @@ fallthrough = false
 
 [[kv_namespaces]]
 binding = "CONTENT"
-id = "your_kv_namespace_id"
-preview_id = "your_kv_namespace_id"
+id = "your-kv-namespace-id"
+preview_id = "your-kv-namespace-id"
 
 [vars]
 MAHO_API_URL = "https://your-maho-backend.example.com"
-SYNC_SECRET = "your_sync_secret"
-STORES = '[{"code":"en","name":"Store 1","url":"https://store1.example.com"},{"code":"sv_2","name":"Store 2","url":"https://store2.example.com"}]'
+SYNC_SECRET = "generate-a-random-secret"
+STORES = '[{"code":"default","name":"My Store","url":"https://store.example.com"}]'
 
-# Routes — add one per storefront domain
-[[routes]]
-pattern = "store1.example.com/*"
-zone_name = "example.com"
+# Optional: enable dev toolbar login/session system
+# DEV_SECRET = "generate-a-random-secret"
 
-[[routes]]
-pattern = "store2.example.com/*"
-zone_name = "example.com"
+# Optional: basic auth for the backend API (if required)
+# MAHO_API_BASIC_AUTH = "user:password"
+
+# Custom domain routing
+# [[routes]]
+# pattern = "store.example.com/*"
+# zone_name = "example.com"

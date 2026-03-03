@@ -67,7 +67,7 @@ export const Home: FC<HomeProps> = ({ config, categories, cmsPage, stores, curre
           <Hero config={config} />
         )}
 
-        <LayoutShell template={((cmsPage?.rootTemplate as RootTemplate) ?? 'one_column')} sidebarLeft={sidebarLeft} sidebarRight={sidebarRight}>
+        <LayoutShell template={((cmsPage?.pageLayout as RootTemplate) ?? 'one_column')} sidebarLeft={sidebarLeft} sidebarRight={sidebarRight}>
           <ShopByCategory categories={categories} />
         </LayoutShell>
       </div>
