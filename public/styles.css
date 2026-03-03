@@ -7522,6 +7522,7 @@ body[data-store="sv_2"] {
 }
 /* layer: default */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0;}
+.pointer-events-auto{pointer-events:auto;}
 .pointer-events-none{pointer-events:none;}
 .visible,
 .group\/mega:hover .group-hover\/mega\:visible{visibility:visible;}
@@ -7542,14 +7543,12 @@ body[data-store="sv_2"] {
 .left-1\/2{left:50%;}
 .left-2{left:8px;}
 .left-3{left:12px;}
-.left-5{left:20px;}
 .right-\[380px\]{right:380px;}
 .right-0{right:0;}
 .right-1{right:4px;}
 .right-2{right:8px;}
 .right-3{right:12px;}
 .right-4{right:16px;}
-.right-5{right:20px;}
 .top-0{top:0;}
 .top-1{top:4px;}
 .top-1\/2{top:50%;}
@@ -7972,11 +7971,14 @@ body[data-store="sv_2"] {
 .text-xs{font-size:0.75rem;line-height:1rem;}
 .\!text-black{--un-text-opacity:1 !important;color:rgb(0 0 0 / var(--un-text-opacity)) /* #000000 */ !important;}
 .prose-a\:text-primary :is(:where(a):not(:where([class~="not-prose"],[class~="not-prose"] *))),
+.text-accent,
 .text-primary,
 .group:hover .group-hover\:text-primary{--un-text-opacity:1;color:rgb(255 45 135 / var(--un-text-opacity)) /* #ff2d87 */;}
 .prose-headings\:text-base-content :is(:where(h1,h2,h3,h4,h5,h6,th):not(:where([class~="not-prose"],[class~="not-prose"] *))),
 .prose-strong\:text-base-content :is(:where(strong):not(:where([class~="not-prose"],[class~="not-prose"] *))),
-.text-base-content{--un-text-opacity:1;color:rgb(17 17 17 / var(--un-text-opacity)) /* #111111 */;}
+.text-base-content,
+.text-neutral,
+.text-secondary{--un-text-opacity:1;color:rgb(17 17 17 / var(--un-text-opacity)) /* #111111 */;}
 .prose-p\:text-base-content\/80 :is(:where(p):not(:where([class~="not-prose"],[class~="not-prose"] *))),
 .text-base-content\/80{color:rgb(17 17 17 / 0.8) /* #111111 */;}
 .text-base-300{--un-text-opacity:1;color:rgb(245 245 245 / var(--un-text-opacity)) /* #f5f5f5 */;}

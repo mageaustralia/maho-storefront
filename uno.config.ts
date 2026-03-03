@@ -656,19 +656,30 @@ export default defineConfig({
   // Safelist: utility classes used in dynamic CMS/widget content (not in scanned source files)
   // These come from PHP templates rendered server-side (e.g., Custom_Carousel widget.phtml)
   safelist: [
-    // Carousel widget — layout & positioning
-    'relative', 'absolute', 'w-full', 'h-full', 'inset-0', 'z-10',
-    'flex', 'flex-col', 'justify-between', 'justify-center', 'items-start', 'items-center', 'items-end',
-    'gap-2', 'gap-4', 'p-8',
-    'left-0', 'left-5', 'right-0', 'right-5', 'top-0', 'top-1/2', 'bottom-0',
-    'transform', '-translate-y-1/2', '-translate-x-1/2',
-    'transition-all', 'border-0',
-    // Carousel widget — images
-    'object-cover',
-    // Carousel widget — text alignment (from PHP getTextPositionClasses/getTextAlignmentClasses)
-    'justify-start', 'justify-end', 'text-left', 'text-center', 'text-right',
-    // Carousel widget — colors with ! prefix and hover variants
-    '!bg-white', '!text-black', 'hover:!bg-white/80',
+    // DaisyUI carousel component classes
+    'carousel', 'carousel-item', 'carousel-center', 'rounded-box',
+    // Layout & positioning (carousel overlays)
+    'relative', 'absolute', 'w-full', 'inset-0',
+    'flex', 'flex-col', 'flex-wrap', 'gap-2', 'gap-3',
+    'justify-start', 'justify-center', 'justify-end',
+    'items-start', 'items-center', 'items-end',
+    'text-left', 'text-center', 'text-right',
+    // Typography (slide text overlays)
+    'text-white', 'text-black', 'text-primary', 'text-secondary', 'text-accent', 'text-neutral', 'text-base-content',
+    'text-3xl', 'text-lg', 'font-bold', 'mb-2', 'mb-4',
+    // Buttons (slide CTAs + nav arrows)
+    'btn', 'btn-circle', 'btn-primary', 'btn-secondary', 'btn-accent', 'btn-outline', 'btn-ghost', 'btn-neutral',
+    'btn-xs', 'btn-sm', 'btn-md',
+    // Arrow positioning (inside each slide)
+    'left-3', 'right-3', 'top-1/2', '-translate-y-1/2', 'transform', 'justify-between',
+    'z-10', 'pointer-events-none', 'pointer-events-auto',
+    // Responsive arrow sizes
+    'md:btn-md',
+    // Images & containers
+    'object-cover', 'overflow-hidden',
+    'py-4',
+    // Colors with ! prefix and hover variants
+    'bg-black', '!bg-white', '!text-black', 'hover:!bg-white/80',
     // CMS content — common utility classes
     'text-white', 'text-black', 'bg-black',
   ],

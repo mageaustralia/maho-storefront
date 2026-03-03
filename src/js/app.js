@@ -19,7 +19,7 @@ import FreshnessController from './controllers/freshness-controller.js';
 import AuthController from './controllers/auth-controller.js';
 import AuthStateController from './controllers/auth-state-controller.js';
 import AccountController from './controllers/account-controller.js';
-import HomeCarouselController from './controllers/home-carousel-controller.js';
+import CarouselController from './controllers/carousel-controller.js';
 import WishlistController from './controllers/wishlist-controller.js';
 import NewsletterController from './controllers/newsletter-controller.js';
 import NewsletterPopupController from './controllers/newsletter-popup-controller.js';
@@ -50,7 +50,7 @@ if (!window.__stimulusApp) {
   application.register('auth', AuthController);
   application.register('auth-state', AuthStateController);
   application.register('account', AccountController);
-  application.register('home-carousel', HomeCarouselController);
+  application.register('carousel', CarouselController);
   application.register('wishlist', WishlistController);
   application.register('newsletter', NewsletterController);
   application.register('newsletter-popup', NewsletterPopupController);
