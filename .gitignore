@@ -6,7 +6,7 @@ node_modules/
 bun.lock
 
 # Build output (regenerated from src/js/)
-# public/controllers.js.txt
+public/controllers.js.txt
 
 # Wrangler
 .wrangler/
