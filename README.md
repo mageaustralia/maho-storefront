@@ -102,4 +102,4 @@ Copyright (c) 2026 Mage Australia Pty Ltd
 
 This project is licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0-or-later).
 
-Commercial licensing is available for organisations that require proprietary modifications without open-source obligations. Contact [hello@mageaustralia.com.au](mailto:hello@mageaustralia.com.au) for details.
+Commercial licensing is available for organisations that require proprietary modifications without open-source obligations. Contact [mcampbell@mageaustralia.com.au](mailto:mcampbell@mageaustralia.com.au) for details.
