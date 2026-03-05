@@ -1,0 +1,3137 @@
+/**
+ * Maho Admin Theme - Modern Left Sidebar Layout
+ * Overrides base.css / menu.css for new layout
+ */
+
+/* =====================
+   THEME VARIABLES
+   ===================== */
+:root {
+    --sidebar-w: 240px;
+    --sidebar-slim: 56px;
+    --sidebar-bg: #1e293b;
+    --sidebar-text: #94a3b8;
+    --sidebar-text-hover: #e2e8f0;
+    --sidebar-text-active: #ffffff;
+    --sidebar-hover-bg: rgba(255,255,255,0.07);
+    --sidebar-active-bg: rgba(255,255,255,0.12);
+    --sidebar-active-accent: #3b82f6;
+    --sidebar-border: rgba(255,255,255,0.08);
+    --topbar-h: 56px;
+    --topbar-bg: #ffffff;
+    --topbar-border: #e2e8f0;
+    --content-bg: #f8fafc;
+    --content-pad: 24px;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --primary: #3b82f6;
+    --radius: 8px;
+}
+
+/* =====================
+   BODY / SHELL
+   ===================== */
+body {
+    background: var(--content-bg);
+    overflow: hidden;
+    height: 100vh;
+    min-width: unset;
+    margin: 0;
+}
+
+.admin-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    transition: grid-template-columns 0.25s ease;
+}
+
+.admin-shell.sidebar-collapsed {
+    grid-template-columns: 56px 1fr;
+}
+
+/* Neutralise old layout wrappers */
+.wrapper { min-width: unset; display: contents; }
+.header { background: none; text-align: unset; display: contents; }
+.middle { min-height: unset; background: none; padding: 0; display: contents; }
+.footer { background: none; padding: 0; font-size: inherit; clear: none; display: contents; }
+
+/* =====================
+   SIDEBAR
+   ===================== */
+.admin-sidebar {
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 200;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+/* Brand */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 16px;
+    border-bottom: 1px solid var(--sidebar-border);
+    flex-shrink: 0;
+    min-height: var(--topbar-h);
+}
+
+.sidebar-logo-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #fff;
+    min-width: 0;
+}
+
+.sidebar-brand-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #fff;
+    white-space: nowrap;
+    transition: opacity 0.2s, width 0.2s;
+}
+
+.sidebar-collapse-btn {
+    background: none;
+    border: none;
+    color: var(--sidebar-text);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-collapse-btn:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-active);
+}
+
+/* Nav area */
+.sidebar-nav {
+    flex: 1;
+    padding: 10px 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+}
+
+/* User footer */
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    padding: 12px 10px;
+    border-top: 1px solid var(--sidebar-border);
+    flex-shrink: 0;
+    gap: 4px;
+}
+
+.sidebar-user-link {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--sidebar-text);
+    font-size: 0.82rem;
+    padding: 7px 8px;
+    border-radius: 6px;
+    min-width: 0;
+    overflow: hidden;
+    transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-user-link svg { flex-shrink: 0; }
+
+.sidebar-user-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-user-link:hover {
+    background: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-active);
+}
+
+.sidebar-logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sidebar-text);
+    padding: 7px 8px;
+    border-radius: 6px;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 0;
+}
+
+.sidebar-logout-btn:hover {
+    background: rgba(239,68,68,0.15);
+    color: #f87171;
+}
+
+/* =====================
+   SIDEBAR NAV (vertical)
+   ===================== */
+
+/* Reset menu.css horizontal layout */
+.nav-bar { background: none !important; padding: 0 !important; }
+
+#nav { padding: 0; margin: 0; list-style: none; }
+
+#nav li {
+    float: none !important;
+    height: auto !important;
+    position: relative;
+    margin: 0 !important;
+}
+
+#nav li.active {
+    margin-left: 0 !important;
+    font-weight: normal;
+}
+
+#nav li.active em { display: none !important; }
+
+/* Level 0 items */
+#nav li.level0 > a {
+    display: flex !important;
+    align-items: center;
+    height: auto !important;
+    line-height: 1.4 !important;
+    padding: 9px 12px 9px 16px !important;
+    color: var(--sidebar-text) !important;
+    text-decoration: none !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s;
+    float: none !important;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+#nav li.level0 > a span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#nav li.level0 > a:hover,
+#nav li.level0:hover > a {
+    background: var(--sidebar-hover-bg) !important;
+    color: var(--sidebar-text-hover) !important;
+}
+
+#nav li.level0.active > a {
+    background: var(--sidebar-active-bg) !important;
+    color: var(--sidebar-text-active) !important;
+    border-left-color: var(--sidebar-active-accent) !important;
+    font-weight: 600 !important;
+}
+
+/* Chevron for parent items */
+#nav li.level0.parent > a::after {
+    content: "" !important;
+    display: block !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-right: 1.5px solid currentColor !important;
+    border-bottom: 1.5px solid currentColor !important;
+    transform: rotate(-45deg);
+    margin-left: auto !important;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+    font-size: unset !important;
+    margin-top: unset !important;
+}
+
+
+#nav li.level0.parent.open > a::after {
+    transform: rotate(45deg);
+}
+
+/* Sub-menus: stacked below parent */
+#nav ul {
+    position: static !important;
+    width: auto !important;
+    top: auto !important;
+    left: auto !important;
+    box-shadow: none !important;
+    background: rgba(0,0,0,0.2) !important;
+    display: none !important;
+}
+
+
+#nav li.level0.parent.open > ul {
+    display: block !important;
+}
+
+/* Sub items */
+#nav ul li { padding: 0 !important; float: none !important; }
+
+#nav ul li a {
+    float: none !important;
+    display: block !important;
+    padding: 7px 12px 7px 26px !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    color: var(--sidebar-text) !important;
+    background: none !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#nav ul li a:hover,
+#nav ul li:hover a {
+    background: var(--sidebar-hover-bg) !important;
+    color: var(--sidebar-text-hover) !important;
+}
+
+#nav ul li.active a,
+#nav ul li a.active {
+    color: var(--sidebar-text-active) !important;
+    text-decoration: none !important;
+}
+
+#nav ul ul { left: auto !important; top: auto !important; }
+#nav ul ul li a { padding-left: 38px !important; }
+#nav ul ul ul li a { padding-left: 50px !important; }
+
+/* Remove old right-arrow on nested parents (level2+), but keep level1 chevron */
+#nav li.level0.parent li.level1.parent > a::after { content: '' !important; }
+#nav li.level0.parent li.parent li.parent > a::after { content: none !important; }
+#nav li.level0 > a::after { content: "" !important; height: 3px !important; margin: 0 !important; display: none !important; }
+#nav .level0 > a:after { display: none !important; }
+#nav li.level0.parent > a::after { display: block !important; height: 6px !important; }
+
+/* Collapsed sidebar: icon-only mode */
+.admin-shell.sidebar-collapsed .sidebar-brand-name { display: none; }
+.admin-shell.sidebar-collapsed .sidebar-user-name { display: none; }
+.admin-shell.sidebar-collapsed .sidebar-brand { justify-content: center; padding: 18px 8px; }
+.admin-shell.sidebar-collapsed .sidebar-user { justify-content: center; padding: 12px 8px; }
+.admin-shell.sidebar-collapsed #nav li.level0 > a { padding: 11px 0 !important; justify-content: center; }
+.admin-shell.sidebar-collapsed #nav li.level0 > a span { display: none; }
+.admin-shell.sidebar-collapsed #nav li.level0 > a::after { display: none !important; }
+.admin-shell.sidebar-collapsed #nav ul { display: none !important; }
+.admin-shell.sidebar-collapsed .sidebar-collapse-btn { margin: 0 auto; }
+
+/* =====================
+   MAIN AREA
+   ===================== */
+.admin-main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-width: 0;
+}
+
+/* =====================
+   TOPBAR
+   ===================== */
+.admin-topbar {
+    background: var(--topbar-bg);
+    border-bottom: 1px solid var(--topbar-border);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* admin-topbar-inner removed — topbar is now a direct flex container */
+.admin-topbar .header-top {
+    display: flex !important;
+    align-items: center !important;
+    height: var(--topbar-h) !important;
+    padding: 0 20px !important;
+    gap: 16px !important;
+    flex: 1 !important;
+}
+
+/* Hide logo + user icons from the existing header block output */
+.admin-topbar .logo { display: none !important; }
+.admin-topbar .user-menu-icons { display: none !important; }
+.admin-topbar .header-top {
+    background: none !important;
+    display: contents;
+}
+.admin-topbar .header-right {
+    display: contents;
+}
+.admin-topbar .header-right fieldset {
+    flex: 1;
+    max-width: 380px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+}
+.admin-topbar .header-right fieldset legend { display: none; }
+.admin-topbar .header-right input.input-text,
+.admin-topbar #global_search {
+    width: 100%;
+    padding: 8px 14px;
+    border: 1px solid var(--topbar-border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    background: #f1f5f9;
+    color: #334155;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.admin-topbar .header-right input.input-text:focus,
+.admin-topbar #global_search:focus {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.admin-topbar #global_search_autocomplete {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    z-index: 200;
+}
+.admin-topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Notifications in topbar */
+.admin-topbar .notification-global { margin: 0; border-radius: 0; }
+
+/* =====================
+   CONTENT AREA
+   ===================== */
+.admin-content-wrap {
+    flex: 1;
+    padding: var(--content-pad);
+    min-height: 0;
+}
+
+/* Page-level two-column layout (e.g. category tree + form) */
+.admin-page-cols {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.admin-page-left {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.admin-page-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Content header bar */
+.content-header {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.content-header h3, .content-header h4 { margin: 0; }
+
+/* =====================
+   CARDS / GRID TABLES
+   ===================== */
+.entry-edit {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+}
+
+.grid { 
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+}
+
+/* =====================
+   FOOTER
+   ===================== */
+.admin-footer {
+    padding: 14px 24px;
+    text-align: center;
+    font-size: 11px;
+    color: #94a3b8;
+    border-top: 1px solid var(--topbar-border);
+    background: var(--topbar-bg);
+    flex-shrink: 0;
+}
+
+.admin-footer a { color: #64748b; }
+
+/* =====================
+   MISC FIXES
+   ===================== */
+#messages { margin-bottom: 16px; }
+
+/* Old .columns / .side-col / .main-col passthrough */
+.columns { background: none !important; display: contents; }
+div.side-col, div.main-col, div.main-col-inner { float: none; margin: 0; width: auto; padding: 0; min-height: unset; }
+
+/* Loading mask */
+#loading-mask .backdrop { background: rgba(15,23,42,0.5); }
+#loading-mask .loader {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px 32px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    color: #475569;
+}
+
+/* Global notices at top of topbar */
+.notification-global { margin: 0 !important; border-radius: 0 !important; }
+
+/* Buttons - subtle modernisation */
+button, .button, input[type="submit"], input[type="button"] {
+    border-radius: 6px;
+}
+
+.scalable { border-radius: 6px; }
+
+/* =====================
+   LAYOUT FIX: natural page scroll, sticky sidebar
+   ===================== */
+
+/* Let the page scroll naturally instead of overflow on .admin-main */
+body {
+    overflow: auto !important;
+    height: auto !important;
+}
+
+.admin-shell {
+    height: auto !important;
+    overflow: visible !important;
+    min-height: 100vh;
+}
+
+/* Sidebar: sticky so it stays while page scrolls */
+.admin-sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+}
+
+/* Main area: natural height, no overflow constraint */
+.admin-main {
+    height: auto !important;
+    overflow: visible !important;
+    min-height: 100vh;
+}
+
+/* Topbar: still sticky within natural scroll */
+.admin-topbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+}
+
+/* Footer: static, flows naturally at end of content */
+.admin-footer {
+    position: static !important;
+}
+
+/* =====================
+   SIDEBAR BRAND: logo above toggle button
+   ===================== */
+
+.sidebar-brand {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 20px 12px 10px !important;
+    gap: 8px !important;
+    border-bottom: 1px solid var(--sidebar-border);
+}
+
+.sidebar-logo-link {
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.15s;
+}
+.sidebar-logo-link:hover { background: var(--sidebar-hover-bg); }
+
+.sidebar-brand-name {
+    font-size: 1.05rem;
+}
+
+.sidebar-collapse-btn {
+    align-self: stretch;
+    justify-content: center;
+    padding: 7px 8px;
+    width: 100%;
+    border-radius: 6px;
+    gap: 0;
+    opacity: 0.6;
+}
+.sidebar-collapse-btn:hover { opacity: 1; }
+
+/* Rotate arrow when collapsed */
+.admin-shell.sidebar-collapsed .icon-sidebar-toggle {
+    transform: scaleX(-1);
+}
+
+/* Collapsed brand: center logo, shrink padding */
+.admin-shell.sidebar-collapsed .sidebar-brand {
+    padding: 16px 8px 10px !important;
+    align-items: center !important;
+}
+.admin-shell.sidebar-collapsed .sidebar-logo-link {
+    justify-content: center;
+    padding: 4px;
+}
+.admin-shell.sidebar-collapsed .sidebar-collapse-btn {
+    width: auto;
+    padding: 7px;
+}
+
+/* =====================
+   NAV ICONS via ::before
+   ===================== */
+
+/* Default icon slot for all level0 items */
+#nav > li.level0 > a::before {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-right: 9px;
+    opacity: 0.7;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    /* default: squares/grid icon */
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Crect x='3' y='3' width='7' height='7' rx='1'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Crect x='3' y='3' width='7' height='7' rx='1'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1'/%3E%3C/svg%3E");
+}
+
+/* Dashboard */
+#nav a#nav-admin-dashboard::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 12l8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 12l8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'/%3E%3C/svg%3E");
+}
+
+/* Sales */
+#nav a#nav-admin-sales::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z'/%3E%3C/svg%3E");
+}
+
+/* Catalog */
+#nav a#nav-admin-catalog::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z'/%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 6h.008v.008H6V6Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z'/%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 6h.008v.008H6V6Z'/%3E%3C/svg%3E");
+}
+
+/* Customers */
+#nav a#nav-admin-customer::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'/%3E%3C/svg%3E");
+}
+
+/* Promotions */
+#nav a#nav-admin-promo::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z'/%3E%3C/svg%3E");
+}
+
+/* Newsletter */
+#nav a#nav-admin-newsletter::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75'/%3E%3C/svg%3E");
+}
+
+/* CMS */
+#nav a#nav-admin-cms::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z'/%3E%3C/svg%3E");
+}
+
+/* Reports */
+#nav a#nav-admin-report::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z'/%3E%3C/svg%3E");
+}
+
+/* System */
+#nav a#nav-admin-system::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z'/%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z'/%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'/%3E%3C/svg%3E");
+}
+
+/* Blog */
+#nav a#nav-admin-blog::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10'/%3E%3C/svg%3E");
+}
+
+/* Mageaustralia Storefront */
+#nav #nav a#nav-admin-mageaustralia_storefront::before,
+#nav a[id*="storefront"]::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.015 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.015 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z'/%3E%3C/svg%3E");
+}
+
+/* Collapsed: larger centred icon, hide ::before margin */
+.admin-shell.sidebar-collapsed #nav > li.level0 > a::before {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 0 !important;
+    opacity: 0.8;
+}
+
+/* =====================
+   FIX: Store View switcher box in page-left sidebar
+   ===================== */
+.admin-page-left .switcher,
+.side-col .switcher {
+    border: none !important;
+    background: none !important;
+    padding: 10px 12px !important;
+    margin: 0 !important;
+}
+.admin-page-left .switcher label,
+.admin-page-left .switcher select {
+    font-size: 12px;
+}
+
+/* =====================
+   FIX: Topbar search fieldset containment
+   Replace display:contents approach with explicit flex
+   ===================== */
+.admin-topbar .header-top {
+    display: flex !important;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    background: none !important;
+    padding: 0 !important;
+}
+
+.admin-topbar .header-right {
+    display: flex !important;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    gap: 8px;
+}
+
+.admin-topbar .header-right fieldset {
+    flex: 1;
+    max-width: 360px;
+    min-width: 0;
+    display: flex !important;
+    align-items: center;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: none;
+    position: relative;
+}
+
+/* =====================
+   FIX: Notification bar - cleaner styling, full-width above topbar-inner
+   ===================== */
+.admin-topbar .notification-global {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    font-size: 12px;
+    padding: 8px 16px 8px 44px;
+}
+
+/* =====================
+   FIX: small white box artefact (empty .columns / clearfix elements)
+   ===================== */
+.columns:empty,
+div.main-col-inner:empty,
+.entry-edit .entry-edit-head:empty {
+    display: none !important;
+}
+
+/* Ensure .admin-page-left clips any overflow */
+.admin-page-left {
+    overflow: hidden;
+}
+
+/* =====================
+   FIX: old .header background still painting in some browsers
+   ===================== */
+.header {
+    background: none !important;
+    display: contents !important;
+}
+
+/* =====================
+   FIX: overflow-x clipping right-side buttons
+   ===================== */
+.admin-main {
+    overflow-x: visible !important;
+}
+/* overflow-x removed from admin-content-wrap — it breaks position:sticky on content-header.
+   Horizontal scroll is handled by .hor-scroll wrappers inside each grid. */
+.hor-scroll {
+    overflow-x: auto;
+}
+
+/* =====================
+   FIX: button.back - no GIF, modern outline style
+   ===================== */
+button.back {
+    background: transparent !important;
+    background-image: none !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    color: #4b5563 !important;
+    padding: 0 14px !important;
+    height: 32px !important;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+button.back:hover {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+}
+button.back span {
+    background-image: none !important;
+    padding-left: 0 !important;
+}
+
+/* =====================
+   FIX: all other GIF button backgrounds → modern CSS
+   ===================== */
+
+/* Save / primary actions */
+button.save, button.add {
+    background: #3b82f6 !important;
+    background-image: none !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+}
+button.save:hover, button.add:hover {
+    background: #2563eb !important;
+}
+
+/* Delete / cancel / destructive */
+button.fail, button.cancel, button.delete {
+    background: #ef4444 !important;
+    background-image: none !important;
+    border-color: #dc2626 !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+}
+button.fail:hover, button.cancel:hover, button.delete:hover {
+    background: #dc2626 !important;
+    background-image: none !important;
+}
+button.fail:active, button.cancel:active, button.delete:active {
+    background: #b91c1c !important;
+    background-image: none !important;
+}
+
+/* General scalable buttons */
+.scalable {
+    background-image: none !important;
+}
+button.scalable span {
+    background-image: none !important;
+    padding-left: 0 !important;
+}
+button.save span, button.add span,
+button.cancel span, button.delete span,
+button.back span, button.add-image span, button.add-widget span {
+    background-image: none !important;
+    padding-left: 0 !important;
+}
+
+/* =====================
+   FIX: notification bar GIF icon → SVG
+   ===================== */
+.notification-global {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d97706' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z'/%3E%3C/svg%3E") !important;
+    background-position: 14px center !important;
+    background-size: 18px 18px !important;
+    background-repeat: no-repeat !important;
+}
+
+/* =====================
+   FIX: content-header vertical alignment
+   ===================== */
+.content-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 16px 0 14px !important;
+    margin-bottom: 20px !important;
+}
+.content-header h3 {
+    float: none !important;
+    margin: 0 !important;
+    color: #0f172a !important;
+    font-size: 1em !important;
+    line-height: 1 !important;
+    flex-shrink: 0;
+}
+.content-header .form-buttons,
+.content-header .content-buttons {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+}
+.content-header button {
+    margin: 0 !important;
+}
+
+/* =====================
+   FIX: admin-page-left layout (left sidebar nav card)
+   ===================== */
+.admin-page-cols {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+}
+.admin-page-left {
+    flex-shrink: 0 !important;
+    width: 200px !important;
+    background: #fff !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    overflow: hidden !important;
+    padding: 6px 0 !important;
+    position: sticky !important;
+    top: 70px !important;
+}
+.admin-page-left h3 {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: #94a3b8 !important;
+    padding: 10px 14px 6px !important;
+    margin: 0 !important;
+    border-bottom: none !important;
+}
+.admin-page-content {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+/* =====================
+   FIX: ul.tabs → vertical nav in admin-page-left
+   ===================== */
+.admin-page-left ul.tabs {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+}
+.admin-page-left ul.tabs li {
+    float: none !important;
+    display: block !important;
+}
+.admin-page-left ul.tabs a,
+.admin-page-left ul.tabs a:hover {
+    display: flex !important;
+    align-items: center !important;
+    float: none !important;
+    padding: 8px 14px !important;
+    border: none !important;
+    border-left: 3px solid transparent !important;
+    color: #475569 !important;
+    font-size: 13px !important;
+    background: none !important;
+    background-image: none !important;
+    text-decoration: none !important;
+    transition: background 0.1s, color 0.1s;
+}
+.admin-page-left ul.tabs a:hover {
+    background: #f8fafc !important;
+    color: #1e293b !important;
+}
+.admin-page-left ul.tabs a.active,
+.admin-page-left ul.tabs a:hover.active {
+    padding: 8px 14px 8px 11px !important;
+    border-left: 3px solid #3b82f6 !important;
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+}
+.admin-page-left ul.tabs a span,
+.admin-page-left ul.tabs a.active span,
+.admin-page-left ul.tabs a:hover span,
+.admin-page-left ul.tabs a:hover.active span {
+    background: none !important;
+    background-image: none !important;
+    padding: 0 !important;
+    font-weight: inherit !important;
+    cursor: pointer !important;
+}
+.admin-page-left ul.tabs a.active span {
+    font-weight: 600 !important;
+}
+/* changed/error badges */
+.admin-page-left ul.tabs span.changed,
+.admin-page-left ul.tabs span.error {
+    float: none !important;
+    margin-left: auto !important;
+    display: none !important;
+}
+.admin-page-left ul.tabs a.changed span.changed,
+.admin-page-left ul.tabs a.error span.error {
+    display: block !important;
+}
+
+/* =====================
+   Modern form inputs & selects
+   ===================== */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+textarea,
+select {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    color: #0f172a !important;
+    font-size: 13.5px !important;
+    padding: 4px 10px !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s, box-shadow 0.15s !important;
+    background-image: none !important;
+}
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+input[type="date"]:focus,
+textarea:focus,
+select:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important;
+    outline: none !important;
+}
+select {
+    padding-right: 28px !important;
+    cursor: pointer !important;
+}
+
+/* Grid filter row inputs — slightly smaller */
+.grid tr.filter input[type="text"],
+.grid tr.filter select,
+.grid tr.filter input[type="date"] {
+    font-size: 12.5px !important;
+    padding: 4px 8px !important;
+}
+
+/* =====================
+   Grid toolbar: Export/Actions combo groups
+   ===================== */
+.grid-actions,
+.export-types,
+#export_type_id_container,
+div.actions,
+.actions-select {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+/* Inline label + select + button combos */
+.export-types label,
+.actions-select label,
+div.actions label {
+    font-size: 13px !important;
+    color: #475569 !important;
+    white-space: nowrap !important;
+}
+
+/* Remove old double-border on inline selects next to buttons */
+.export-types select,
+div.actions select {
+    border-right: none !important;
+    border-radius: 6px 0 0 6px !important;
+    padding-right: 8px !important;
+}
+.export-types select + button,
+.export-types select + input[type="button"],
+div.actions select + button,
+div.actions select + input[type="button"] {
+    border-radius: 0 6px 6px 0 !important;
+    margin-left: 0 !important;
+    border-left: none !important;
+}
+
+/* Grid toolbar container */
+.grid-toolbar,
+.grid-header-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+
+/* =====================
+   Grid toolbar: pager/export/filter actions table
+   ===================== */
+table.actions {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: none !important;
+    background: none !important;
+    margin-bottom: 10px !important;
+}
+table.actions td {
+    padding: 6px 8px !important;
+    padding-left: 16px !important;
+    vertical-align: middle !important;
+    border: none !important;
+    background: none !important;
+    white-space: nowrap !important;
+}
+table.actions td.pager {
+    font-size: 13px !important;
+    color: #475569 !important;
+}
+table.actions td.pager select {
+    display: inline-block !important;
+    width: auto !important;
+    padding: 3px 6px !important;
+}
+table.actions td.export {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 13px !important;
+    color: #475569 !important;
+}
+/* Hide export GIF — we'll use text */
+table.actions td.export img.v-middle {
+    display: none !important;
+}
+table.actions td.export select {
+    width: auto !important;
+    min-width: 90px !important;
+    display: inline-block !important;
+}
+
+/* =====================
+   Massaction toolbar — inline fieldset
+   ===================== */
+table.massaction {
+    width: 100% !important;
+    border: none !important;
+    background: none !important;
+    margin-bottom: 10px !important;
+}
+table.massaction td {
+    padding: 4px 0 !important;
+    border: none !important;
+    background: none !important;
+    vertical-align: middle !important;
+    font-size: 13px !important;
+    color: #475569 !important;
+}
+table.massaction .right {
+    display: flex !important;
+    justify-content: flex-end !important;
+}
+table.massaction .entry-edit {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+table.massaction fieldset {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+table.massaction fieldset .field-row {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    float: none !important;
+}
+table.massaction fieldset label {
+    font-size: 13px !important;
+    color: #475569 !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+}
+table.massaction fieldset select {
+    width: auto !important;
+    min-width: 160px !important;
+}
+
+/* =====================
+   FIX: Global Search back in topbar (base.css sets position:absolute on .header-right)
+   ===================== */
+.admin-topbar .header-right {
+    position: static !important;
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 !important;
+    padding: 0 !important;
+    height: auto !important;
+    background: none !important;
+    z-index: auto !important;
+    top: auto !important;
+    right: auto !important;
+}
+.admin-topbar .header-top {
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    background: none !important;
+}
+.admin-topbar .header-right fieldset {
+    flex: 1 !important;
+    max-width: 400px !important;
+    display: flex !important;
+    align-items: center !important;
+    position: relative !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: normal !important;
+}
+.admin-topbar .header-right fieldset input.input-text {
+    width: 100% !important;
+    min-width: 0 !important;
+    border: 1px solid var(--topbar-border) !important;
+    border-radius: var(--radius) !important;
+    background: #f1f5f9 !important;
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+    color: #334155 !important;
+    box-shadow: none !important;
+    margin-top: 0 !important;
+}
+.admin-topbar .header-right fieldset input.input-text:focus {
+    border-color: var(--primary) !important;
+    background: #fff !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
+    outline: none !important;
+}
+
+/* =====================
+   FIX: Collapsed sidebar — force-hide open submenus (specificity beat)
+   ===================== */
+.admin-shell.sidebar-collapsed #nav li.level0.parent.open > ul,
+.admin-shell.sidebar-collapsed #nav li.level0 > ul {
+    display: none !important;
+}
+
+/* =====================
+   FIX: Padding/shadow on content-header buttons area
+   (buttons group gaps and box shadows)
+   ===================== */
+.content-header .form-buttons button + button,
+.content-header .content-buttons button + button {
+    margin-left: 0 !important;
+}
+.content-header .content-buttons + .content-buttons {
+    margin-left: 0 !important;
+}
+/* Remove unexpected box-shadows on buttons that appear as gaps */
+button.save, button.add, button.back, button.reset,
+.content-header button {
+    box-shadow: none !important;
+}
+
+/* =====================
+   FIX: Empty left column boxes — hide admin-page-left when it has no ul.tabs
+   ===================== */
+.admin-page-left:not(:has(ul.tabs)):not(:has(li)) {
+    display: none !important;
+}
+
+/* =====================
+   FIX: Export select wider (CSV was clipping) + massaction fieldset padding
+   ===================== */
+table.actions td.export select {
+    min-width: 120px !important;
+    width: auto !important;
+}
+
+/* Massaction fieldset — add surrounding padding/card feel */
+table.massaction fieldset {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 5px 10px !important;
+    background: #fff !important;
+}
+
+/* =====================
+   FIX: Pagination page input too narrow
+   ===================== */
+table.actions td.pager input.page {
+    width: 48px !important;
+    min-width: 48px !important;
+    text-align: center !important;
+}
+
+/* =====================
+   Resizable left panel drag handle
+   ===================== */
+.admin-page-cols {
+    align-items: stretch !important;
+}
+.admin-left-resize-handle {
+    flex-shrink: 0;
+    width: 8px;
+    cursor: col-resize;
+    position: relative;
+    margin: 0 -2px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.admin-left-resize-handle::after {
+    content: '';
+    display: block;
+    width: 2px;
+    height: 40px;
+    border-radius: 2px;
+    background: #cbd5e1;
+    transition: background 0.15s, height 0.15s;
+}
+.admin-left-resize-handle:hover::after,
+.admin-left-resize-handle.dragging::after {
+    background: #3b82f6;
+    height: 60px;
+}
+
+/* =====================
+   Multi-level nav: level1 parent expand/collapse
+   ===================== */
+
+/* Level 1 parent items with children — show chevron */
+#nav li.level1.parent > a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+#nav li.level1.parent > a::after {
+    content: '';
+    display: inline-block !important;
+    position: static !important;
+    top: auto !important;
+    bottom: auto !important;
+    width: 12px !important;
+    height: 12px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+    background-color: currentColor !important;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") !important;
+    mask-size: contain !important;
+    mask-repeat: no-repeat !important;
+    mask-position: center !important;
+    opacity: 0.5 !important;
+    transition: transform 0.15s !important;
+}
+#nav li.level1.parent.open > a::after {
+    transform: rotate(90deg) !important;
+    opacity: 0.8 !important;
+}
+
+/* Show level1's children when open */
+#nav li.level1.parent.open > ul {
+    display: block !important;
+}
+
+/* Level 2 items — deeper indent + slightly smaller */
+#nav ul ul li a {
+    padding-left: 42px !important;
+    font-size: 12.5px !important;
+    color: #94a3b8 !important;
+}
+#nav ul ul li a:hover,
+#nav ul ul li.active a,
+#nav ul ul li a.active {
+    color: #e2e8f0 !important;
+    background: rgba(255,255,255,0.06) !important;
+}
+
+/* Collapsed sidebar: hide all submenus at all levels */
+.admin-shell.sidebar-collapsed #nav li.parent > ul {
+    display: none !important;
+}
+
+/* =====================
+   Submenu vertical tree lines
+   ===================== */
+/* Border anchored at same x as level1 text (16px); level2 text indented 10px past that */
+#nav li.level1.parent > ul {
+    position: relative !important;
+    margin-left: 32px !important;
+    padding-left: 10px !important;
+    border-left: 1px solid rgba(251, 146, 60, 0.35) !important;
+}
+#nav li.level1.parent.open > ul {
+    border-left-color: rgba(251,146,60,0.55) !important;
+}
+/* Active item makes the line brighter */
+#nav li.level1.parent:has(.active) > ul {
+    border-left-color: rgba(251,146,60,0.85) !important;
+}
+/* Level2 links: slight indent, smaller text */
+#nav li.level2 > a {
+    padding-left: 4px !important;
+    font-size: 12px !important;
+    opacity: 0.85;
+}
+
+/* =====================
+   Command Palette (Cmd+K)
+   ===================== */
+#maho-cmd-palette {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12vh;
+}
+#maho-cmd-palette.open {
+    display: flex;
+}
+.cmd-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+}
+.cmd-modal {
+    position: relative;
+    width: 100%;
+    max-width: 580px;
+    background: #1e2433;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+    overflow: hidden;
+    margin: 0 16px;
+}
+.cmd-search-row {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    gap: 10px;
+}
+.cmd-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: #64748b;
+}
+.cmd-input {
+    flex: 1 !important;
+    padding: 16px 0 !important;
+    background: transparent !important;
+    border: none !important;
+    color: #f1f5f9 !important;
+    font-size: 15px !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    min-width: 0 !important;
+}
+.cmd-input::placeholder { color: #475569 !important; }
+.cmd-esc-hint {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    color: #64748b;
+    font-family: inherit;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.cmd-results {
+    max-height: 380px;
+    overflow-y: auto;
+    padding: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.cmd-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #94a3b8;
+    font-size: 13.5px;
+    line-height: 1.4;
+    transition: background 0.08s;
+}
+.cmd-item.selected,
+.cmd-item:hover {
+    background: rgba(59,130,246,0.18);
+    color: #f1f5f9;
+}
+.cmd-bc {
+    font-size: 11.5px;
+    color: #475569;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.cmd-item.selected .cmd-bc,
+.cmd-item:hover .cmd-bc {
+    color: #64748b;
+}
+.cmd-lbl {
+    font-weight: 500;
+    color: #e2e8f0;
+}
+.cmd-item mark {
+    background: transparent;
+    color: #60a5fa;
+    font-weight: 700;
+}
+.cmd-empty {
+    padding: 24px;
+    text-align: center;
+    color: #475569;
+    font-size: 13px;
+}
+.cmd-footer {
+    display: flex;
+    gap: 16px;
+    padding: 8px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    color: #334155;
+    font-size: 11px;
+}
+.cmd-footer kbd {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 10px;
+    font-family: inherit;
+    color: #64748b;
+    margin-right: 3px;
+}
+
+
+
+/* =====================
+   Command palette search row fixes
+   ===================== */
+.cmd-search-row {
+    padding: 6px 16px !important;
+    gap: 12px !important;
+}
+.cmd-icon {
+    width: 20px !important;
+    height: 20px !important;
+}
+.cmd-input {
+    padding: 20px 0 !important;
+    font-size: 16px !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #f1f5f9 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+}
+.cmd-input:focus {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    border-radius: 0 !important;
+}
+/* Bigger result rows */
+.cmd-item {
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+}
+.cmd-lbl {
+    font-size: 14px !important;
+}
+
+/* =====================
+   Command palette input — override global input styles with max specificity
+   ===================== */
+#maho-cmd-palette .cmd-search-row input,
+#maho-cmd-palette .cmd-search-row input[type="text"],
+#maho-cmd-palette input.cmd-input,
+#maho-cmd-palette input.cmd-input:hover,
+#maho-cmd-palette input.cmd-input:focus {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    outline: none !important;
+    color: #f1f5f9 !important;
+    padding: 20px 0 !important;
+    font-size: 16px !important;
+    width: 100% !important;
+}
+
+/* =====================
+   Category tree: Add buttons → icon + label style
+   ===================== */
+#add_root_category_button,
+#add_subcategory_button {
+    background: #3b82f6 !important;
+    background-image: none !important;
+    border: none !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    padding: 5px 10px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: none !important;
+    transition: background 0.12s !important;
+}
+#add_root_category_button:hover,
+#add_subcategory_button:hover {
+    background: #2563eb !important;
+    color: #fff !important;
+}
+/* Hide the original text via font-size:0, re-add via ::after */
+#add_root_category_button span,
+#add_subcategory_button span {
+    font-size: 0 !important;
+    background-image: none !important;
+    padding: 0 !important;
+}
+#add_root_category_button::before,
+#add_subcategory_button::before {
+    content: '+';
+    font-size: 15px !important;
+    font-weight: 300 !important;
+    line-height: 1 !important;
+}
+#add_root_category_button::after {
+    content: 'Root Category';
+    font-size: 12.5px !important;
+}
+#add_subcategory_button::after {
+    content: 'Subcategory';
+    font-size: 12.5px !important;
+}
+
+/* Category buttons container — horizontal row */
+.categories-side-col .content-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 10px 12px !important;
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+}
+.categories-side-col .content-header h3 {
+    display: none !important;
+}
+
+/* =====================
+   Fix: double border between content-header and admin-page-left card
+   ===================== */
+.admin-page-left .content-header {
+    border: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+/* Remove the outer card bottom border duplicate — use divider only within */
+.categories-side-col {
+    border-bottom: none !important;
+}
+
+/* =====================
+   Fix: category buttons — zero font on button, restore on pseudo-elements only
+   ===================== */
+#add_root_category_button,
+#add_subcategory_button {
+    font-size: 0 !important;
+}
+#add_root_category_button::before,
+#add_subcategory_button::before,
+#add_root_category_button::after,
+#add_subcategory_button::after {
+    font-size: 12.5px !important;
+}
+
+/* =====================
+   Accordion / entry-edit section headers
+   ===================== */
+dl.accordion dt,
+.entry-edit .entry-edit-head {
+    background: #fefefe !important;
+    color: #2f2f2f !important;
+    padding: 4px 16px !important;
+    border: 1px solid #d3d3d3 !important;
+    border-radius: 8px 8px 0 0 !important;
+    border-radius: var(--radius) var(--radius) 0 0 !important;
+}
+
+/* =====================
+   Command Palette — Tabs
+   ===================== */
+.cmd-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 8px 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.cmd-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px 6px 0 0;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.12s, background 0.12s;
+    position: relative;
+    bottom: -1px;
+}
+.cmd-tab svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+}
+.cmd-tab kbd {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 10px;
+    color: inherit;
+    font-family: inherit;
+}
+.cmd-tab:hover {
+    color: #94a3b8;
+    background: rgba(255,255,255,0.04);
+}
+.cmd-tab.active {
+    color: #f1f5f9;
+    background: #1e2433;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-bottom-color: #1e2433;
+}
+
+/* Record group labels */
+.cmd-group-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #475569;
+    padding: 10px 14px 4px;
+}
+.cmd-group-label:first-child {
+    padding-top: 6px;
+}
+
+/* Loading state */
+.cmd-loading {
+    padding: 24px;
+    text-align: center;
+    color: #475569;
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* =====================
+   Sticky content-header (page title + action buttons)
+   ===================== */
+.content-header {
+    position: sticky !important;
+    top: var(--admin-topbar-h, 56px) !important;
+    z-index: 50 !important;
+    background: var(--bg, #f8fafc) !important;
+    margin-left: -20px !important;
+    margin-right: -20px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    box-shadow: 0 1px 0 #e2e8f0 !important;
+}
+
+/* =====================
+   Hide loading spinner in topbar search
+   ===================== */
+.admin-topbar #global_search_indicator {
+    display: none !important;
+}
+
+/* =====================
+   Hide topbar global search (replaced by Cmd+K palette)
+   ===================== */
+.admin-topbar .header-right fieldset {
+    display: none !important;
+}
+
+/* Push action buttons to the right of content-header */
+.content-header .form-buttons,
+.content-header .content-buttons {
+    margin-left: auto !important;
+}
+
+/* =====================
+   Cmd+K badge in content-header
+   ===================== */
+.cmd-launch-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 5px 10px !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    color: #64748b !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    margin-left: 8px !important;
+    box-shadow: none !important;
+    background-image: none !important;
+}
+.cmd-launch-btn:hover {
+    background: #e2e8f0 !important;
+    color: #334155 !important;
+}
+.cmd-launch-btn svg {
+    width: 13px !important;
+    height: 13px !important;
+    flex-shrink: 0 !important;
+}
+.cmd-launch-btn kbd {
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 10px;
+    font-family: inherit;
+    color: #94a3b8;
+}
+
+/* =====================
+   admin-topbar removed — replaced by admin-notices + sticky content-header
+   ===================== */
+
+/* Notifications bar: sticky at very top, variable height */
+.admin-notices {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    flex-shrink: 0;
+}
+.admin-notices .notification-global {
+    margin: 0 !important;
+    border-radius: 0 !important;
+}
+/* Collapse empty notification containers so they don't leave a gap */
+.admin-notices ul.messages:empty,
+.admin-notices .messages:empty,
+.admin-notices > div:empty { display: none !important; }
+
+/* Hide the old topbar entirely */
+.admin-topbar {
+    display: none !important;
+}
+
+/* content-header is now the effective topbar */
+.content-header {
+    position: sticky !important;
+    top: var(--admin-notices-h, 0px) !important;
+    z-index: 100 !important;
+    background: #fff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-top: none !important;
+    padding: 0 24px !important;
+    margin: 0 !important;
+    min-height: var(--topbar-h) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+}
+
+/* cmd-launch-btn — just a ⌘K kbd chip */
+.cmd-launch-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background-image: none !important;
+    cursor: pointer !important;
+    margin-left: 8px !important;
+}
+.cmd-launch-btn kbd {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-bottom-width: 2px !important;
+    border-radius: 5px !important;
+    padding: 3px 8px !important;
+    font-size: 11px !important;
+    font-family: inherit !important;
+    color: #64748b !important;
+    letter-spacing: 0.02em !important;
+    transition: background 0.1s !important;
+}
+.cmd-launch-btn:hover kbd {
+    background: #e2e8f0 !important;
+    color: #334155 !important;
+}
+
+/* ======================================================
+   MODERN CARD & TABLE SYSTEM
+   ====================================================== */
+
+/* Page background — cooler, lighter grey */
+.admin-main,
+.admin-content-wrap,
+body {
+    background: #f1f5f9 !important;
+}
+
+/* ---- Cards: entry-edit blocks ---- */
+.entry-edit {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    margin-bottom: 16px !important;
+}
+
+/* Card header */
+.entry-edit .entry-edit-head {
+    background: #fff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-radius: 0 !important;
+    padding: 12px 16px !important;
+    border-top: none !important;
+}
+.entry-edit .entry-edit-head h4,
+.entry-edit .entry-edit-head h3 {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+/* Card body */
+.entry-edit fieldset {
+    padding: 12px 16px !important;
+    border: none !important;
+    background: none !important;
+    margin: 0 !important;
+}
+
+/* ---- Form-list labels & values ---- */
+table.form-list td.label,
+table.form-list th.label {
+    color: #64748b !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    padding: 8px 16px 8px 0 !important;
+    white-space: nowrap !important;
+    vertical-align: top !important;
+    width: 180px !important;
+}
+table.form-list td.value,
+table.form-list td.scope-label {
+    color: #0f172a !important;
+    font-size: 13px !important;
+    padding: 8px 0 !important;
+    vertical-align: top !important;
+}
+
+/* ---- Data grid tables ---- */
+table.data {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    background: #fff !important;
+    border-radius: 0 0 10px 10px !important;
+    overflow: hidden !important;
+}
+table.data thead th {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 6px 8px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-top: 1px solid #e2e8f0 !important;
+    white-space: nowrap !important;
+}
+table.data thead th a,
+table.data thead th a:hover {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+table.data tbody td {
+    padding: 10px 12px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    font-size: 13px !important;
+    color: #1e293b !important;
+    vertical-align: top !important;
+    background: #fff !important;
+}
+table.data tbody tr:last-child td {
+    border-bottom: none !important;
+}
+table.data tbody tr:hover td {
+    background: #f8fafc !important;
+}
+table.data tbody tr.odd td {
+    background: #fafafa !important;
+}
+table.data tbody tr.odd:hover td {
+    background: #f1f5f9 !important;
+}
+
+/* ---- Standalone order info boxes (billing, account etc.) ---- */
+.box-left, .box-right, .box-2columns-left, .box-2columns-right {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    padding: 0 !important;
+    margin-bottom: 16px !important;
+}
+.box-left .box-title,
+.box-right .box-title,
+.box-2columns-left .box-title,
+.box-2columns-right .box-title {
+    display: block !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    margin: 0 !important;
+}
+.box-left address,
+.box-right address,
+.box-left p,
+.box-right p {
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    color: #334155 !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+}
+
+/* ---- Grid wrapper: outer border becomes card ---- */
+.grid {
+    background: #fff !important;
+    border-radius: 10px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    margin-bottom: 16px !important;
+}
+.grid .hor-scroll {
+    border-radius: 0 !important;
+}
+
+/* ---- Accordion sections ---- */
+dl.accordion dt {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-bottom: none !important;
+    color: #0f172a !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 12px 16px !important;
+    border-radius: 10px 10px 0 0 !important;
+}
+dl.accordion dd {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-top: none !important;
+    border-radius: 0 0 10px 10px !important;
+    margin-bottom: 16px !important;
+    padding: 12px 16px !important;
+}
+
+/* ======================================================
+   CARD SYSTEM REWORK — fix double borders, gaps, wrong selectors
+   ====================================================== */
+
+/* Remove card styles from box-left/right — they just lay out columns */
+.box-left, .box-right,
+.box-2columns-left, .box-2columns-right {
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+    overflow: visible !important;
+}
+
+/* The real card unit is entry-edit */
+.entry-edit {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    margin-bottom: 16px !important;
+}
+
+/* Card head: no background, just a bottom divider */
+.entry-edit .entry-edit-head {
+    background: #fff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-radius: 0 !important;
+    padding: 12px 16px !important;
+    margin: 0 !important;
+}
+.entry-edit .entry-edit-head h4,
+.entry-edit .entry-edit-head h3 {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+}
+
+/* Card body */
+.entry-edit fieldset {
+    padding: 14px 16px !important;
+    border: none !important;
+    background: none !important;
+    margin: 0 !important;
+}
+
+/* Collapse .clear divs — they add phantom gaps */
+.clear { margin: 0 !important; padding: 0 !important; height: 0 !important; }
+
+/* Two-column card layout */
+.box-left { float: left; width: 49%; padding-right: 8px !important; }
+.box-right { float: right; width: 49%; }
+
+/* ---- form-list: clean label/value rows ---- */
+table.form-list {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+table.form-list tr {
+    border-bottom: 1px solid #f8fafc !important;
+}
+table.form-list tr:last-child {
+    border-bottom: none !important;
+}
+table.form-list td.label {
+    color: #64748b !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    padding: 8px 24px 8px 0 !important;
+    width: 40% !important;
+    vertical-align: top !important;
+    background: none !important;
+}
+table.form-list td.value {
+    color: #0f172a !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 8px 0 !important;
+    vertical-align: top !important;
+    background: none !important;
+}
+
+/* ---- Items Ordered: div.grid.np ---- */
+.grid.np {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    margin-bottom: 16px !important;
+}
+.grid.np .hor-scroll { overflow-x: auto; }
+
+/* Items table headings row (tr.headings, not thead th) */
+table.order-tables tr.headings th,
+.grid.np table th {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 10px 12px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-top: 1px solid #e2e8f0 !important;
+    white-space: nowrap !important;
+}
+table.order-tables td,
+.grid.np table td {
+    padding: 5px 5px !important;
+    font-size: 13px !important;
+    color: #1e293b !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    background: #fff !important;
+    vertical-align: top !important;
+}
+table.order-tables tr:last-child td,
+.grid.np table tr:last-child td {
+    border-bottom: none !important;
+}
+table.order-tables tr.odd td,
+.grid.np table tr.odd td {
+    background: #fafafa !important;
+}
+table.order-tables tr:hover td,
+.grid.np table tr:hover td {
+    background: #f8fafc !important;
+}
+
+/* ---- Order Totals ---- */
+.order-totals {
+    padding: 8px 0 !important;
+}
+.order-totals table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+.order-totals td {
+    padding: 6px 16px !important;
+    font-size: 13px !important;
+    color: #334155 !important;
+    background: none !important;
+    border: none !important;
+}
+.order-totals tr.last td,
+.order-totals .grand_total td {
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    color: #0f172a !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding-top: 10px !important;
+}
+
+/* ---- Tab destination containers: JS placeholders, NOT visual cards ---- */
+/* These entry-edit divs (with an ID) are JS content containers, not cards */
+.entry-edit[id] {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+}
+
+/* ================================================================
+   DEFINITIVE CARD SYSTEM — based on actual order view HTML structure
+   ================================================================ */
+
+/* Column wrappers: layout only, no card styling */
+.box-left,
+.box-right,
+.box-2columns-left,
+.box-2columns-right {
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+    overflow: visible !important;
+}
+.box-left, .box-2columns-left {
+    float: left !important;
+    width: 49% !important;
+    padding-right: 8px !important;
+}
+.box-right, .box-2columns-right {
+    float: right !important;
+    width: 49% !important;
+    padding-left: 8px !important;
+}
+
+/* Visual card unit */
+.entry-edit {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    margin-bottom: 16px !important;
+    overflow: hidden !important;
+}
+
+/* JS tab destination containers — transparent, not cards */
+.entry-edit[id] {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+}
+
+/* Card header */
+.entry-edit > .entry-edit-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 16px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    background: #fff !important;
+}
+.entry-edit > .entry-edit-head h4,
+.entry-edit > .entry-edit-head h3 {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+/* Card body: both .fieldset (div) and fieldset (element) */
+.entry-edit > .fieldset,
+.entry-edit > fieldset {
+    padding: 14px 16px !important;
+    border: none !important;
+    background: none !important;
+    margin: 0 !important;
+}
+
+/* Order Totals: .box-right.entry-edit — single element is both column and card */
+.box-right.entry-edit {
+    float: right !important;
+    width: 49% !important;
+    padding: 0 !important;
+    padding-left: 0 !important;
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    overflow: hidden !important;
+    margin-bottom: 16px !important;
+}
+
+/* Items grid */
+.grid.np {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    overflow: hidden !important;
+    margin-bottom: 16px !important;
+}
+.grid.np .hor-scroll {
+    overflow-x: auto !important;
+}
+
+/* ================================================================
+   ORDER VIEW — EXTENDED STYLES
+   Appended to maho-admin.css
+   ================================================================ */
+
+/* ---- Missing CSS variables ---- */
+:root {
+    --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --accent: #2563eb;
+    --accent-bg: rgba(37, 99, 235, 0.06);
+    --card-radius: 10px;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ================================================================
+   CARD HEADER — update to flex-start + gap, tools Edit button style
+   ================================================================ */
+
+.entry-edit > .entry-edit-head {
+    justify-content: flex-start !important;
+    gap: 10px !important;
+}
+
+/* Card header h4/h3 — uppercase label style */
+.entry-edit > .entry-edit-head h4,
+.entry-edit > .entry-edit-head h3 {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: var(--text-secondary) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.07em !important;
+    font-family: var(--font) !important;
+}
+
+/* Order # card head — larger, no uppercase (has data-copy-text) */
+.entry-edit-head h4[data-copy-text],
+.entry-edit-head:has(.icon-copy) h4 {
+    font-size: 12px !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+}
+
+/* Tools container */
+.entry-edit-head .tools {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+/* Edit button in card headers — bordered button matching inline Edit */
+.entry-edit-head .tools a,
+.entry-edit-head .tools button {
+    display: inline-block !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    line-height: normal !important;
+    color: var(--accent) !important;
+    text-decoration: none !important;
+    background: transparent !important;
+    border: 1px solid var(--accent) !important;
+    cursor: pointer !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    transition: background 0.15s !important;
+    font-family: var(--font) !important;
+}
+
+.entry-edit-head .tools a:hover,
+.entry-edit-head .tools button:hover {
+    background: var(--accent-bg) !important;
+    text-decoration: none !important;
+}
+
+/* ================================================================
+   ICON-COPY
+   ================================================================ */
+
+.icon-copy {
+    display: inline-flex !important;
+    align-items: center !important;
+    color: var(--text-muted) !important;
+    cursor: pointer !important;
+    font-size: 11px !important;
+    margin-left: 4px !important;
+    padding: 2px !important;
+    border-radius: 3px !important;
+    transition: color 0.15s !important;
+}
+.icon-copy:hover { color: var(--accent) !important; }
+
+/* Duplicate copy icons — PHP template renders two, hide the second */
+.icon-copy + .icon-copy { display: none !important; }
+
+/* ================================================================
+   ORDER STATUS BADGE
+   ================================================================ */
+
+#order_status {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 2px 8px !important;
+    border-radius: 10px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    background: #fef9c3 !important;
+    color: #713f12 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    vertical-align: middle !important;
+}
+
+/* ================================================================
+   FORM-LIST — label/value table rows
+   ================================================================ */
+
+table.form-list {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 13px !important;
+    font-family: var(--font) !important;
+}
+table.form-list tr {
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+table.form-list tr:last-child {
+    border-bottom: none !important;
+}
+table.form-list td {
+    padding: 9px 16px !important;
+    vertical-align: top !important;
+    line-height: 1.5 !important;
+}
+table.form-list td.label {
+    color: var(--text-secondary) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    width: 38% !important;
+    white-space: nowrap !important;
+    padding-right: 8px !important;
+}
+table.form-list td.value {
+    color: var(--text-primary) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+table.form-list td.value address {
+    font-style: normal !important;
+    color: #334155 !important;
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+    font-weight: 400 !important;
+    margin: 0 !important;
+}
+
+/* Inline Edit button next to email field */
+table.form-list td.value button[type="button"],
+table.form-list td button[type="button"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: transparent !important;
+    color: var(--accent) !important;
+    border: 1px solid var(--accent) !important;
+    border-radius: 4px !important;
+    padding: 2px 8px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    font-family: var(--font) !important;
+    background-image: none !important;
+    margin-left: 6px !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+}
+table.form-list td.value button[type="button"]:hover {
+    background: var(--accent-bg) !important;
+}
+
+/* ================================================================
+   ADDRESS
+   ================================================================ */
+
+address,
+.entry-edit address {
+    font-style: normal !important;
+    line-height: 1.6 !important;
+    color: #334155 !important;
+    font-size: 13px !important;
+    margin: 0 !important;
+    font-family: var(--font) !important;
+}
+
+/* ================================================================
+   DATA TABLE — Items Ordered grid
+   ================================================================ */
+
+/* Items Ordered: header card connects to grid */
+.entry-edit:not([id]):not(.box-right):not(.box-left):not(.box-2columns-left):not(.box-2columns-right) {
+    border-radius: var(--card-radius) var(--card-radius) 0 0 !important;
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    box-shadow: none !important;
+}
+.grid.np {
+    margin-top: 0 !important;
+    border-radius: 0 0 var(--card-radius) var(--card-radius) !important;
+    border-top: 1px solid #e2e8f0 !important;
+    margin-bottom: 16px !important;
+}
+
+table.data,
+table.order-tables {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 13px !important;
+    font-family: var(--font) !important;
+}
+
+/* Table header row */
+table.data tr.headings th,
+table.order-tables tr.headings th {
+    background: #eef2f7 !important;
+    color: var(--text-muted) !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.07em !important;
+    padding: 9px 12px !important;
+    border-bottom: 1px solid #d9e3ee !important;
+    border-left: 1px solid #d9e3ee !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    font-family: var(--font) !important;
+}
+table.data tr.headings th:first-child,
+table.order-tables tr.headings th:first-child {
+    border-left: none !important;
+}
+table.data tr.headings th.a-center,
+table.order-tables tr.headings th.a-center {
+    text-align: center !important;
+}
+table.data tr.headings th.last,
+table.order-tables tr.headings th.last {
+    text-align: right !important;
+}
+
+/* Data rows */
+table.data tbody tr,
+table.order-tables tbody tr {
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+table.data tbody tr:last-child,
+table.order-tables tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+/* Alternating rows — override base.css !important with more specific selectors */
+.grid tbody.even tr,
+.grid tbody.even tr td,
+table.data tbody.even tr,
+table.data tbody.even tr td {
+    background: #f9fafb !important;
+}
+.grid tbody.odd tr,
+.grid tbody.odd tr td,
+table.data tbody.odd tr,
+table.data tbody.odd tr td,
+.grid tbody:not(.even):not(.odd) tr td {
+    background: #fff !important;
+}
+
+table.data td,
+table.order-tables td {
+    padding: 6px 8px !important;
+    color: var(--text-primary) !important;
+    font-size: 13px !important;
+    vertical-align: top !important;
+}
+table.data td.a-center,
+table.order-tables td.a-center { text-align: center !important; }
+table.data td.a-right,
+table.order-tables td.a-right,
+table.data td.last,
+table.order-tables td.last { text-align: right !important; }
+
+/* ================================================================
+   ORDER ITEMS DETAIL
+   ================================================================ */
+
+h5.title {
+    margin: 0 0 3px 0 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font) !important;
+}
+
+/* SKU / meta lines */
+.item-container .item-text > div,
+.item-text > div:not(.item-options):not(dl) {
+    font-size: 11px !important;
+    color: var(--text-secondary) !important;
+    margin-top: 2px !important;
+}
+.item-text > div strong {
+    font-weight: 600 !important;
+    color: var(--text-muted) !important;
+}
+
+/* Options (COLOR, SIZE chips) */
+dl.item-options {
+    margin: 5px 0 0 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+}
+dl.item-options dt {
+    display: inline !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: var(--text-muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    margin: 0 !important;
+}
+dl.item-options dd {
+    display: inline !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: var(--text-primary) !important;
+    margin: 0 4px 0 2px !important;
+    background: #f1f5f9 !important;
+    padding: 1px 5px !important;
+    border-radius: 3px !important;
+}
+
+/* Prices */
+.price {
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font) !important;
+}
+.price-excl-tax {
+    display: block !important;
+    font-size: 11px !important;
+    color: var(--text-muted) !important;
+    font-weight: 400 !important;
+}
+
+/* Qty table inside cell */
+.qty-table {
+    font-size: 12px !important;
+    border-collapse: collapse !important;
+    width: auto !important;
+}
+.qty-table td {
+    padding: 1px 4px !important;
+    font-size: 12px !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-secondary) !important;
+}
+.qty-table td strong {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+}
+
+/* ================================================================
+   ORDER TOTALS — tbody (line items) grey, tfoot (totals) white
+   ================================================================ */
+
+.order-totals,
+.box-right.entry-edit table {
+    padding: 0 !important;
+}
+.order-totals table,
+.box-right.entry-edit table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+/* All cells base */
+.order-totals td,
+.box-right.entry-edit table td {
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+    color: var(--text-primary) !important;
+    background: #fff !important;
+    border: none !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    vertical-align: middle !important;
+}
+.order-totals td:first-child,
+.box-right.entry-edit table td:first-child {
+    color: var(--text-secondary) !important;
+    font-weight: 400 !important;
+}
+.order-totals td:last-child,
+.box-right.entry-edit table td:last-child {
+    text-align: right !important;
+    font-weight: 500 !important;
+}
+
+/* tbody = line items (Subtotal, Shipping) — subtle grey */
+.order-totals tbody td,
+.box-right.entry-edit table tbody td {
+    background: #f8fafc !important;
+    color: var(--text-secondary) !important;
+    font-size: 12px !important;
+}
+.order-totals tbody tr:last-child td,
+.box-right.entry-edit table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* tfoot = totals (Grand Total etc) — white, prominent */
+.order-totals tfoot,
+.box-right.entry-edit table tfoot {
+    border-top: 1px solid #e2e8f0 !important;
+}
+.order-totals tfoot td,
+.box-right.entry-edit table tfoot td {
+    background: #fff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+.order-totals tfoot tr:last-child td,
+.box-right.entry-edit table tfoot tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* Grand Total row — first tfoot row */
+.order-totals tfoot tr:first-child td,
+.box-right.entry-edit table tfoot tr:first-child td {
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    color: var(--text-primary) !important;
+    padding: 12px 16px !important;
+}
+.order-totals tfoot tr:first-child td:last-child {
+    color: var(--accent) !important;
+}
+
+/* ================================================================
+   INPUT FIELDS IN ORDER VIEW FORMS
+   ================================================================ */
+
+.entry-edit input[type="text"],
+.entry-edit input[type="email"],
+.entry-edit select,
+.entry-edit textarea {
+    font-family: var(--font) !important;
+    font-size: 13px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 5px !important;
+    padding: 4px 10px !important;
+    color: var(--text-primary) !important;
+    background: #fff !important;
+    outline: none !important;
+    width: 100% !important;
+}
+/* Pager inputs — don't stretch full-width */
+.entry-edit input[type="text"].page,
+.entry-edit .pager input[type="text"],
+.entry-edit .pager select {
+    padding: 2px 6px !important;
+}
+.entry-edit input[type="text"]:focus,
+.entry-edit select:focus,
+.entry-edit textarea:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+}
+
+/* ================================================================
+   GRID PAGER — inline compact row
+   ================================================================ */
+
+td.pager {
+    white-space: normal !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    color: var(--text-secondary) !important;
+    line-height: 1.8 !important;
+}
+td.pager input.page {
+    display: inline !important;
+    width: 40px !important;
+    text-align: center !important;
+    padding: 2px 4px !important;
+    font-size: 12px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+}
+td.pager select {
+    display: inline !important;
+    width: auto !important;
+    padding: 2px 4px !important;
+    font-size: 12px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+}
+td.pager .pager-arrow svg {
+    width: 16px !important;
+    height: 16px !important;
+    vertical-align: middle !important;
+}
+td.pager .pager-arrow.disabled { opacity: 0.3 !important; }
+td.pager .separator { margin: 0 4px !important; color: #cbd5e1 !important; }
+
+/* ================================================================
+   COMMENTS & HISTORY
+   ================================================================ */
+
+#order_history_block { background: transparent !important; }
+
+.order-history-form {
+    padding-bottom: 12px !important;
+    margin-bottom: 12px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.note-list {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.note-list li {
+    padding: 12px 16px !important;
+    border-top: 1px solid #f1f5f9 !important;
+    font-size: 13px !important;
+}
+.note-list li:first-child { border-top: none !important; }
+
+.note-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 6px !important;
+    font-size: 12px !important;
+    color: var(--text-secondary) !important;
+}
+.note-header strong {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+}
+.note-header .icon svg {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Add comment form labels */
+.field-row { margin-bottom: 10px !important; }
+.field-row label.normal {
+    display: block !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    margin-bottom: 4px !important;
+}
+
+/* ================================================================
+   MISC
+   ================================================================ */
+
+.nobr { white-space: nowrap !important; }
+.f-right { float: right !important; }
+.hor-scroll {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+input[type="checkbox"] { accent-color: var(--accent) !important; }
+
+/* Links */
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* =====================
+   INSTAGRAM-STYLE SLIM SIDEBAR
+   Icons always visible; panel appears/disappears (no width animation)
+   ===================== */
+
+.admin-shell { grid-template-columns: 56px 1fr !important; transition: none !important; }
+
+/* Sidebar: always 56px, expands to 240px on hover */
+.admin-sidebar {
+    width: 56px !important;
+    overflow: hidden !important;
+    transition: width 0.25s ease !important;
+    z-index: 300 !important;
+    position: sticky !important;
+}
+.admin-sidebar:hover { width: 240px !important; }
+
+.sidebar-collapse-btn { display: none !important; }
+
+/* ---- Brand: styled exactly like a nav item ---- */
+.sidebar-brand {
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 10px 0 10px 18px !important;
+    gap: 0 !important;
+    border-bottom: none !important;
+    min-height: unset !important;
+}
+.sidebar-logo-link {
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 !important;
+    gap: 0 !important;
+}
+/* Logo icon: same size as nav icons */
+.sidebar-logo-link svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
+/* Brand name hidden in slim, slides in on hover */
+.sidebar-brand-name {
+    display: none;
+    opacity: 0;
+    transform: translateX(-10px);
+    white-space: nowrap;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+.admin-sidebar:hover .sidebar-logo-link { gap: 10px !important; }
+.admin-sidebar:hover .sidebar-brand-name {
+    display: inline;
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.16s ease 0.04s, transform 0.16s ease 0.04s;
+}
+
+/* ---- User footer ---- */
+.sidebar-user { justify-content: center !important; padding: 10px 8px !important; }
+.sidebar-user-name { display: none !important; }
+.admin-sidebar:hover .sidebar-user { justify-content: flex-start !important; padding: 12px 16px !important; }
+.admin-sidebar:hover .sidebar-user-name {
+    display: block !important;
+    opacity: 1;
+    transition: opacity 0.16s ease 0.04s;
+}
+
+/* ---- Nav: icons 20px, centred in 56px strip ---- */
+.admin-sidebar #nav > li.level0 > a {
+    padding: 10px 0 10px 18px !important;
+    justify-content: flex-start !important;
+}
+.admin-sidebar #nav > li.level0 > a::before {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 0 !important;
+    opacity: 0.85 !important;
+    flex-shrink: 0 !important;
+}
+/* Label + arrow: hidden in slim */
+.admin-sidebar #nav > li.level0 > a span {
+    display: none;
+    opacity: 0;
+    transform: translateX(-10px);
+    white-space: nowrap;
+}
+.admin-sidebar #nav > li.level0 > a::after { display: none !important; }
+/* Sidebar collapsed — instant hide (beats base Maho specificity via source order) */
+.admin-sidebar #nav li.parent > ul,
+.admin-sidebar #nav li.parent.open > ul { display: none !important; }
+
+/* ---- Hover: panel is open, reveal content ---- */
+.admin-sidebar:hover #nav > li.level0 > a { padding: 9px 16px !important; }
+.admin-sidebar:hover #nav > li.level0 > a::before {
+    margin-right: 10px !important;
+    opacity: 0.75 !important;
+}
+.admin-sidebar:hover #nav > li.level0 > a::after { display: block !important; }
+
+/* Sidebar hovered: all submenus in DOM but collapsed, ready to animate */
+.admin-sidebar:hover #nav li.parent > ul {
+    display: block !important;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+}
+/* JS adds .open → animate open */
+.admin-sidebar:hover #nav li.parent.open > ul {
+    max-height: 600px;
+    opacity: 1;
+}
+
+/* Nav label text: fade + slide in */
+.admin-sidebar:hover #nav > li.level0 > a span {
+    display: inline;
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+/* ---- Staggered cascade: each item slightly delayed ---- */
+.admin-sidebar:hover #nav > li.level0:nth-child(1) > a span  { transition-delay: 0.03s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(2) > a span  { transition-delay: 0.06s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(3) > a span  { transition-delay: 0.09s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(4) > a span  { transition-delay: 0.12s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(5) > a span  { transition-delay: 0.15s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(6) > a span  { transition-delay: 0.18s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(7) > a span  { transition-delay: 0.21s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(8) > a span  { transition-delay: 0.24s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(9) > a span  { transition-delay: 0.27s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(10) > a span { transition-delay: 0.30s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(11) > a span { transition-delay: 0.33s; }
+.admin-sidebar:hover #nav > li.level0:nth-child(12) > a span { transition-delay: 0.36s; }
