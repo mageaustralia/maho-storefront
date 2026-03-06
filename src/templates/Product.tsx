@@ -43,15 +43,19 @@ export const ProductPage: FC<ProductPageProps> = ({ config, categories, product,
   const hasRelated = product.relatedProducts && product.relatedProducts.length > 0;
   const hasUpsell = product.upsellProducts && product.upsellProducts.length > 0;
 
-  const jsonLd = {
+  const canonicalUrl = `${config.baseUrl}/${product.urlKey}`;
+
+  const productLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     description: product.shortDescription ?? product.description,
     sku: product.sku,
+    url: canonicalUrl,
     image: product.imageUrl,
     offers: {
       '@type': 'Offer',
+      url: canonicalUrl,
       price: displayPrice,
       priceCurrency: currency,
       availability: product.stockStatus === 'in_stock'
@@ -69,15 +73,33 @@ export const ProductPage: FC<ProductPageProps> = ({ config, categories, product,
     } : {}),
   };
 
+  const breadcrumbItems: { name: string; url?: string }[] = [{ name: 'Home', url: config.baseUrl }];
+  if (productCategory) {
+    breadcrumbItems.push({ name: productCategory.name, url: `${config.baseUrl}/${productCategory.urlPath ?? productCategory.urlKey}` });
+  }
+  breadcrumbItems.push({ name: product.name });
+
+  const breadcrumbLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems.map((item, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: item.name,
+      ...(item.url ? { item: item.url } : {}),
+    })),
+  };
+
   return (
     <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
       <Seo
         title={product.metaTitle ?? `${product.name} | ${config.storeName}`}
         description={product.metaDescription ?? product.shortDescription ?? undefined}
-        canonicalUrl={`${config.baseUrl}/${product.urlKey}`}
+        canonicalUrl={canonicalUrl}
         ogImage={product.imageUrl ?? undefined}
         ogType="product"
-        jsonLd={jsonLd}
+        siteName={config.storeName}
+        jsonLd={[productLd, breadcrumbLd]}
       />
 
       {/* Freshness metadata — client JS checks API if _lastChecked > 60s */}

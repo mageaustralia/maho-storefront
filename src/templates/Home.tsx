@@ -16,6 +16,7 @@ import { Hero } from './components/homepage/hero/index';
 import { ShopByCategory } from './components/homepage/shop-by-category/index';
 import { djb2 } from '../utils/hash';
 import { rewriteContentUrls } from '../content-rewriter';
+import { getRenderApiUrl } from '../page-config';
 
 interface HomeProps {
   config: StoreConfig;
@@ -29,11 +30,29 @@ interface HomeProps {
 }
 
 export const Home: FC<HomeProps> = ({ config, categories, cmsPage, stores, currentStoreCode, sidebarLeft, sidebarRight, devData }) => {
-  const jsonLd = {
+  const websiteLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: config.storeName,
     url: config.baseUrl,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${config.baseUrl}/search?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
+  // Rewrite logo URL from backend domain to storefront domain for structured data
+  const logoUrl = config.logoUrl
+    ? config.logoUrl.replace(getRenderApiUrl(), config.baseUrl)
+    : null;
+
+  const orgLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: config.storeName,
+    url: config.baseUrl,
+    ...(logoUrl ? { logo: logoUrl } : {}),
   };
 
   const hasCmsContent = !!(cmsPage?.content);
@@ -43,7 +62,9 @@ export const Home: FC<HomeProps> = ({ config, categories, cmsPage, stores, curre
       <Seo
         title={config.defaultTitle ?? config.storeName}
         description={config.defaultDescription ?? undefined}
-        jsonLd={jsonLd}
+        canonicalUrl={config.baseUrl}
+        siteName={config.storeName}
+        jsonLd={[websiteLd, orgLd]}
       />
       {/* Freshness metadata — client JS checks API if _lastChecked > 60s */}
       {cmsPage && (

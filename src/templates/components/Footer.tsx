@@ -20,7 +20,7 @@ export const Footer: FC<FooterProps> = ({ config, footerPages }) => (
     <div class="max-w-[var(--content-max)] mx-auto px-[var(--content-padding)] pt-12 pb-8">
       {/* Newsletter */}
       <div class="text-center mb-10 pb-8 border-b border-white/12" data-controller="newsletter">
-        <h4 class="text-lg font-bold text-white mb-2">Newsletter</h4>
+        <p class="text-lg font-bold text-white mb-2">Newsletter</p>
         <p class="text-sm text-white/60 mb-4">Sign up for our newsletter to receive updates and exclusive offers.</p>
         <form class="flex gap-2 max-w-[400px] mx-auto" data-newsletter-target="form" data-action="submit->newsletter#submit">
           <input
@@ -40,7 +40,7 @@ export const Footer: FC<FooterProps> = ({ config, footerPages }) => (
       {/* Link columns */}
       <div class="grid grid-cols-4 gap-8 mb-8 max-md:grid-cols-2 max-md:gap-6 max-sm:grid-cols-1 max-sm:gap-5">
         <div>
-          <h4 class="text-sm font-bold uppercase tracking-wider text-white mb-3">Company</h4>
+          <p class="text-sm font-bold uppercase tracking-wider text-white mb-3">Company</p>
           <ul class="flex flex-col gap-2">
             <li><a href="/about-maho-demo-store" data-turbo-prefetch="true" class="text-sm text-white/55 no-underline transition-colors hover:text-primary">About Us</a></li>
             <li><a href="/contacts" data-turbo-prefetch="true" class="text-sm text-white/55 no-underline transition-colors hover:text-primary">Contact Us</a></li>
@@ -48,7 +48,7 @@ export const Footer: FC<FooterProps> = ({ config, footerPages }) => (
         </div>
 
         <div>
-          <h4 class="text-sm font-bold uppercase tracking-wider text-white mb-3">Customer Service</h4>
+          <p class="text-sm font-bold uppercase tracking-wider text-white mb-3">Customer Service</p>
           <ul class="flex flex-col gap-2">
             <li><a href="/privacy-policy-cookie-restriction-mode" data-turbo-prefetch="true" class="text-sm text-white/55 no-underline transition-colors hover:text-primary">Privacy Policy</a></li>
             {footerPages
@@ -61,7 +61,7 @@ export const Footer: FC<FooterProps> = ({ config, footerPages }) => (
         </div>
 
         <div>
-          <h4 class="text-sm font-bold uppercase tracking-wider text-white mb-3">Quick Links</h4>
+          <p class="text-sm font-bold uppercase tracking-wider text-white mb-3">Quick Links</p>
           <ul class="flex flex-col gap-2">
             <li><a href="/search" data-turbo-prefetch="true" class="text-sm text-white/55 no-underline transition-colors hover:text-primary">Advanced Search</a></li>
             <li><a href="/blog" data-turbo-prefetch="true" class="text-sm text-white/55 no-underline transition-colors hover:text-primary">Blog</a></li>
@@ -69,7 +69,7 @@ export const Footer: FC<FooterProps> = ({ config, footerPages }) => (
         </div>
 
         <div>
-          <h4 class="text-sm font-bold uppercase tracking-wider text-white mb-3">Account</h4>
+          <p class="text-sm font-bold uppercase tracking-wider text-white mb-3">Account</p>
           <ul class="flex flex-col gap-2">
             <li><a href="/account" data-turbo-prefetch="true" class="text-sm text-white/55 no-underline transition-colors hover:text-primary">My Account</a></li>
             <li><a href="/account?tab=orders" data-turbo-prefetch="true" class="text-sm text-white/55 no-underline transition-colors hover:text-primary">Orders &amp; Returns</a></li>
