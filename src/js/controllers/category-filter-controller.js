@@ -149,8 +149,25 @@ export default class CategoryFilterController extends Controller {
               'data-filter-label': opt.label,
             },
           });
-          // Show checkmark if active
-          if (isActive) {
+          // Insert color/image swatch replacing the checkbox
+          const hasSwatch = opt.swatch && opt.swatch.value;
+          if (hasSwatch) {
+            const check = optEl.querySelector('[data-slot="check"]');
+            if (check) {
+              const dot = document.createElement('span');
+              if (opt.swatch.type === 'image') {
+                dot.innerHTML = `<img src="${opt.swatch.value}" alt="" class="w-full h-full object-cover rounded-full">`;
+              } else {
+                dot.style.backgroundColor = opt.swatch.value;
+              }
+              dot.className = `inline-block w-5 h-5 shrink-0 rounded-full border-2 transition-colors ${isActive ? 'border-primary ring-2 ring-primary/30' : 'border-base-content/15'}`;
+              dot.dataset.slot = 'swatch';
+              check.replaceWith(dot);
+            }
+            const btn = optEl.querySelector('[data-slot="button"]');
+            if (btn && isActive) btn.classList.add('font-semibold', 'text-base-content');
+          } else if (isActive) {
+            // Show checkmark if active (non-swatch options)
             const check = optEl.querySelector('[data-slot="check"]');
             if (check) {
               check.classList.remove('text-transparent', 'border-base-content/15');
