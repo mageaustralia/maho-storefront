@@ -608,7 +608,7 @@ app.get('/media/*', async (c) => {
 // Helper to get store essentials from KV
 interface FooterPage { identifier: string; title: string; }
 
-async function getStoreData(store: ContentStore, storeCode?: string): Promise<{ config: StoreConfig; categories: Category[]; footerPages: FooterPage[] }> {
+async function getStoreData(store: ContentStore, storeCode?: string, siteOrigin?: string): Promise<{ config: StoreConfig; categories: Category[]; footerPages: FooterPage[] }> {
   // Use store-prefixed keys if a store code is provided
   const prefix = storeCode ? `${storeCode}:` : '';
   const [config, categories, footerPages] = await Promise.all([
@@ -616,15 +616,20 @@ async function getStoreData(store: ContentStore, storeCode?: string): Promise<{ 
     store.get<Category[]>(`${prefix}categories`),
     store.get<FooterPage[]>(`${prefix}footer-pages`),
   ]);
+  const resolved = config ?? {
+    id: 'default', storeCode: storeCode || 'default', storeName: 'Maho Store',
+    baseCurrencyCode: 'USD', defaultDisplayCurrencyCode: 'USD', locale: 'en_US',
+    timezone: 'UTC', weightUnit: 'kgs', baseUrl: '', baseMediaUrl: '',
+    allowedCountries: ['US', 'AU', 'GB'], isGuestCheckoutAllowed: true, newsletterEnabled: false,
+    wishlistEnabled: false, reviewsEnabled: true, logoUrl: null, logoAlt: null,
+    defaultTitle: 'Maho Store', defaultDescription: null, cmsHomePage: 'home',
+  };
+  // Override baseUrl with the storefront's own origin for canonical URLs / OG tags
+  if (siteOrigin) {
+    resolved.baseUrl = siteOrigin.replace(/\/$/, '');
+  }
   return {
-    config: config ?? {
-      id: 'default', storeCode: storeCode || 'default', storeName: 'Maho Store',
-      baseCurrencyCode: 'USD', defaultDisplayCurrencyCode: 'USD', locale: 'en_US',
-      timezone: 'UTC', weightUnit: 'kgs', baseUrl: '', baseMediaUrl: '',
-      allowedCountries: ['US', 'AU', 'GB'], isGuestCheckoutAllowed: true, newsletterEnabled: false,
-      wishlistEnabled: false, reviewsEnabled: true, logoUrl: null, logoAlt: null,
-      defaultTitle: 'Maho Store', defaultDescription: null, cmsHomePage: 'home',
-    },
+    config: resolved,
     categories: categories ?? [],
     footerPages: footerPages ?? [],
   };
@@ -665,7 +670,7 @@ app.get('/', withEdgeCache(CACHE_HOME), async (c) => {
   // We can't know the real homePageId until config resolves, so we speculatively fetch 'home'.
   // If cmsHomePage differs we re-fetch below (rare). Sidebars are gated on pageLayout.
   const [{ config, categories }, defaultCmsPage] = await Promise.all([
-    getStoreData(store, currentStoreCode),
+    getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
     store.get<CmsPage>(`${cmsPrefix}cms:home`),
   ]);
   const homePageId = config.cmsHomePage || 'home';
@@ -682,7 +687,7 @@ app.get('/cart', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<CartPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
 });
@@ -794,7 +799,7 @@ app.get('/search', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const query = c.req.query('q') ?? '';
   const page = parseInt(c.req.query('page') ?? '1', 10);
   const itemsPerPage = 24;
@@ -829,7 +834,7 @@ app.get('/blog', withEdgeCache(CACHE_BLOG), async (c) => {
   const { stores, currentStoreCode } = await getStoreContext(c);
   const blogPrefix = currentStoreCode ? `${currentStoreCode}:` : '';
   const [{ config, categories }, postsRaw, blogCategories] = await Promise.all([
-    getStoreData(store, currentStoreCode),
+    getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
     store.get<any>(`${blogPrefix}blog-posts`),
     store.get<BlogCategory[]>(`${blogPrefix}blog-categories`),
   ]);
@@ -847,7 +852,7 @@ app.get('/blog/category/:slug', withEdgeCache(CACHE_BLOG), async (c) => {
   const slug = c.req.param('slug');
   const blogPrefix = currentStoreCode ? `${currentStoreCode}:` : '';
   const [{ config, categories }, postsRaw, blogCategories] = await Promise.all([
-    getStoreData(store, currentStoreCode),
+    getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
     store.get<any>(`${blogPrefix}blog-posts`),
     store.get<BlogCategory[]>(`${blogPrefix}blog-categories`),
   ]);
@@ -872,7 +877,7 @@ app.get('/blog/:slug', withEdgeCache(CACHE_BLOG), async (c) => {
   const blogPrefix = currentStoreCode ? `${currentStoreCode}:` : '';
 
   const [{ config, categories }, blogCategories] = await Promise.all([
-    getStoreData(store, currentStoreCode),
+    getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
     store.get<BlogCategory[]>(`${blogPrefix}blog-categories`),
   ]);
 
@@ -912,7 +917,7 @@ app.get('/login', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<LoginPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
 });
@@ -922,7 +927,7 @@ app.get('/register', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<RegisterPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
 });
@@ -932,7 +937,7 @@ app.get('/forgot-password', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<ForgotPasswordPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
 });
@@ -942,7 +947,7 @@ app.get('/reset-password', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<ResetPasswordPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
 });
@@ -953,7 +958,7 @@ app.get('/account', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const countries = await store.get<Country[]>('countries') ?? [];
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<AccountPage config={config} categories={categories} countries={countries} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
@@ -965,7 +970,7 @@ app.get('/contacts', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<ContactPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
 });
@@ -976,7 +981,7 @@ app.get('/checkout', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const countries = await store.get<Country[]>('countries') ?? [];
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<CheckoutPage config={config} categories={categories} countries={countries} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
@@ -988,7 +993,7 @@ app.get('/order/success', async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   return c.html(<OrderSuccessPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
 });
@@ -1002,7 +1007,7 @@ app.get('/page/:identifier', withEdgeCache(CACHE_CMS), async (c) => {
   const identifier = c.req.param('identifier');
   const cmsPrefix = currentStoreCode ? `${currentStoreCode}:` : '';
   const [{ config, categories }, page] = await Promise.all([
-    getStoreData(store, currentStoreCode),
+    getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
     store.get<CmsPage>(`${cmsPrefix}cms:${identifier}`),
   ]);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
@@ -1758,7 +1763,7 @@ app.get('/:parent/:child', withEdgeCache(CACHE_CATEGORY), async (c) => {
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
   const prefix = currentStoreCode ? `${currentStoreCode}:` : '';
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const parentSlug = c.req.param('parent');
   const childSlug = c.req.param('child');
   const urlPath = `${parentSlug}/${childSlug}`;
@@ -1823,7 +1828,7 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
   const prefix = currentStoreCode ? `${currentStoreCode}:` : '';
-  const { config, categories } = await getStoreData(store, currentStoreCode);
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const slug = c.req.param('slug');
   const apiClient = createApiClient(c.env, stores, currentStoreCode);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;

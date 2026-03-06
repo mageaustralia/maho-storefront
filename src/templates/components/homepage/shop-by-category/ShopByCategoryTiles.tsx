@@ -44,7 +44,7 @@ export const ShopByCategoryTiles: FC<ShopByCategoryProps> = ({ categories }) => 
               )}
               <div class="card-body p-3 gap-0.5">
                 <h3 class="text-sm font-semibold">{cat.name}</h3>
-                <span class="text-xs text-base-content/50">{cat.productCount} products</span>
+                <span class="text-xs text-base-content/50">{cat.productCount} {cat.productCount === 1 ? 'product' : 'products'}</span>
               </div>
             </a>
           );

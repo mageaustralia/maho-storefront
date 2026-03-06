@@ -13,6 +13,7 @@ import { Seo } from './components/Seo';
 import { ProductCard } from './components/product-display/card/index';
 import { SubcategoryTiles } from './components/SubcategoryTiles';
 import { getSection } from '../page-config';
+import { rewriteContentUrls } from '../content-rewriter';
 import { djb2 } from '../utils/hash';
 
 interface CategoryPageProps {
@@ -30,18 +31,6 @@ interface CategoryPageProps {
   devData?: DevData | null;
 }
 
-/**
- * Fix CMS block links for storefront: strip Maho base URL from href and src,
- * making all internal links and images relative so they work on the storefront domain.
- */
-function fixCmsLinks(html: string, baseUrl: string): string {
-  const escaped = baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // Strip base URL from href and src attributes
-  return html
-    .replace(new RegExp(`href="${escaped}`, 'g'), 'href="/')
-    .replace(new RegExp(`src="${escaped}`, 'g'), 'src="/')
-    .replace(/\.html"/g, '"');
-}
 
 export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, category, products, currentPage, totalPages, totalItems, parentCategory, stores, currentStoreCode, featuredBlockHtml, devData }) => {
   const currency = config.baseCurrencyCode;
@@ -55,12 +44,32 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
   const sidebarParent = parentCategory ?? (isParentCategory ? category : null);
   const sidebarChildren = sidebarParent?.children?.filter(c => c.includeInMenu) ?? [];
 
-  const jsonLd = {
+  const canonicalUrl = `${config.baseUrl}/${category.urlPath ?? category.urlKey}`;
+
+  const breadcrumbItems: { name: string; url?: string }[] = [{ name: 'Home', url: config.baseUrl }];
+  if (parentCategory) {
+    breadcrumbItems.push({ name: parentCategory.name, url: `${config.baseUrl}/${parentCategory.urlPath ?? parentCategory.urlKey}` });
+  }
+  breadcrumbItems.push({ name: category.name });
+
+  const collectionLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: category.name,
     description: category.description,
+    url: canonicalUrl,
     numberOfItems: totalItems,
+  };
+
+  const breadcrumbLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems.map((item, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: item.name,
+      ...(item.url ? { item: item.url } : {}),
+    })),
   };
 
   // Serialize products for client-side re-rendering
@@ -74,7 +83,7 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
 
   // Process CMS block HTML — fix links for storefront
   const cmsBlockHtml = category.cmsBlock
-    ? fixCmsLinks(category.cmsBlock, config.baseUrl)
+    ? rewriteContentUrls(category.cmsBlock)
     : null;
 
   return (
@@ -82,8 +91,9 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
       <Seo
         title={category.metaTitle ?? `${category.name} | ${config.storeName}`}
         description={category.metaDescription ?? category.description ?? undefined}
-        canonicalUrl={`${config.baseUrl}/${category.urlPath ?? category.urlKey}`}
-        jsonLd={jsonLd}
+        canonicalUrl={canonicalUrl}
+        siteName={config.storeName}
+        jsonLd={[collectionLd, breadcrumbLd]}
       />
       {/* Freshness metadata — client JS checks both category AND products */}
       <div hidden
@@ -112,7 +122,7 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
         <h1 class="text-3xl font-bold tracking-tight mb-6">{category.categoryHeading || category.name}</h1>
 
         {category.description && (
-          <div class="prose prose-sm max-w-none mb-4 text-base-content/80" dangerouslySetInnerHTML={{ __html: category.description }} />
+          <div class="prose prose-sm max-w-none mb-4 text-base-content/80" dangerouslySetInnerHTML={{ __html: rewriteContentUrls(category.description!) }} />
         )}
 
         {/* Two-column layout with sidebar */}
@@ -266,7 +276,7 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
                 const cmsMode = getSection<string>('category', 'cmsInsertion', 'none');
                 const cmsPosition = getSection<number>('category', 'cmsInsertPosition', 3);
                 const hasFeatured = !!featuredBlockHtml && cmsMode !== 'none';
-                const processedFeaturedHtml = hasFeatured ? fixCmsLinks(featuredBlockHtml!, config.baseUrl) : null;
+                const processedFeaturedHtml = hasFeatured ? rewriteContentUrls(featuredBlockHtml!) : null;
 
                 return (
                 <>

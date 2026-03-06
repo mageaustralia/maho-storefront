@@ -1483,7 +1483,6 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
 
 .account-tab.active {
   color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
 }
 
 /* Sections */
@@ -2020,7 +2019,7 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
 
 .wishlist-item {
   display: flex;
-  gap: var(--sp-4);
+  flex-direction: column;
   padding: var(--sp-4);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -2033,12 +2032,12 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
 }
 
 .wishlist-item-image {
-  width: var(--sp-20);
-  height: var(--sp-20);
-  flex-shrink: 0;
+  width: 100%;
+  aspect-ratio: 1;
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--color-bg-muted);
+  margin-bottom: var(--sp-3);
 }
 
 .wishlist-item-image img {
@@ -2059,12 +2058,12 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
 
 .wishlist-item-info {
   flex: 1;
-  min-width: var(--sp-0);
+  margin-bottom: var(--sp-3);
 }
 
 .wishlist-item-name {
   font-weight: 600;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--color-text);
   text-decoration: none;
   display: block;
@@ -2105,8 +2104,11 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  justify-content: center;
-  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.wishlist-item-actions .btn {
+  width: 100%;
 }
 
 .no-wishlist {
@@ -2117,27 +2119,6 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
 
 .no-wishlist p {
   margin-bottom: var(--sp-4);
-}
-
-@media (max-width: 480px) {
-  .wishlist-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .wishlist-item {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .wishlist-item-actions {
-    flex-direction: row;
-    width: 100%;
-  }
-
-  .wishlist-item-actions .btn {
-    flex: 1;
-  }
 }
 
 
@@ -8017,7 +7998,6 @@ body[data-store="sv_2"] {
 .text-white\/80{color:rgb(255 255 255 / 0.8) /* #ffffff */;}
 .hover\:text-base-content:hover{--un-text-opacity:1;color:rgb(17 17 17 / var(--un-text-opacity)) /* #111111 */;}
 .hover\:text-error:hover{--un-text-opacity:1;color:rgb(239 68 68 / var(--un-text-opacity)) /* #ef4444 */;}
-.hover\:text-neutral-content:hover{--un-text-opacity:1;color:rgb(255 255 255 / var(--un-text-opacity)) /* #ffffff */;}
 .hover\:text-primary-content:hover{--un-text-opacity:1;color:rgb(255 255 255 / var(--un-text-opacity)) /* #ffffff */;}
 .hover\:text-primary:hover{--un-text-opacity:1;color:rgb(255 45 135 / var(--un-text-opacity)) /* #ff2d87 */;}
 .placeholder\:text-base-content\/40::placeholder{color:rgb(17 17 17 / 0.4) /* #111111 */;}

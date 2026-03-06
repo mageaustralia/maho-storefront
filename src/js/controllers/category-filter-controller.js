@@ -128,7 +128,7 @@ export default class CategoryFilterController extends Controller {
 
   _buildFilterGroups() {
     const fragment = document.createDocumentFragment();
-    this._filtersData.forEach(filter => {
+    this._filtersData.filter(f => f.options && f.options.length > 1).forEach(filter => {
       const group = hydrateTemplate('tpl-filter-group', {
         label: filter.label,
       });
