@@ -728,6 +728,7 @@ app.get('/api/cart-recommendations', async (c) => {
           id: cs.id, sku: cs.sku, name: cs.name, urlKey: cs.urlKey,
           price: cs.price, finalPrice: cs.finalPrice, specialPrice: cs.specialPrice,
           thumbnailUrl: cs.thumbnailUrl, stockStatus: cs.stockStatus,
+          typeId: cs.type, hasRequiredOptions: cs.hasRequiredOptions,
         });
       }
     }

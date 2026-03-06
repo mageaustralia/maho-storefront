@@ -145,16 +145,27 @@ export const InfoPanelCompact: FC<InfoPanelCompactProps> = ({ product, currency,
       {/* Grouped Products */}
       {isGrouped && (
         <div class="flex flex-col gap-3">
-          {product.groupedProducts!.map((child) => (
-            <div key={child.id} class="flex items-center gap-3 text-sm">
+          {product.groupedProducts!.map((child) => {
+            const oos = child.inStock === false;
+            return (
+            <div key={child.id} class={`flex items-center gap-3 text-sm${oos ? ' opacity-50' : ''}`}>
               {child.thumbnailUrl && <img src={child.thumbnailUrl} alt={child.name} class="w-10 h-10 rounded object-cover" />}
               <div class="flex-1">
                 <p class="font-medium">{child.name}</p>
-                <p class="text-primary font-semibold">{formatPrice(child.finalPrice ?? child.price, currency)}</p>
+                {oos ? (
+                  <p class="text-error text-xs">Out of Stock</p>
+                ) : (
+                  <p class="text-primary font-semibold">{formatPrice(child.finalPrice ?? child.price, currency)}</p>
+                )}
               </div>
-              <input type="number" value={String(child.defaultQty || 0)} min="0" max="99" class="input input-sm w-16 text-center" data-grouped-id={String(child.id)} />
+              <div class="qty-stepper">
+                <button type="button" class="qty-btn" data-action="product#groupedQtyDecrement" disabled={oos} aria-label="Decrease quantity">-</button>
+                <input type="number" value="0" min="0" max="99" class="qty-input" data-grouped-id={String(child.id)} disabled={oos} />
+                <button type="button" class="qty-btn" data-action="product#groupedQtyIncrement" disabled={oos} aria-label="Increase quantity">+</button>
+              </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

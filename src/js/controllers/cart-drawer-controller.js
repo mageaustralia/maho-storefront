@@ -286,8 +286,8 @@ export default class CartDrawerController extends Controller {
         // Wire add-to-cart button
         const addBtn = el.querySelector('[data-slot="add-btn"]');
         if (addBtn && p.sku) {
-          if (p.typeId === 'configurable') {
-            // Configurable products — navigate to product page
+          if ((p.typeId && p.typeId !== 'simple' && p.typeId !== 'virtual') || p.hasRequiredOptions) {
+            // Non-simple products or products with required options — navigate to product page
             addBtn.addEventListener('click', (e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -325,7 +325,7 @@ export default class CartDrawerController extends Controller {
 
     try {
       await api.post(`/api/guest-carts/${maskedId}/items`, {
-        cartItem: { sku, qty: 1, quote_id: maskedId }
+        sku, qty: 1
       });
       btn.textContent = '✓';
       btn.classList.remove('btn-primary');
@@ -441,7 +441,7 @@ export default class CartDrawerController extends Controller {
     if (!maskedId) return;
     this._busy = true;
     try {
-      const response = await api.put(`/api/guest-carts/${maskedId}/coupon`, { code });
+      const response = await api.post(`/api/guest-carts/${maskedId}/coupon`, { code });
       if (!response.ok) {
         const err = await response.json();
         alert(err.message || 'Invalid coupon');
