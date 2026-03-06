@@ -5903,6 +5903,9 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
   color: var(--color-text-muted);
   background: var(--color-bg);
   border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: none;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
   user-select: none;
@@ -5927,7 +5930,9 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
   border-right: var(--border-width) solid var(--color-border);
   border-radius: 0;
   outline: none;
+  box-shadow: none;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .qty-stepper .qty-input::-webkit-inner-spin-button,

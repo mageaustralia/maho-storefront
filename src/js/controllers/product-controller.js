@@ -23,15 +23,16 @@ export default class ProductController extends Controller {
     } else {
       this.variantData = [];
     }
-    if (this.variantData.length) {
-      this._markOutOfStock();
-      this._autoSelectSingleOptions();
-    }
-
     // Parse color-to-images map for gallery swapping on color select
+    // Must be before _autoSelectSingleOptions which may trigger selectOption -> _swapGalleryForColor
     this._colorImagesMap = {};
     if (this.colorImagesValue) {
       try { this._colorImagesMap = JSON.parse(this.colorImagesValue); } catch { /* ignore */ }
+    }
+
+    if (this.variantData.length) {
+      this._markOutOfStock();
+      this._autoSelectSingleOptions();
     }
 
     // Store original gallery images for reset
@@ -108,6 +109,16 @@ export default class ProductController extends Controller {
       try { this._bundleOptions = JSON.parse(this.bundleOptionsValue); } catch { this._bundleOptions = []; }
       if (this._bundleOptions.length) this.updateBundlePrice();
     }
+  }
+
+  groupedQtyIncrement(e) {
+    const input = e.target.closest('.qty-stepper').querySelector('.qty-input');
+    if (input && !input.disabled) input.value = Math.min(99, (parseInt(input.value) || 0) + 1);
+  }
+
+  groupedQtyDecrement(e) {
+    const input = e.target.closest('.qty-stepper').querySelector('.qty-input');
+    if (input && !input.disabled) input.value = Math.max(0, (parseInt(input.value) || 0) - 1);
   }
 
   bundleQtyIncrement(e) {

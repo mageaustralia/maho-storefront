@@ -453,7 +453,7 @@ export default class CartController extends Controller {
     const maskedId = api.cartId();
     if (!maskedId) return;
     try {
-      const response = await api.put(`/api/guest-carts/${maskedId}/coupon`, { code });
+      const response = await api.post(`/api/guest-carts/${maskedId}/coupon`, { code });
       if (!response.ok) {
         const err = await response.json();
         alert(err.message || 'Invalid coupon');
