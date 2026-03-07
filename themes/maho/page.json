@@ -32,7 +32,8 @@
       },
       "gridColumns": { "mobile": 2, "tablet": 3, "desktop": 4 },
       "filterPosition": "sidebar-left",
-      "showSubcategories": true
+      "showSubcategories": true,
+      "swatchLabels": true
     },
     "cart": {
       "components": {

@@ -135,6 +135,7 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
           data-category-filter-total-items-value={showProducts ? String(totalItems) : undefined}
           data-category-filter-current-page-value={showProducts ? String(currentPage) : undefined}
           data-category-filter-total-pages-value={showProducts ? String(totalPages) : undefined}
+          data-category-filter-swatch-labels-value={showProducts ? String(getSection<boolean>('category', 'swatchLabels', true)) : undefined}
         >
           {/* Toolbar — only when showing products */}
           {showProducts && (

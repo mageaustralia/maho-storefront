@@ -14,7 +14,7 @@ export default class CategoryFilterController extends Controller {
     'topPagination', 'topPageInfo', 'bottomPagination', 'bottomPageInfo',
     'priceMin', 'priceMax', 'priceMinLabel', 'priceMaxLabel', 'priceClear', 'priceFilter', 'productsData',
     'filtersContainer', 'activeFilters', 'filterDrawer', 'filterDrawerBody', 'drawerClearBtn'];
-  static values = { categoryId: Number, categoryUrl: { type: String, default: '' }, categoryName: { type: String, default: '' }, currency: { type: String, default: 'AUD' }, totalItems: Number, currentPage: Number, totalPages: Number };
+  static values = { categoryId: Number, categoryUrl: { type: String, default: '' }, categoryName: { type: String, default: '' }, currency: { type: String, default: 'AUD' }, totalItems: Number, currentPage: Number, totalPages: Number, swatchLabels: { type: Boolean, default: true } };
 
   connect() {
     this._products = [];
@@ -163,6 +163,12 @@ export default class CategoryFilterController extends Controller {
               dot.className = `inline-block w-5 h-5 shrink-0 rounded-full border-2 transition-colors ${isActive ? 'border-primary ring-2 ring-primary/30' : 'border-base-content/15'}`;
               dot.dataset.slot = 'swatch';
               check.replaceWith(dot);
+            }
+            // Hide text label if swatchLabels is off — keep dot only with tooltip
+            if (!this.swatchLabelsValue) {
+              const label = optEl.querySelector('[data-slot="label"]');
+              if (label) label.classList.add('sr-only');
+              dot.title = opt.label;
             }
             const btn = optEl.querySelector('[data-slot="button"]');
             if (btn && isActive) btn.classList.add('font-semibold', 'text-base-content');
