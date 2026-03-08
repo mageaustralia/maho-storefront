@@ -158,6 +158,18 @@ export interface StoreConfig {
   defaultTitle: string | null;
   defaultDescription: string | null;
   cmsHomePage: string;
+  extensions?: StoreConfigExtensions;
+}
+
+export interface PaymentPlugin {
+  code: string;
+  script: string;
+  config?: Record<string, string>;
+}
+
+export interface StoreConfigExtensions {
+  paymentPlugins?: PaymentPlugin[];
+  [key: string]: unknown;
 }
 
 export interface CmsPage {

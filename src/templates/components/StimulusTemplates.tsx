@@ -233,13 +233,16 @@ export const StimulusTemplates: FC = () => (
         Radio button option for payment method selection
         ================================================================ */}
     <template id="tpl-payment-method">
-      <label class="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-base-200 transition-colors">
-        <input data-slot="radio" type="radio" name="payment_method" value=""
-          class="radio radio-primary radio-sm"
-          data-action="change->checkout#selectPayment" />
-        <span data-slot="title" class="text-sm"></span>
-        <span data-slot="description" class="text-xs text-base-content/60 hidden"></span>
-      </label>
+      <div data-slot="wrapper">
+        <label class="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-base-200 transition-colors">
+          <input data-slot="radio" type="radio" name="payment_method" value=""
+            class="radio radio-primary radio-sm"
+            data-action="change->checkout#selectPayment" />
+          <span data-slot="title" class="text-sm"></span>
+          <span data-slot="description" class="text-xs text-base-content/60 hidden"></span>
+        </label>
+        <div data-slot="fields" class="pl-9 pr-3 pb-3" style="display:none"></div>
+      </div>
     </template>
 
     {/* ================================================================

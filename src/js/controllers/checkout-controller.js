@@ -549,11 +549,29 @@ export default class CheckoutController extends Controller {
       this._paymentAdapter = null;
     }
 
-    const container = this.hasPaymentFieldsTarget ? this.paymentFieldsTarget : null;
-    if (container) container.style.display = 'none';
+    // Hide all inline fields containers
+    if (this.hasPaymentMethodsTarget) {
+      this.paymentMethodsTarget.querySelectorAll('[data-slot="fields"]').forEach(f => {
+        f.style.display = 'none';
+        f.innerHTML = '';
+      });
+    }
+
+    // Also hide the legacy standalone container
+    const legacyContainer = this.hasPaymentFieldsTarget ? this.paymentFieldsTarget : null;
+    if (legacyContainer) legacyContainer.style.display = 'none';
 
     const adapter = getAdapter(methodCode);
-    if (adapter && container) {
+    if (!adapter) return;
+
+    // Find the inline fields container for the selected method
+    const radio = this.hasPaymentMethodsTarget
+      ? this.paymentMethodsTarget.querySelector(`input[value="${methodCode}"]`)
+      : null;
+    const wrapper = radio?.closest('[data-slot="wrapper"]');
+    const container = wrapper?.querySelector('[data-slot="fields"]') || legacyContainer;
+
+    if (container) {
       this._paymentAdapter = adapter;
       container.style.display = '';
       adapter.init(container, { currency: this.currencyValue, api, formatPrice });

@@ -136,6 +136,8 @@ function createApiClient(env: Env, stores: StorefrontStore[], storeCode?: string
 import styles from '../public/styles.css';
 // @ts-expect-error — static asset imports handled by wrangler
 import controllers from '../public/controllers.js.txt';
+// @ts-expect-error — static asset imports handled by wrangler
+import stripePlugin from '../public/plugins/stripe-payment.js.txt';
 
 type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession } };
 const app = new Hono<AppEnv>();
@@ -160,7 +162,7 @@ const GATE_EXCLUDED = new Set([
 ]);
 
 function isGateExcluded(path: string): boolean {
-  return GATE_EXCLUDED.has(path) || path.startsWith('/public/') || path.startsWith('/dev/tokens/') || path.startsWith('/api/') || path.startsWith('/media/') || path.startsWith('/sync/') || path.startsWith('/sitemap');
+  return GATE_EXCLUDED.has(path) || path.startsWith('/public/') || path.startsWith('/dev/tokens/') || path.startsWith('/api/') || path.startsWith('/media/') || path.startsWith('/sync/') || path.startsWith('/sitemap') || path.startsWith('/plugins/');
 }
 
 // Password gate page HTML (standalone, no Layout dependency)
@@ -533,6 +535,17 @@ app.get('/styles.css', (c) => {
 });
 app.get('/controllers.js', (c) => {
   return c.body(controllers, 200, { 'Content-Type': 'application/javascript', 'Cache-Control': 'public, max-age=31536000, immutable' });
+});
+
+// Payment plugin static assets
+const plugins: Record<string, string> = {
+  'stripe-payment.js': stripePlugin,
+};
+app.get('/plugins/:name', (c) => {
+  const name = c.req.param('name');
+  const content = plugins[name];
+  if (!content) return c.notFound();
+  return c.body(content, 200, { 'Content-Type': 'application/javascript', 'Cache-Control': 'public, max-age=86400' });
 });
 
 // Admin redirect — sends users to the Maho backend admin

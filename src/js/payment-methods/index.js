@@ -17,14 +17,20 @@
  */
 
 import { BraintreeAdapter } from './braintree-adapter.js';
-// import { StripeAdapter } from './stripe-adapter.js';
-// import { PayPalAdapter } from './paypal-adapter.js';
 
 const adapters = [
   new BraintreeAdapter(),
-  // new StripeAdapter(),
-  // new PayPalAdapter(),
 ];
+
+/**
+ * Register an external payment adapter (for standalone plugins).
+ * Call via window.MahoStorefront.registerPaymentAdapter(adapterInstance)
+ */
+export function registerAdapter(adapter) {
+  if (adapter && typeof adapter.match === 'function') {
+    adapters.push(adapter);
+  }
+}
 
 /**
  * Find the adapter that handles a given payment method code.

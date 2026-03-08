@@ -52,6 +52,17 @@ export const Layout: FC<LayoutProps> = ({ config, categories, footerPages, store
         <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];window.MAHO_API_URL=${JSON.stringify(apiUrl)};window.MAHO_STORE_CODE=${JSON.stringify(currentStoreCode || '')};window.MAHO_CURRENCY=${JSON.stringify(config.baseCurrencyCode || 'USD')};window.MAHO_THEME=${JSON.stringify(themeName)};` }} />
         <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-esm.min.js" data-turbo-track="reload"></script>
         <script type="module" src={`/controllers.js${v}`} data-turbo-track="reload"></script>
+        {config.extensions?.paymentPlugins?.length ? (
+          <>
+            <script dangerouslySetInnerHTML={{ __html: config.extensions.paymentPlugins
+              .filter(p => p.config)
+              .map(p => Object.entries(p.config!).map(([k, val]) => `window.${k}=${JSON.stringify(val)};`).join(''))
+              .join('') }} />
+            {config.extensions.paymentPlugins.map(p => (
+              <script src={`${p.script}${v}`} defer key={p.code}></script>
+            ))}
+          </>
+        ) : null}
       </head>
       <body class="bg-base-100 text-base-content" data-controller="freshness wishlist" data-store={currentStoreCode || ''}>
         {(() => {
