@@ -98,6 +98,12 @@ Variants live in `src/templates/components/{domain}/{slot}/`.
 - **Dev auth**: Password gate + dev tokens + preview mode + toolbar (src/dev-auth.ts)
 - **TrackedKVStore**: Wraps KV reads with timing for dev toolbar metrics
 
+## Maho PHP Server
+
+SSH: `<ssh-user>@<staging-host> -p <port>`
+Maho root: `/var/www/<staging-host>/web/`
+Admin theme branch: `feature/admin-theme`
+
 ## Private Deployments
 
 This is the PUBLIC core. Private store deployments (e.g., Pickle Warehouse) are separate repos that fork this one and add their own config. They pull core updates via `git fetch upstream`.
