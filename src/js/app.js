@@ -107,3 +107,8 @@ document.addEventListener('click', (e) => {
 export { api } from './api.js';
 export { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from './utils.js';
 export { analytics } from './analytics.js';
+
+// Expose payment adapter registration for standalone plugins
+import { registerAdapter } from './payment-methods/index.js';
+window.MahoStorefront = window.MahoStorefront || {};
+window.MahoStorefront.registerPaymentAdapter = registerAdapter;
