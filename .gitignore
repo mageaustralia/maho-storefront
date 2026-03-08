@@ -45,3 +45,21 @@ sync-local.sh
 
 # Temporary files
 *.tmp
+
+# Scratch / reference files (HTML snapshots, screenshots, PDFs, ZIPs)
+maho_admin_files/
+maho_admin.html
+sales_orders_files/
+sales_orders.html
+products_grid_files/
+products_grid.html
+maho-modern-admin-theme/
+maho-modern-admin-theme.zip
+specs/
+*.png
+*.pdf
+*.zip
+MOLLIE_CONVERSION_PLAN.md
+packing-sheet_*
+memory/
+ADMIN_THEME_PLAN.md
