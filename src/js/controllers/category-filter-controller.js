@@ -149,26 +149,35 @@ export default class CategoryFilterController extends Controller {
               'data-filter-label': opt.label,
             },
           });
-          // Insert color/image swatch replacing the checkbox
+          // Insert visual swatch replacing the checkbox
           const hasSwatch = opt.swatch && opt.swatch.value;
           if (hasSwatch) {
             const check = optEl.querySelector('[data-slot="check"]');
             if (check) {
-              const dot = document.createElement('span');
-              if (opt.swatch.type === 'image') {
-                dot.innerHTML = `<img src="${opt.swatch.value}" alt="" class="w-full h-full object-cover rounded-full">`;
+              const swatch = document.createElement('span');
+              swatch.dataset.slot = 'swatch';
+              const activeRing = isActive ? 'border-primary ring-2 ring-primary/30' : 'border-base-content/15';
+
+              if (opt.swatch.type === 'text') {
+                // Text swatch: small box with label text (e.g. "S", "M", "XL")
+                swatch.textContent = opt.swatch.value;
+                swatch.className = `inline-flex items-center justify-center min-w-6 h-6 px-1 shrink-0 rounded text-xs font-semibold border-2 transition-colors ${activeRing}`;
+              } else if (opt.swatch.type === 'image') {
+                swatch.innerHTML = `<img src="${escapeHtml(opt.swatch.value)}" alt="" class="w-full h-full object-cover rounded-full">`;
+                swatch.className = `inline-block w-5 h-5 shrink-0 rounded-full border-2 overflow-hidden transition-colors ${activeRing}`;
               } else {
-                dot.style.backgroundColor = opt.swatch.value;
+                // Color swatch: colored dot
+                swatch.style.backgroundColor = opt.swatch.value;
+                swatch.className = `inline-block w-5 h-5 shrink-0 rounded-full border-2 transition-colors ${activeRing}`;
               }
-              dot.className = `inline-block w-5 h-5 shrink-0 rounded-full border-2 transition-colors ${isActive ? 'border-primary ring-2 ring-primary/30' : 'border-base-content/15'}`;
-              dot.dataset.slot = 'swatch';
-              check.replaceWith(dot);
-            }
-            // Hide text label if swatchLabels is off — keep dot only with tooltip
-            if (!this.swatchLabelsValue) {
-              const label = optEl.querySelector('[data-slot="label"]');
-              if (label) label.classList.add('sr-only');
-              dot.title = opt.label;
+              check.replaceWith(swatch);
+
+              // Hide text label if swatchLabels is off — keep swatch only with tooltip
+              if (!this.swatchLabelsValue) {
+                const label = optEl.querySelector('[data-slot="label"]');
+                if (label) label.classList.add('sr-only');
+                swatch.title = opt.label;
+              }
             }
             const btn = optEl.querySelector('[data-slot="button"]');
             if (btn && isActive) btn.classList.add('font-semibold', 'text-base-content');
