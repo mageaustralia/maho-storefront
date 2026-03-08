@@ -47,3 +47,21 @@ export function getAdapter(methodCode) {
 export function hasAdapter(methodCode) {
   return adapters.some(a => a.match(methodCode));
 }
+
+/**
+ * Collect all method codes that are absorbed by registered adapters.
+ * Absorbed methods are handled inline by another adapter (e.g. Google Pay / Apple Pay
+ * are handled by the Payment Request Button inside the Stripe card adapter).
+ * These should be hidden from the payment method list.
+ */
+export function getAbsorbedMethods() {
+  const absorbed = new Set();
+  for (const a of adapters) {
+    if (typeof a.absorbedMethods === 'function') {
+      for (const code of a.absorbedMethods()) {
+        absorbed.add(code);
+      }
+    }
+  }
+  return absorbed;
+}

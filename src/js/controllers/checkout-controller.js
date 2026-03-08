@@ -9,7 +9,7 @@ import { api } from '../api.js';
 import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
 import { analytics } from '../analytics.js';
 import { hydrateTemplate, setSlotHtml, setSlotAttributes, showSlot, PLACEHOLDER_IMAGE } from '../template-helpers.js';
-import { getAdapter, hasAdapter } from '../payment-methods/index.js';
+import { getAdapter, hasAdapter, getAbsorbedMethods } from '../payment-methods/index.js';
 
 export default class CheckoutController extends Controller {
   static targets = [
@@ -25,6 +25,7 @@ export default class CheckoutController extends Controller {
     'sidebarGiftcard', 'sidebarGiftcardRow', 'sidebarTotal',
     'promoTabs', 'couponTab', 'couponForm', 'couponApplied', 'couponInput', 'couponBadge',
     'giftcardTab', 'giftcardInput', 'giftcardsApplied',
+    'gatewayError', 'gatewayErrorText',
   ];
   static values = { countries: String, currency: { type: String, default: 'AUD' } };
 
@@ -40,6 +41,17 @@ export default class CheckoutController extends Controller {
     this._customerEmail = '';
 
     try { this._countries = JSON.parse(this.countriesValue || '[]'); } catch { this._countries = []; }
+
+    // Show error from payment gateway redirect (e.g. unsupported currency)
+    const errorParam = new URLSearchParams(window.location.search).get('error');
+    if (errorParam) {
+      if (this.hasGatewayErrorTarget) {
+        this.gatewayErrorTextTarget.textContent = errorParam;
+        this.gatewayErrorTarget.style.display = '';
+      }
+      // Clean URL
+      history.replaceState(null, '', window.location.pathname);
+    }
 
     // Load cart summary
     this.loadSidebar();
@@ -501,9 +513,14 @@ export default class CheckoutController extends Controller {
         return;
       }
 
+      // Filter out methods absorbed by adapters (e.g. Google Pay / Apple Pay
+      // are handled inline by the Stripe card adapter's Payment Request Button)
+      const absorbed = getAbsorbedMethods();
+      const visibleMethods = methods.filter(m => !absorbed.has(m.code));
+
       if (this.hasPaymentMethodsTarget) {
         this.paymentMethodsTarget.innerHTML = '';
-        methods.forEach((m, i) => {
+        visibleMethods.forEach((m, i) => {
           const el = hydrateTemplate('tpl-payment-method', {
             title: m.title,
           });
@@ -520,7 +537,7 @@ export default class CheckoutController extends Controller {
         });
 
         // Auto-select first
-        this._selectedPayment = methods[0].code;
+        this._selectedPayment = visibleMethods[0].code;
         if (this.hasPlaceOrderBtnTarget) this.placeOrderBtnTarget.disabled = false;
         this._activatePaymentAdapter(this._selectedPayment);
       }
@@ -656,22 +673,25 @@ export default class CheckoutController extends Controller {
 
       const order = await response.json();
 
-      // Clear cart
-      localStorage.removeItem('maho_cart_id');
-      localStorage.removeItem('maho_cart_qty');
-      updateCartBadge();
-
       // Redirect-based payment methods (PayPal, Stripe hosted checkout, etc.)
       if (order.redirectUrl) {
-        // Store token so we can verify when customer returns from payment gateway
+        // Store cart ID + order token so we can restore cart if payment fails
+        // and verify the order when customer returns from payment gateway
         sessionStorage.setItem('maho_pending_order', JSON.stringify({
           incrementId: order.incrementId,
           orderToken: order.orderToken,
+          cartId: localStorage.getItem('maho_cart_id'),
           email,
         }));
+        // Don't clear cart yet — only clear after successful payment return
         window.location.href = order.redirectUrl;
         return;
       }
+
+      // Direct checkout (no redirect) — clear cart now
+      localStorage.removeItem('maho_cart_id');
+      localStorage.removeItem('maho_cart_qty');
+      updateCartBadge();
 
       // Navigate to success page with token verification
       window.Turbo?.visit(`/order/success?order=${encodeURIComponent(order.incrementId)}&token=${encodeURIComponent(order.orderToken)}`);

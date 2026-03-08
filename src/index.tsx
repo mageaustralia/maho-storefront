@@ -1347,6 +1347,30 @@ app.post('/sync', async (c) => {
     try {
       // 1. Sync store config
       const config = await storeApiClient.fetchStoreConfig();
+
+      // Detect payment plugins from backend and inject config
+      try {
+        const stripeApiUrl = `${getApiUrl(c.env, stores, storeCode)}/api/stripe/config`;
+        const stripeHeaders: Record<string, string> = { 'Accept': 'application/json' };
+        if (storeCode) stripeHeaders['X-Store-Code'] = storeCode;
+        if (c.env.MAHO_API_BASIC_AUTH) stripeHeaders['Authorization'] = `Basic ${btoa(c.env.MAHO_API_BASIC_AUTH)}`;
+        const stripeRes = await fetch(stripeApiUrl, { headers: stripeHeaders });
+        if (stripeRes.ok) {
+          const stripeConfig = await stripeRes.json() as { publishableKey?: string };
+          if (stripeConfig?.publishableKey) {
+            config.extensions = config.extensions || {};
+            config.extensions.paymentPlugins = config.extensions.paymentPlugins || [];
+            if (!config.extensions.paymentPlugins.some((p: { code: string }) => p.code === 'stripe')) {
+              config.extensions.paymentPlugins.push({
+                code: 'stripe',
+                script: '/plugins/stripe-payment.js',
+                config: { STRIPE_PUBLISHABLE_KEY: stripeConfig.publishableKey },
+              });
+            }
+          }
+        }
+      } catch { /* Stripe not available — skip */ }
+
       await store.put(`${prefix}config`, config);
       results[`${storeCode || 'default'}:config`] = 'ok';
 
