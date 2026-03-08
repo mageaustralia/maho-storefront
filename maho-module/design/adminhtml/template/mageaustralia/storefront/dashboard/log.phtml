@@ -1,0 +1,70 @@
+<?php
+/**
+ * @var Mageaustralia_Storefront_Block_Adminhtml_Dashboard_Log $this
+ */
+$entries = $this->getLogEntries();
+$currentPage = $this->getCurrentPage();
+$totalPages = $this->getTotalPages();
+?>
+<div id="sf-log" class="sf-section">
+    <div class="sf-section-head"><h4><?php echo $this->__('Activity Log') ?></h4></div>
+    <div class="sf-section-body" style="padding:0;">
+        <?php if ($entries->count() === 0 && $currentPage === 1): ?>
+            <p style="padding:16px;color:#999;margin:0;"><?php echo $this->__('No activity recorded yet.') ?></p>
+        <?php else: ?>
+            <table class="data" style="width:100%;font-size:12px;">
+                <thead>
+                    <tr class="headings">
+                        <th style="padding:6px 10px;"><?php echo $this->__('Time') ?></th>
+                        <th style="padding:6px 10px;"><?php echo $this->__('Action') ?></th>
+                        <th style="padding:6px 10px;"><?php echo $this->__('Status') ?></th>
+                        <th style="padding:6px 10px;"><?php echo $this->__('User') ?></th>
+                        <th style="padding:6px 10px;"><?php echo $this->__('Duration') ?></th>
+                        <th style="padding:6px 10px;"><?php echo $this->__('Details') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($entries as $entry): ?>
+                        <tr>
+                            <td style="white-space:nowrap;padding:5px 10px;"><?php echo $this->escapeHtml($entry->getCreatedAt()) ?></td>
+                            <td style="padding:5px 10px;">
+                                <code style="font-size:11px;background:#f0f0f0;padding:1px 5px;border-radius:2px;"><?php echo $this->escapeHtml($entry->getAction()) ?></code>
+                            </td>
+                            <td style="padding:5px 10px;">
+                                <?php if ($entry->getStatus() === 'success'): ?>
+                                    <span style="color:#2e7d32;"><?php echo $this->__('Success') ?></span>
+                                <?php else: ?>
+                                    <span style="color:#c62828;"><?php echo $this->__('Error') ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td style="padding:5px 10px;"><?php echo $this->escapeHtml($entry->getAdminUser() ?: $this->__('Cron')) ?></td>
+                            <td style="padding:5px 10px;white-space:nowrap;">
+                                <?php if ($entry->getDurationMs() !== null): ?>
+                                    <?php echo (int) $entry->getDurationMs() ?>ms
+                                <?php else: ?>
+                                    &mdash;
+                                <?php endif; ?>
+                            </td>
+                            <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 10px;font-size:11px;color:#666;" title="<?php echo $this->escapeHtml($entry->getDetails()) ?>">
+                                <?php echo $this->escapeHtml(mb_substr($entry->getDetails(), 0, 80)) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <?php if ($totalPages > 1): ?>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid #e0e0e0;font-size:12px;color:#666;">
+                    <span><?php echo $this->__('Page %s of %s', $currentPage, $totalPages) ?></span>
+                    <div style="display:flex;gap:4px;">
+                        <?php if ($currentPage > 1): ?>
+                            <a href="<?php echo $this->getPageUrl($currentPage - 1) ?>#sf-log" style="padding:4px 10px;border:1px solid #ccc;border-radius:3px;text-decoration:none;color:#333;">&laquo; <?php echo $this->__('Previous') ?></a>
+                        <?php endif; ?>
+                        <?php if ($currentPage < $totalPages): ?>
+                            <a href="<?php echo $this->getPageUrl($currentPage + 1) ?>#sf-log" style="padding:4px 10px;border:1px solid #ccc;border-radius:3px;text-decoration:none;color:#333;"><?php echo $this->__('Next') ?> &raquo;</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+</div>

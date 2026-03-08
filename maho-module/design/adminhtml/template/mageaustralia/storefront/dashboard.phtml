@@ -1,0 +1,34 @@
+<?php
+/**
+ * @var Mageaustralia_Storefront_Block_Adminhtml_Dashboard $this
+ */
+?>
+<style>
+    .sf-dashboard .sf-section { margin-bottom: 16px; }
+    .sf-dashboard .sf-section-head { background: #e8e3df; padding: 8px 12px; border-bottom: 1px solid #cac3b7; }
+    .sf-dashboard .sf-section-head h4 { margin: 0; font-size: 13px; }
+    .sf-dashboard .sf-section-body { padding: 16px; background: #fff; border: 1px solid #cac3b7; border-top: 0; }
+    .sf-dashboard .sf-sub-section { margin-bottom: 16px; }
+    .sf-dashboard .sf-sub-section:last-child { margin-bottom: 0; }
+    .sf-dashboard .sf-sub-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 8px; }
+    .sf-dashboard .sf-btn-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .sf-dashboard .sf-status-row { display: flex; gap: 24px; flex-wrap: wrap; padding: 4px 0; }
+    .sf-dashboard .sf-status-item { display: flex; align-items: center; gap: 6px; }
+    .sf-dashboard .sf-status-label { font-weight: 600; color: #666; font-size: 12px; }
+    .sf-dashboard .sf-status-value { font-size: 12px; }
+    .sf-dashboard .sf-toggle-link { color: #1e7ec8; cursor: pointer; font-size: 12px; border: 0; background: none; padding: 0; }
+    .sf-dashboard .sf-toggle-link:hover { text-decoration: underline; }
+    .sf-dashboard .sf-collapsible { display: none; margin-top: 8px; padding: 12px; background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 3px; }
+    .sf-dashboard .sf-collapsible.sf-open { display: block; }
+    .sf-dashboard .sf-collapsible textarea { width: 100%; max-width: 500px; font-family: monospace; font-size: 12px; padding: 6px; border: 1px solid #ccc; border-radius: 2px; }
+    .sf-dashboard .sf-divider { border: 0; border-top: 1px solid #eee; margin: 16px 0; }
+    .sf-dashboard .sf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .sf-dashboard .sf-header h3 { margin: 0; }
+    .sf-dashboard .sf-store-select { font-size: 13px; padding: 4px 8px; border: 1px solid #aaa; border-radius: 3px; }
+</style>
+
+<div class="sf-dashboard">
+    <?php echo $this->getChildHtml('storefront.dashboard.status') ?>
+    <?php echo $this->getChildHtml('storefront.dashboard.actions') ?>
+    <?php echo $this->getChildHtml('storefront.dashboard.log') ?>
+</div>

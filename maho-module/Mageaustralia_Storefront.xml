@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageaustralia
+ *
+ * @package    Mageaustralia_Storefront
+ * @copyright  Copyright (c) 2026 Mageaustralia
+ * @license    https://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+<layout>
+    <adminhtml_storefront_dashboard_index>
+        <reference name="content">
+            <block type="mageaustralia_storefront/adminhtml_dashboard" name="storefront.dashboard">
+                <block type="mageaustralia_storefront/adminhtml_dashboard_status" name="storefront.dashboard.status" />
+                <block type="mageaustralia_storefront/adminhtml_dashboard_actions" name="storefront.dashboard.actions" />
+                <block type="mageaustralia_storefront/adminhtml_dashboard_log" name="storefront.dashboard.log" />
+            </block>
+        </reference>
+    </adminhtml_storefront_dashboard_index>
+
+    <adminhtml_storefront_dashboard_loggrid>
+        <block type="mageaustralia_storefront/adminhtml_dashboard_log" name="storefront.dashboard.log" output="toHtml" />
+    </adminhtml_storefront_dashboard_loggrid>
+
+    <adminhtml_storefront_onboard_index>
+        <reference name="content">
+            <block type="mageaustralia_storefront/adminhtml_onboard" name="storefront.onboard" />
+        </reference>
+    </adminhtml_storefront_onboard_index>
+</layout>

@@ -1,0 +1,574 @@
+<?php
+/**
+ * @var Mageaustralia_Storefront_Block_Adminhtml_Onboard $this
+ */
+$formKey = $this->getFormKey();
+$storeViews = $this->getMahoStoreViews();
+$scriptName = $this->getWorkerScriptName();
+?>
+
+<style>
+    .sf-onboard .sf-section { margin-bottom: 16px; }
+    .sf-onboard .sf-section-head { background: #e8e3df; padding: 8px 12px; border-bottom: 1px solid #cac3b7; }
+    .sf-onboard .sf-section-head h4 { margin: 0; font-size: 13px; }
+    .sf-onboard .sf-section-body { padding: 16px; background: #fff; border: 1px solid #cac3b7; border-top: 0; }
+
+    .sf-wizard-steps { display: flex; gap: 0; margin-bottom: 20px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 3px; overflow: hidden; }
+    .sf-wizard-step { flex: 1; padding: 10px 12px; font-size: 12px; color: #999; text-align: center; border-right: 1px solid #ddd; position: relative; }
+    .sf-wizard-step:last-child { border-right: 0; }
+    .sf-wizard-step.active { background: #3d6d93; color: #fff; font-weight: 600; }
+    .sf-wizard-step.done { background: #e8f5e9; color: #2e7d32; }
+    .sf-wizard-step .sf-step-num { display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 50%; background: #ddd; color: #666; font-weight: 600; font-size: 11px; text-align: center; margin-right: 4px; }
+    .sf-wizard-step.active .sf-step-num { background: rgba(255,255,255,0.3); color: #fff; }
+    .sf-wizard-step.done .sf-step-num { background: #4caf50; color: #fff; }
+
+    .sf-wizard-panel { display: none; }
+    .sf-wizard-panel.active { display: block; }
+
+    .sf-form-row { margin-bottom: 12px; }
+    .sf-form-row label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; }
+    .sf-form-row input[type="text"],
+    .sf-form-row select { font-size: 13px; padding: 8px; border: 1px solid #ccc; border-radius: 3px; width: 480px; line-height: 1.4; box-sizing: border-box; }
+    .sf-form-row select { height: auto; }
+    .sf-form-row .sf-hint { font-size: 11px; color: #999; margin-top: 2px; }
+    .sf-form-row .sf-radio-group { display: flex; gap: 16px; }
+    .sf-form-row .sf-radio-group label { display: inline; font-weight: normal; cursor: pointer; }
+
+    .sf-domain-preview { font-size: 12px; color: #3d6d93; font-family: monospace; margin-top: 4px; padding: 4px 8px; background: #f0f7ff; border-radius: 2px; display: inline-block; }
+
+    .sf-check-item { padding: 6px 0; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .sf-check-pass { color: #2e7d32; }
+    .sf-check-fail { color: #c62828; }
+    .sf-check-icon { font-size: 16px; }
+
+    .sf-progress-box { padding: 12px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 3px; }
+    .sf-progress-bar-outer { background: #ddd; border-radius: 3px; height: 16px; overflow: hidden; }
+    .sf-progress-bar-inner { background: #3d6d93; height: 100%; width: 0%; transition: width 0.3s; border-radius: 3px; }
+    .sf-progress-error { margin-top: 8px; padding: 8px; background: #fce4e4; border: 1px solid #fcc; border-radius: 3px; color: #900; font-size: 12px; }
+
+    .sf-complete-card { padding: 16px; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 3px; }
+    .sf-complete-card dt { font-weight: 600; font-size: 12px; color: #555; margin-top: 8px; }
+    .sf-complete-card dt:first-child { margin-top: 0; }
+    .sf-complete-card dd { margin: 2px 0 0 0; font-size: 13px; }
+
+    .sf-cname-box { margin-top: 12px; padding: 12px; background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 3px; }
+    .sf-cname-box code { background: #f5f5f5; padding: 2px 6px; border-radius: 2px; font-size: 12px; }
+    .sf-copy-btn { font-size: 11px; padding: 2px 8px; cursor: pointer; border: 1px solid #ccc; border-radius: 2px; background: #fff; margin-left: 4px; }
+    .sf-copy-btn:hover { background: #f0f0f0; }
+
+    .sf-btn-row { display: flex; gap: 8px; margin-top: 16px; align-items: center; }
+
+    .sf-stores-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+    .sf-stores-table th { padding: 8px 10px; text-align: left; background: #f5f5f5; border-bottom: 2px solid #ddd; font-weight: 600; color: #555; }
+    .sf-stores-table td { padding: 6px 10px; border-bottom: 1px solid #eee; }
+    .sf-stores-table tr:hover td { background: #f9f9f9; }
+    .sf-stores-loading { padding: 12px; color: #888; font-size: 12px; }
+</style>
+
+<div class="sf-onboard">
+    <!-- Wizard Section -->
+    <div class="sf-section">
+        <div class="sf-section-head"><h4><?php echo $this->__('New Store Wizard') ?></h4></div>
+        <div class="sf-section-body">
+            <!-- Step indicators -->
+            <div class="sf-wizard-steps">
+                <div class="sf-wizard-step active" id="sf-step-ind-1">
+                    <span class="sf-step-num">1</span> <?php echo $this->__('Store Details') ?>
+                </div>
+                <div class="sf-wizard-step" id="sf-step-ind-2">
+                    <span class="sf-step-num">2</span> <?php echo $this->__('Validation') ?>
+                </div>
+                <div class="sf-wizard-step" id="sf-step-ind-3">
+                    <span class="sf-step-num">3</span> <?php echo $this->__('Provisioning') ?>
+                </div>
+                <div class="sf-wizard-step" id="sf-step-ind-4">
+                    <span class="sf-step-num">4</span> <?php echo $this->__('Complete') ?>
+                </div>
+            </div>
+
+            <!-- Step 1: Store Details -->
+            <div class="sf-wizard-panel active" id="sf-panel-1">
+                <div class="sf-form-row">
+                    <label><?php echo $this->__('Store Name') ?></label>
+                    <input type="text" id="sf-store-name" placeholder="e.g. Fashion Store" />
+                </div>
+                <div class="sf-form-row">
+                    <label><?php echo $this->__('Maho Store View') ?></label>
+                    <select id="sf-maho-store" onchange="sfStoreViewChange()">
+                        <option value="" data-code=""><?php echo $this->__('-- Select --') ?></option>
+                        <?php foreach ($storeViews as $sv): ?>
+                            <option value="<?php echo (int) $sv['id'] ?>" data-code="<?php echo $this->escapeHtml($sv['code']) ?>"><?php echo $this->escapeHtml($sv['name']) ?> (<?php echo $this->escapeHtml($sv['code']) ?>) &mdash; <?php echo $this->escapeHtml($sv['website']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="sf-form-row">
+                    <label><?php echo $this->__('Store Code') ?></label>
+                    <input type="text" id="sf-store-code" readonly style="background:#f5f5f5;color:#666;" />
+                    <div class="sf-hint"><?php echo $this->__('Auto-set from Maho store view. Used as KV prefix.') ?></div>
+                </div>
+                <input type="hidden" id="sf-domain-type" value="managed" />
+                <div class="sf-form-row">
+                    <label><?php echo $this->__('Zone') ?></label>
+                    <select id="sf-zone">
+                        <option value=""><?php echo $this->__('Loading zones...') ?></option>
+                    </select>
+                </div>
+                <div class="sf-form-row">
+                    <label><?php echo $this->__('Subdomain') ?></label>
+                    <input type="text" id="sf-subdomain" placeholder="e.g. demo" oninput="sfUpdatePreview()" />
+                    <div class="sf-domain-preview" id="sf-domain-preview" style="display:none;"></div>
+                </div>
+                <div class="sf-btn-row">
+                    <button type="button" class="scalable" onclick="sfValidate()"><span><?php echo $this->__('Next') ?> &rarr;</span></button>
+                </div>
+            </div>
+
+            <!-- Step 2: Validation -->
+            <div class="sf-wizard-panel" id="sf-panel-2">
+                <div id="sf-validation-results"></div>
+                <div id="sf-validation-error" style="display:none;" class="sf-progress-error"></div>
+                <div class="sf-btn-row">
+                    <button type="button" class="scalable" onclick="sfGoStep(1)"><span>&larr; <?php echo $this->__('Back') ?></span></button>
+                    <button type="button" class="scalable" id="sf-provision-btn" style="display:none;" onclick="sfProvision()"><span><?php echo $this->__('Provision Store') ?> &rarr;</span></button>
+                </div>
+            </div>
+
+            <!-- Step 3: Provisioning -->
+            <div class="sf-wizard-panel" id="sf-panel-3">
+                <div class="sf-progress-box">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span id="sf-prov-label" style="font-weight:600;font-size:12px;"></span>
+                        <span id="sf-prov-step-info" style="color:#888;font-size:12px;"></span>
+                    </div>
+                    <div class="sf-progress-bar-outer">
+                        <div class="sf-progress-bar-inner" id="sf-prov-bar"></div>
+                    </div>
+                    <div style="margin-top:4px;text-align:center;font-size:11px;color:#888;">
+                        <span id="sf-prov-percent">0%</span>
+                    </div>
+                    <div id="sf-prov-error" style="display:none;" class="sf-progress-error"></div>
+                </div>
+                <div class="sf-btn-row" id="sf-prov-actions" style="display:none;">
+                    <button type="button" class="scalable" onclick="sfRollback()" id="sf-rollback-btn"><span><?php echo $this->__('Rollback') ?></span></button>
+                </div>
+            </div>
+
+            <!-- Step 4: Complete -->
+            <div class="sf-wizard-panel" id="sf-panel-4">
+                <div class="sf-complete-card" id="sf-complete-info"></div>
+                <div id="sf-cname-instructions" style="display:none;"></div>
+                <div class="sf-btn-row">
+                    <a href="<?php echo $this->getDashboardUrl() ?>" class="scalable"><span><?php echo $this->__('Go to Dashboard') ?> &rarr;</span></a>
+                    <button type="button" class="scalable" onclick="sfReset()"><span><?php echo $this->__('Add Another Store') ?></span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registered Stores Section -->
+    <div class="sf-section">
+        <div class="sf-section-head"><h4><?php echo $this->__('Registered Stores') ?></h4></div>
+        <div class="sf-section-body">
+            <div id="sf-stores-loading" class="sf-stores-loading"><?php echo $this->__('Loading...') ?></div>
+            <div id="sf-stores-empty" style="display:none;padding:12px;color:#999;font-size:12px;"><?php echo $this->__('No stores registered yet.') ?></div>
+            <table class="sf-stores-table" id="sf-stores-table" style="display:none;">
+                <thead>
+                    <tr>
+                        <th><?php echo $this->__('Store Name') ?></th>
+                        <th><?php echo $this->__('Code') ?></th>
+                        <th><?php echo $this->__('URL') ?></th>
+                        <th><?php echo $this->__('Actions') ?></th>
+                    </tr>
+                </thead>
+                <tbody id="sf-stores-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+var sfWizard = {
+    currentStep: 1,
+    zones: [],
+    provisioning: false,
+    formData: {}
+};
+
+/* ===== Navigation ===== */
+function sfGoStep(n) {
+    document.querySelectorAll('.sf-wizard-panel').forEach(function(p) { p.classList.remove('active'); });
+    document.getElementById('sf-panel-' + n).classList.add('active');
+
+    document.querySelectorAll('.sf-wizard-step').forEach(function(s, i) {
+        s.classList.remove('active', 'done');
+        if (i + 1 < n) s.classList.add('done');
+        if (i + 1 === n) s.classList.add('active');
+    });
+
+    sfWizard.currentStep = n;
+}
+
+/* ===== Auto-set store code from Maho store view ===== */
+function sfStoreViewChange() {
+    var sel = document.getElementById('sf-maho-store');
+    var opt = sel.options[sel.selectedIndex];
+    var code = opt ? (opt.dataset.code || '') : '';
+    document.getElementById('sf-store-code').value = code;
+}
+
+/* ===== Live domain preview ===== */
+function sfUpdatePreview() {
+    var subdomain = document.getElementById('sf-subdomain').value.trim();
+    var zoneSelect = document.getElementById('sf-zone');
+    var zoneName = zoneSelect.options[zoneSelect.selectedIndex] ? zoneSelect.options[zoneSelect.selectedIndex].dataset.name || '' : '';
+    var preview = document.getElementById('sf-domain-preview');
+
+    if (subdomain && zoneName) {
+        preview.textContent = 'https://' + subdomain + '.' + zoneName;
+        preview.style.display = 'inline-block';
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+/* ===== Load zones on page load ===== */
+async function sfLoadZones() {
+    try {
+        var r = await mahoFetch('<?php echo $this->getListZonesUrl() ?>');
+        var select = document.getElementById('sf-zone');
+        select.innerHTML = '<option value=""><?php echo $this->jsQuoteEscape($this->__('-- Select Zone --')) ?></option>';
+
+        if (r.success && r.zones) {
+            sfWizard.zones = r.zones;
+            r.zones.forEach(function(z) {
+                var opt = document.createElement('option');
+                opt.value = z.id;
+                opt.textContent = z.name;
+                opt.dataset.name = z.name;
+                select.appendChild(opt);
+            });
+        }
+    } catch (e) {
+        var select = document.getElementById('sf-zone');
+        select.innerHTML = '<option value=""><?php echo $this->jsQuoteEscape($this->__('Failed to load zones')) ?></option>';
+    }
+
+    select.addEventListener('change', sfUpdatePreview);
+}
+
+/* ===== Validation (Step 1 -> 2) ===== */
+async function sfValidate() {
+    var storeName = document.getElementById('sf-store-name').value.trim();
+    var storeCode = document.getElementById('sf-store-code').value.trim();
+    var subdomain = document.getElementById('sf-subdomain').value.trim();
+    var zoneSelect = document.getElementById('sf-zone');
+    var zoneId = zoneSelect.value;
+    var zoneName = zoneSelect.options[zoneSelect.selectedIndex] ? zoneSelect.options[zoneSelect.selectedIndex].dataset.name || '' : '';
+    var domainType = document.getElementById('sf-domain-type').value;
+    var mahoStoreId = document.getElementById('sf-maho-store').value;
+
+    if (!storeName || !storeCode || !subdomain || !zoneId || !mahoStoreId) {
+        alert('<?php echo $this->jsQuoteEscape($this->__('Please fill in all fields.')) ?>');
+        return;
+    }
+
+    sfWizard.formData = {
+        store_name: storeName,
+        store_code: storeCode,
+        subdomain: subdomain,
+        zone_id: zoneId,
+        zone_name: zoneName,
+        domain_type: domainType,
+        maho_store_id: mahoStoreId
+    };
+
+    sfGoStep(2);
+
+    var resultsEl = document.getElementById('sf-validation-results');
+    var errorEl = document.getElementById('sf-validation-error');
+    var provBtn = document.getElementById('sf-provision-btn');
+
+    resultsEl.innerHTML = '<div style="color:#888;font-size:12px;"><?php echo $this->jsQuoteEscape($this->__('Validating...')) ?></div>';
+    errorEl.style.display = 'none';
+    provBtn.style.display = 'none';
+
+    try {
+        var r = await mahoFetch('<?php echo $this->getValidateUrl() ?>', {
+            method: 'POST',
+            body: buildFormBody(sfWizard.formData)
+        });
+
+        if (!r.success || !r.checks) {
+            errorEl.textContent = r.error || r.message || 'Validation failed — unexpected response.';
+            errorEl.style.display = 'block';
+            resultsEl.innerHTML = '';
+            return;
+        }
+
+        var html = '';
+        r.checks.forEach(function(c) {
+            var icon = c.pass ? '<span class="sf-check-icon sf-check-pass">&#10003;</span>' : '<span class="sf-check-icon sf-check-fail">&#10007;</span>';
+            var cls = c.pass ? 'sf-check-pass' : 'sf-check-fail';
+            html += '<div class="sf-check-item ' + cls + '">' + icon + ' ' + escapeHtml(c.label);
+            if (!c.pass && c.error) html += ' &mdash; ' + escapeHtml(c.error);
+            html += '</div>';
+        });
+        resultsEl.innerHTML = html;
+
+        if (r.all_pass) {
+            provBtn.style.display = 'inline-block';
+        }
+    } catch (e) {
+        errorEl.textContent = e.message || 'Request failed';
+        errorEl.style.display = 'block';
+        resultsEl.innerHTML = '';
+    }
+}
+
+/* ===== Provision (Step 2 -> 3) ===== */
+async function sfProvision() {
+    if (sfWizard.provisioning) return;
+    sfWizard.provisioning = true;
+
+    sfGoStep(3);
+
+    var barEl = document.getElementById('sf-prov-bar');
+    var percentEl = document.getElementById('sf-prov-percent');
+    var labelEl = document.getElementById('sf-prov-label');
+    var stepInfoEl = document.getElementById('sf-prov-step-info');
+    var errorEl = document.getElementById('sf-prov-error');
+    var actionsEl = document.getElementById('sf-prov-actions');
+
+    barEl.style.width = '0%';
+    barEl.style.background = '#3d6d93';
+    percentEl.textContent = '0%';
+    labelEl.textContent = '<?php echo $this->jsQuoteEscape($this->__('Initializing...')) ?>';
+    stepInfoEl.textContent = '';
+    errorEl.style.display = 'none';
+    actionsEl.style.display = 'none';
+
+    try {
+        var r = await mahoFetch('<?php echo $this->getProvisionUrl() ?>', {
+            method: 'POST',
+            body: buildFormBody(sfWizard.formData)
+        });
+
+        if (!r.success) {
+            showProvError(r.error || 'Failed to initialize provisioning');
+            return;
+        }
+
+        labelEl.textContent = r.first_step + '...';
+        stepInfoEl.textContent = 'Step 1 of ' + r.total_steps;
+
+        await runProvSteps();
+    } catch (e) {
+        showProvError(e.message || 'Request failed');
+    }
+
+    async function runProvSteps() {
+        while (true) {
+            try {
+                var r = await mahoFetch('<?php echo $this->getProvisionStepUrl() ?>', { method: 'POST' });
+
+                if (!r.success) {
+                    showProvError((r.error || 'Step failed') + ' (Step ' + r.step + '/' + r.total + ': ' + r.label + ')');
+                    if (r.can_rollback) {
+                        actionsEl.style.display = 'flex';
+                    }
+                    return;
+                }
+
+                barEl.style.width = r.percent + '%';
+                percentEl.textContent = r.percent + '%';
+                stepInfoEl.textContent = 'Step ' + r.step + ' of ' + r.total;
+
+                if (r.complete) {
+                    labelEl.textContent = '<?php echo $this->jsQuoteEscape($this->__('Provisioning complete!')) ?>';
+                    barEl.style.background = '#4caf50';
+                    sfWizard.provisioning = false;
+
+                    // Show complete panel
+                    sfShowComplete(r);
+                    return;
+                } else {
+                    labelEl.textContent = r.next_label + '...';
+                }
+            } catch (e) {
+                showProvError(e.message || 'Request failed');
+                actionsEl.style.display = 'flex';
+                return;
+            }
+        }
+    }
+
+    function showProvError(msg) {
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+        barEl.style.background = '#e53935';
+        sfWizard.provisioning = false;
+    }
+}
+
+/* ===== Complete (Step 4) ===== */
+function sfShowComplete(data) {
+    setTimeout(function() { sfGoStep(4); }, 500);
+
+    var html = '<dl>';
+    html += '<dt><?php echo $this->jsQuoteEscape($this->__('Store URL')) ?></dt>';
+    html += '<dd><a href="' + escapeAttr(data.store_url) + '" target="_blank">' + escapeHtml(data.store_url) + '</a></dd>';
+    html += '<dt><?php echo $this->jsQuoteEscape($this->__('Store Code')) ?></dt>';
+    html += '<dd><code>' + escapeHtml(data.store_code) + '</code></dd>';
+    html += '<dt><?php echo $this->jsQuoteEscape($this->__('DNS Status')) ?></dt>';
+    html += '<dd>' + (data.domain_type === 'managed' ? '<?php echo $this->jsQuoteEscape($this->__('Auto-configured')) ?>' : '<?php echo $this->jsQuoteEscape($this->__('Manual setup required')) ?>') + '</dd>';
+    html += '</dl>';
+    document.getElementById('sf-complete-info').innerHTML = html;
+
+    if (data.domain_type === 'external' && data.cname_target) {
+        var cnameHtml = '<div class="sf-cname-box">';
+        cnameHtml += '<strong><?php echo $this->jsQuoteEscape($this->__('DNS Configuration Required')) ?></strong><br/><br/>';
+        cnameHtml += '<?php echo $this->jsQuoteEscape($this->__('Add a CNAME record to your DNS provider:')) ?><br/><br/>';
+        cnameHtml += '<strong>Name:</strong> <code id="sf-cname-name">' + escapeHtml(data.cname_name) + '</code> ';
+        cnameHtml += '<button type="button" class="sf-copy-btn" onclick="sfCopy(\'sf-cname-name\')">Copy</button><br/>';
+        cnameHtml += '<strong>Target:</strong> <code id="sf-cname-target">' + escapeHtml(data.cname_target) + '</code> ';
+        cnameHtml += '<button type="button" class="sf-copy-btn" onclick="sfCopy(\'sf-cname-target\')">Copy</button>';
+        cnameHtml += '</div>';
+        document.getElementById('sf-cname-instructions').innerHTML = cnameHtml;
+        document.getElementById('sf-cname-instructions').style.display = 'block';
+    }
+
+    // Reload stores table
+    sfLoadStores();
+}
+
+/* ===== Rollback ===== */
+async function sfRollback() {
+    if (!confirm('<?php echo $this->jsQuoteEscape($this->__('Roll back all completed provisioning steps?')) ?>')) return;
+
+    var btn = document.getElementById('sf-rollback-btn');
+    btn.disabled = true;
+    btn.querySelector('span').textContent = '<?php echo $this->jsQuoteEscape($this->__('Rolling back...')) ?>';
+
+    try {
+        var r = await mahoFetch('<?php echo $this->getRollbackUrl() ?>', { method: 'POST' });
+        if (r.success) {
+            alert(r.message || '<?php echo $this->jsQuoteEscape($this->__('Rollback complete.')) ?>');
+            sfReset();
+        } else {
+            alert(r.error || '<?php echo $this->jsQuoteEscape($this->__('Rollback failed.')) ?>');
+        }
+    } catch (e) {
+        alert(e.message || 'Request failed');
+    }
+
+    btn.disabled = false;
+    btn.querySelector('span').textContent = '<?php echo $this->jsQuoteEscape($this->__('Rollback')) ?>';
+}
+
+/* ===== Reset wizard ===== */
+function sfReset() {
+    sfWizard.currentStep = 1;
+    sfWizard.provisioning = false;
+    sfWizard.formData = {};
+
+    document.getElementById('sf-store-name').value = '';
+    document.getElementById('sf-store-code').value = '';
+    document.getElementById('sf-subdomain').value = '';
+    document.getElementById('sf-zone').selectedIndex = 0;
+    document.getElementById('sf-maho-store').selectedIndex = 0;
+    document.getElementById('sf-domain-preview').style.display = 'none';
+    document.getElementById('sf-cname-instructions').style.display = 'none';
+
+    sfGoStep(1);
+}
+
+/* ===== Copy to clipboard ===== */
+function sfCopy(elementId) {
+    var text = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(text).then(function() {
+        var btn = document.getElementById(elementId).nextElementSibling;
+        var orig = btn.textContent;
+        btn.textContent = '<?php echo $this->jsQuoteEscape($this->__('Copied!')) ?>';
+        setTimeout(function() { btn.textContent = orig; }, 1500);
+    });
+}
+
+/* ===== Registered Stores Table ===== */
+async function sfLoadStores() {
+    var loading = document.getElementById('sf-stores-loading');
+    var empty = document.getElementById('sf-stores-empty');
+    var table = document.getElementById('sf-stores-table');
+    var tbody = document.getElementById('sf-stores-tbody');
+
+    loading.style.display = 'block';
+    empty.style.display = 'none';
+    table.style.display = 'none';
+
+    try {
+        var r = await mahoFetch('<?php echo $this->getListStoresUrl() ?>');
+        loading.style.display = 'none';
+
+        if (!r.success || !r.stores || r.stores.length === 0) {
+            empty.style.display = 'block';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        r.stores.forEach(function(s) {
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td>' + escapeHtml(s.name || '') + '</td>'
+                + '<td><code>' + escapeHtml(s.code || '') + '</code></td>'
+                + '<td><a href="' + escapeAttr(s.url || '') + '" target="_blank">' + escapeHtml(s.url || '') + '</a></td>'
+                + '<td><button type="button" class="scalable" onclick="sfRemoveStore(\'' + escapeAttr(s.code || '') + '\')"><span><?php echo $this->jsQuoteEscape($this->__('Remove')) ?></span></button></td>';
+            tbody.appendChild(tr);
+        });
+        table.style.display = 'table';
+    } catch (e) {
+        loading.style.display = 'none';
+        empty.textContent = e.message || 'Failed to load stores';
+        empty.style.display = 'block';
+    }
+}
+
+async function sfRemoveStore(code) {
+    if (!confirm('<?php echo $this->jsQuoteEscape($this->__('Remove this store from the registry?')) ?>\n\nStore code: ' + code)) return;
+
+    try {
+        var r = await mahoFetch('<?php echo $this->getRemoveStoreUrl() ?>', {
+            method: 'POST',
+            body: new URLSearchParams({ store_code: code })
+        });
+
+        if (r.success) {
+            sfLoadStores();
+        } else {
+            alert(r.error || 'Remove failed');
+        }
+    } catch (e) {
+        alert(e.message || 'Request failed');
+    }
+}
+
+/* ===== Utility ===== */
+function buildFormBody(data) {
+    var params = new URLSearchParams();
+    Object.keys(data).forEach(function(k) {
+        params.set(k, data[k]);
+    });
+    return params;
+}
+
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+function escapeAttr(str) {
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ===== Init ===== */
+sfLoadZones();
+sfLoadStores();
+</script>

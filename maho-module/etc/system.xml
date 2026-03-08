@@ -1,0 +1,275 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageaustralia
+ *
+ * @package    Mageaustralia_Storefront
+ * @copyright  Copyright (c) 2026 Mageaustralia
+ * @license    https://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+<config>
+    <sections>
+        <mageaustralia_storefront translate="label" module="mageaustralia_storefront">
+            <label>Storefront</label>
+            <tab>service</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>350</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <onboarding translate="label" module="mageaustralia_storefront">
+                    <label>Store Onboarding</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>5</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                        <worker_script_name translate="label comment">
+                            <label>Worker Script Name</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>Cloudflare Worker script name to route new stores to (e.g., maho-storefront-demo)</comment>
+                        </worker_script_name>
+                    </fields>
+                </onboarding>
+                <cloudflare translate="label" module="mageaustralia_storefront">
+                    <label>Cloudflare Credentials</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>10</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <account_id translate="label">
+                            <label>Account ID</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </account_id>
+                        <api_token translate="label comment">
+                            <label>API Token / Key</label>
+                            <frontend_type>obscure</frontend_type>
+                            <backend_model>adminhtml/system_config_backend_encrypted</backend_model>
+                            <sort_order>15</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment><![CDATA[API Token (Bearer auth) or legacy Global API Key.<br/>
+If using a legacy API Key, also enter your email below.<br/><br/>
+API Token permissions needed:<br/>
+• Account > Workers Scripts > Edit<br/>
+• Account > Workers KV Storage > Edit<br/>
+• Zone > Cache Purge > Purge<br/>
+• Zone > Zone > Read]]></comment>
+                        </api_token>
+                        <api_email translate="label comment">
+                            <label>API Email</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>17</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>Only required when using a legacy Global API Key. Leave blank for API Token auth.</comment>
+                        </api_email>
+                        <zone_id translate="label">
+                            <label>Zone ID</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </zone_id>
+                        <discover_credentials translate="label">
+                            <label>Auto-Detect IDs</label>
+                            <frontend_type>button</frontend_type>
+                            <frontend_model>mageaustralia_storefront/adminhtml_system_config_discoverButton</frontend_model>
+                            <sort_order>35</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>Detects Account ID and Zone ID automatically from your API credentials.</comment>
+                        </discover_credentials>
+                        <test_connection translate="label">
+                            <label>Test Connection</label>
+                            <frontend_type>button</frontend_type>
+                            <frontend_model>mageaustralia_storefront/adminhtml_system_config_testConnection</frontend_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </test_connection>
+                    </fields>
+                </cloudflare>
+                <worker translate="label" module="mageaustralia_storefront">
+                    <label>Worker Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>20</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <storefront_url translate="label comment">
+                            <label>Storefront URL</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>The deployed Worker URL (e.g., https://maho-storefront.workers.dev)</comment>
+                        </storefront_url>
+                        <store_code translate="label comment">
+                            <label>Worker Store Code</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>15</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment><![CDATA[Maps this store view to the Worker's KV prefix.<br/>
+Passed as <code>?store=CODE</code> to sync endpoints.<br/>
+Leave blank for the default/unprefixed store.]]></comment>
+                        </store_code>
+                        <sync_secret translate="label comment">
+                            <label>Sync Secret</label>
+                            <frontend_type>obscure</frontend_type>
+                            <backend_model>adminhtml/system_config_backend_encrypted</backend_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>Bearer token for authenticating with the Worker /sync endpoints</comment>
+                        </sync_secret>
+                        <kv_namespace_id translate="label">
+                            <label>KV Namespace ID</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </kv_namespace_id>
+                        <sync_button translate="label">
+                            <label>Sync Now</label>
+                            <frontend_type>button</frontend_type>
+                            <frontend_model>mageaustralia_storefront/adminhtml_system_config_syncButton</frontend_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </sync_button>
+                    </fields>
+                </worker>
+                <general translate="label" module="mageaustralia_storefront">
+                    <label>General</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>25</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                        <log_retention_days translate="label comment">
+                            <label>Activity Log Retention (days)</label>
+                            <frontend_type>text</frontend_type>
+                            <validate>validate-digits</validate>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>Automatically delete activity log entries older than this many days. Set to 0 to keep logs indefinitely.</comment>
+                        </log_retention_days>
+                    </fields>
+                </general>
+                <events translate="label" module="mageaustralia_storefront">
+                    <label>Event-Based Sync</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>30</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label comment">
+                            <label>Enable Event-Based Sync</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>Automatically sync changed entities to the storefront Worker</comment>
+                        </enabled>
+                        <debounce_seconds translate="label comment">
+                            <label>Debounce Delay (seconds)</label>
+                            <frontend_type>text</frontend_type>
+                            <validate>validate-digits</validate>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>Minimum delay between API calls for the same entity type during bulk operations</comment>
+                        </debounce_seconds>
+                    </fields>
+                </events>
+                <cron translate="label" module="mageaustralia_storefront">
+                    <label>Scheduled Sync</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>40</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label">
+                            <label>Enable Scheduled Sync</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                        <frequency translate="label">
+                            <label>Frequency</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>mageaustralia_storefront/system_config_source_syncfrequency</source_model>
+                            <backend_model>mageaustralia_storefront/system_config_backend_cron</backend_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </frequency>
+                        <custom_cron_expr translate="label comment">
+                            <label>Custom Cron Expression</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>25</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <enabled>1</enabled>
+                                <frequency>custom</frequency>
+                            </depends>
+                            <comment>5-field cron format: minute hour day month weekday (e.g., */10 * * * *)</comment>
+                            <validate>required-entry</validate>
+                        </custom_cron_expr>
+                        <sync_types translate="label">
+                            <label>Sync Types</label>
+                            <frontend_type>multiselect</frontend_type>
+                            <source_model>mageaustralia_storefront/system_config_source_synctype</source_model>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </sync_types>
+                    </fields>
+                </cron>
+            </groups>
+        </mageaustralia_storefront>
+    </sections>
+</config>
