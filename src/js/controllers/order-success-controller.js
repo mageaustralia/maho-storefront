@@ -6,6 +6,7 @@
 
 import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
+import { updateCartBadge } from '../utils.js';
 
 export default class OrderSuccessController extends Controller {
   static targets = ['orderNumber', 'orderEmail', 'content', 'error'];
@@ -51,6 +52,11 @@ export default class OrderSuccessController extends Controller {
         this._showError();
         return;
       }
+
+      // Order verified — now safe to clear cart
+      localStorage.removeItem('maho_cart_id');
+      localStorage.removeItem('maho_cart_qty');
+      updateCartBadge();
 
       if (this.hasOrderNumberTarget) {
         this.orderNumberTarget.textContent = `Your order number is #${order.incrementId}`;

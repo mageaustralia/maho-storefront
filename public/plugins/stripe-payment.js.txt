@@ -7,10 +7,14 @@
  * Requires:
  *   - Stripe publishable key set in window.STRIPE_PUBLISHABLE_KEY
  *     (typically injected by the storefront worker from env/config)
- *   - Backend endpoint: POST /api/stripe/create-payment-intent
+ *   - Backend endpoint: POST /api/payments/stripe/payment-intents
  *     (returns { clientSecret, paymentIntentId } or { error, message })
  *
  * Handles Maho payment method code: stripe_card
+ *
+ * Features:
+ *   - Inline card input via Stripe Elements
+ *   - Google Pay / Apple Pay via Payment Request Button (auto-detected)
  */
 (function () {
   'use strict';
@@ -19,29 +23,45 @@
 
   function StripeAdapter() {
     this._stripe = null;
+    this._elements = null;
     this._cardElement = null;
+    this._prButton = null;
+    this._paymentRequest = null;
     this._container = null;
     this._cardComplete = false;
     this._publishableKey = null;
     this._api = null;
+    this._context = null;
+    // Set by Payment Request flow to auto-submit the order
+    this._prPaymentIntentId = null;
+    this._prResolve = null;
   }
 
   StripeAdapter.prototype.match = function (methodCode) {
     return methodCode === 'stripe_card';
   };
 
+  /**
+   * Methods absorbed by this adapter — these are handled inline via
+   * the Payment Request Button and don't need separate radio buttons.
+   */
+  StripeAdapter.prototype.absorbedMethods = function () {
+    return ['stripe_applepay', 'stripe_googlepay', 'stripe_link'];
+  };
+
   StripeAdapter.prototype.init = async function (container, context) {
     this._container = container;
     this._api = context.api || window.MahoStorefront?.api;
+    this._context = context;
     this._cardComplete = false;
+    this._prPaymentIntentId = null;
 
-    container.innerHTML = '<p class="text-sm text-base-content/60">Loading card fields...</p>';
+    container.innerHTML = '<p class="text-sm text-base-content/60">Loading payment options...</p>';
 
     try {
       // Get publishable key from window or from backend config
       this._publishableKey = window.STRIPE_PUBLISHABLE_KEY;
       if (!this._publishableKey) {
-        // Try fetching from backend config endpoint
         var configData = await this._apiGet('/api/stripe/config');
         if (configData && configData.publishableKey) {
           this._publishableKey = configData.publishableKey;
@@ -58,15 +78,17 @@
 
       // Initialize Stripe
       this._stripe = window.Stripe(this._publishableKey);
-      var elements = this._stripe.elements();
+      this._elements = this._stripe.elements();
 
-      // Render card container
+      // Build the container HTML — PR button slot + card fields
       container.innerHTML =
+        '<div id="stripe-pr-button" style="display:none"></div>' +
+        '<div id="stripe-pr-divider" style="display:none" class="divider text-xs text-base-content/40 my-3">Or pay with card</div>' +
         '<div id="stripe-card-element" style="padding: 10px 12px; min-height: 40px; border: 1px solid oklch(var(--bc) / 0.25); border-radius: var(--radius-field, 0.25rem); background: var(--color-base-100, #fff);"></div>' +
         '<div id="stripe-card-errors" role="alert" class="text-sm text-error mt-1"></div>';
 
-      // Mount Stripe Elements card
-      this._cardElement = elements.create('card', {
+      // Mount card element
+      this._cardElement = this._elements.create('card', {
         style: {
           base: {
             fontSize: '14px',
@@ -90,13 +112,156 @@
         self._cardComplete = event.complete;
       });
 
+      // Try to mount Payment Request Button (Google Pay / Apple Pay)
+      this._initPaymentRequestButton();
+
     } catch (e) {
       console.error('[stripe] Init failed:', e);
-      container.innerHTML = '<p class="text-sm text-error">Failed to load card fields. Please refresh and try again.</p>';
+      container.innerHTML = '<p class="text-sm text-error">Failed to load payment options. Please refresh and try again.</p>';
+    }
+  };
+
+  /**
+   * Initialize the Payment Request Button for Google Pay / Apple Pay.
+   * The button only appears if the browser/device supports it.
+   */
+  StripeAdapter.prototype._initPaymentRequestButton = async function () {
+    if (!this._stripe || !this._elements) return;
+
+    // Get cart total for the payment request
+    var total = this._getCartTotal();
+    var currency = (this._context?.currency || 'AUD').toLowerCase();
+
+    this._paymentRequest = this._stripe.paymentRequest({
+      country: 'AU',
+      currency: currency,
+      total: {
+        label: 'Order Total',
+        amount: total, // in cents
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    // Check if Google Pay / Apple Pay is available
+    var result = await this._paymentRequest.canMakePayment();
+    if (!result) return; // Not available — card-only checkout
+
+    // Mount the button
+    this._prButton = this._elements.create('paymentRequestButton', {
+      paymentRequest: this._paymentRequest,
+      style: {
+        paymentRequestButton: {
+          type: 'default',
+          theme: 'dark',
+          height: '44px',
+        },
+      },
+    });
+
+    var prContainer = document.getElementById('stripe-pr-button');
+    var prDivider = document.getElementById('stripe-pr-divider');
+    if (prContainer) {
+      prContainer.style.display = '';
+      this._prButton.mount('#stripe-pr-button');
+    }
+    if (prDivider) {
+      prDivider.style.display = '';
+    }
+
+    var self = this;
+
+    // Handle the payment method event from Google Pay / Apple Pay / Link
+    this._paymentRequest.on('paymentmethod', async function (ev) {
+      try {
+        // 1. Create PaymentIntent on server
+        var cartId = self._api ? self._api.cartId() : localStorage.getItem('maho_cart_id');
+        if (!cartId) {
+          ev.complete('fail');
+          self._showError('No active cart found.');
+          return;
+        }
+
+        var piResponse = await self._apiPost('/api/payments/stripe/payment-intents', { cartId: cartId });
+        if (piResponse.error) {
+          ev.complete('fail');
+          self._showError(piResponse.message || 'Could not initialize payment.');
+          return;
+        }
+
+        // 2. Confirm payment with the PM from the payment sheet
+        var confirmResult = await self._stripe.confirmCardPayment(
+          piResponse.clientSecret,
+          { payment_method: ev.paymentMethod.id },
+          { handleActions: false }
+        );
+
+        if (confirmResult.error) {
+          ev.complete('fail');
+          self._showError(confirmResult.error.message || 'Payment failed.');
+          return;
+        }
+
+        // Check if additional action needed (e.g. 3DS)
+        if (confirmResult.paymentIntent.status === 'requires_action') {
+          ev.complete('success');
+          var actionResult = await self._stripe.confirmCardPayment(piResponse.clientSecret);
+          if (actionResult.error) {
+            self._showError(actionResult.error.message || 'Authentication failed.');
+            return;
+          }
+          self._prPaymentIntentId = actionResult.paymentIntent.id;
+        } else {
+          ev.complete('success');
+          self._prPaymentIntentId = confirmResult.paymentIntent.id;
+        }
+
+        // 3. Auto-click Place Order — the tokenize() method will return the PI ID
+        var placeOrderBtn = document.querySelector('[data-action*="checkout#placeOrder"]');
+        if (placeOrderBtn && !placeOrderBtn.disabled) {
+          placeOrderBtn.click();
+        }
+      } catch (e) {
+        console.error('[stripe] Payment Request error:', e);
+        ev.complete('fail');
+        self._showError(e.message || 'Payment failed. Please try again.');
+      }
+    });
+  };
+
+  /**
+   * Get the cart total in cents for the Payment Request.
+   */
+  StripeAdapter.prototype._getCartTotal = function () {
+    // Try to read from the sidebar total element
+    var totalEl = document.querySelector('[data-checkout-target="sidebarTotal"]');
+    if (totalEl) {
+      var text = totalEl.textContent.replace(/[^0-9.]/g, '');
+      var amount = parseFloat(text);
+      if (!isNaN(amount) && amount > 0) {
+        return Math.round(amount * 100);
+      }
+    }
+    // Fallback — minimum amount, will be corrected server-side
+    return 100;
+  };
+
+  StripeAdapter.prototype._showError = function (message) {
+    var errorEl = document.getElementById('stripe-card-errors');
+    if (errorEl) {
+      errorEl.textContent = message;
     }
   };
 
   StripeAdapter.prototype.tokenize = async function () {
+    // If Payment Request flow already completed, return the PI ID directly
+    if (this._prPaymentIntentId) {
+      var piId = this._prPaymentIntentId;
+      this._prPaymentIntentId = null;
+      return { stripe_payment_intent_id: piId };
+    }
+
+    // Card flow
     if (!this._stripe || !this._cardElement) {
       throw new Error('Card fields are not ready. Please wait and try again.');
     }
@@ -105,7 +270,7 @@
       throw new Error('Please complete your card details.');
     }
 
-    // 1. Create PaymentIntent on the server via API Platform
+    // 1. Create PaymentIntent on the server
     var cartId = this._api ? this._api.cartId() : localStorage.getItem('maho_cart_id');
     if (!cartId) {
       throw new Error('No active cart found. Please add items to your cart.');
@@ -132,12 +297,20 @@
   };
 
   StripeAdapter.prototype.destroy = function () {
+    if (this._prButton) {
+      this._prButton.destroy();
+      this._prButton = null;
+    }
     if (this._cardElement) {
       this._cardElement.destroy();
       this._cardElement = null;
     }
     this._stripe = null;
+    this._elements = null;
+    this._paymentRequest = null;
     this._cardComplete = false;
+    this._prPaymentIntentId = null;
+    this._prResolve = null;
     if (this._container) {
       this._container.innerHTML = '';
       this._container = null;
