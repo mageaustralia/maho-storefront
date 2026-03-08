@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageaustralia
+ *
+ * @package    Mageaustralia_Storefront
+ * @copyright  Copyright (c) 2026 Mageaustralia
+ * @license    https://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+<config>
+    <menu>
+        <system>
+            <children>
+                <mageaustralia_storefront translate="title" module="mageaustralia_storefront">
+                    <title>Storefront</title>
+                    <sort_order>95</sort_order>
+                    <children>
+                        <dashboard translate="title" module="mageaustralia_storefront">
+                            <title>Dashboard</title>
+                            <action>adminhtml/storefront_dashboard</action>
+                            <sort_order>10</sort_order>
+                        </dashboard>
+                        <onboard translate="title" module="mageaustralia_storefront">
+                            <title>New Store</title>
+                            <action>adminhtml/storefront_onboard</action>
+                            <sort_order>20</sort_order>
+                        </onboard>
+                        <settings translate="title" module="mageaustralia_storefront">
+                            <title>Settings</title>
+                            <action>adminhtml/system_config/edit/section/mageaustralia_storefront</action>
+                            <sort_order>30</sort_order>
+                        </settings>
+                    </children>
+                </mageaustralia_storefront>
+            </children>
+        </system>
+    </menu>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <system>
+                        <children>
+                            <mageaustralia_storefront translate="title" module="mageaustralia_storefront">
+                                <title>Storefront</title>
+                                <sort_order>95</sort_order>
+                                <children>
+                                    <dashboard translate="title" module="mageaustralia_storefront">
+                                        <title>Dashboard</title>
+                                    </dashboard>
+                                    <sync translate="title" module="mageaustralia_storefront">
+                                        <title>Sync</title>
+                                    </sync>
+                                    <cache translate="title" module="mageaustralia_storefront">
+                                        <title>Cache Management</title>
+                                    </cache>
+                                    <onboard translate="title" module="mageaustralia_storefront">
+                                        <title>Store Onboarding</title>
+                                    </onboard>
+                                    <settings translate="title" module="mageaustralia_storefront">
+                                        <title>Settings</title>
+                                    </settings>
+                                </children>
+                            </mageaustralia_storefront>
+                            <config>
+                                <children>
+                                    <mageaustralia_storefront translate="title" module="mageaustralia_storefront">
+                                        <title>Storefront</title>
+                                    </mageaustralia_storefront>
+                                </children>
+                            </config>
+                        </children>
+                    </system>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

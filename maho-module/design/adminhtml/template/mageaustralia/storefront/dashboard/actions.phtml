@@ -1,0 +1,542 @@
+<?php
+/**
+ * @var Mageaustralia_Storefront_Block_Adminhtml_Dashboard_Actions $this
+ */
+$formKey = $this->getFormKey();
+?>
+
+<!-- Sync Section -->
+<div class="sf-section">
+    <div class="sf-section-head"><h4><?php echo $this->__('Sync') ?></h4></div>
+    <div class="sf-section-body">
+        <div class="sf-sub-section">
+            <div class="sf-btn-row">
+                <button type="button" class="scalable" id="sf-full-sync-btn" onclick="storefrontFullSync()">
+                    <span><?php echo $this->__('Full Sync') ?></span>
+                </button>
+                <span style="color:#888;font-size:12px;"><?php echo $this->__('Syncs all content types step-by-step') ?></span>
+            </div>
+        </div>
+
+        <!-- Progress bar (hidden by default) -->
+        <div id="sf-sync-progress" style="display:none;" class="sf-sub-section">
+            <div style="padding:12px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:3px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                    <span id="sf-sync-label" style="font-weight:600;font-size:12px;"></span>
+                    <span id="sf-sync-elapsed" style="color:#888;font-size:12px;"></span>
+                </div>
+                <div style="background:#ddd;border-radius:3px;height:16px;overflow:hidden;">
+                    <div id="sf-sync-bar" style="background:#3d6d93;height:100%;width:0%;transition:width 0.3s;border-radius:3px;"></div>
+                </div>
+                <div style="margin-top:4px;text-align:center;font-size:11px;color:#888;">
+                    <span id="sf-sync-percent">0%</span> &mdash;
+                    <span id="sf-sync-step-info"></span>
+                </div>
+                <div id="sf-sync-error" style="display:none;margin-top:8px;padding:8px;background:#fce4e4;border:1px solid #fcc;border-radius:3px;color:#900;font-size:12px;"></div>
+                <div id="sf-sync-summary" style="display:none;margin-top:8px;padding:8px;background:#e8f5e9;border:1px solid #c8e6c9;border-radius:3px;color:#2e7d32;font-size:12px;"></div>
+            </div>
+        </div>
+
+        <div class="sf-sub-section">
+            <div class="sf-sub-label"><?php echo $this->__('Individual Sync') ?></div>
+            <div class="sf-btn-row">
+                <?php foreach ($this->getSyncTypes() as $type => $label): ?>
+                    <form action="<?php echo $this->getPartialSyncUrl($type) ?>" method="post" style="display:inline;">
+                        <input type="hidden" name="form_key" value="<?php echo $formKey ?>" />
+                        <button type="submit" class="scalable"><span><?php echo $this->escapeHtml($label) ?></span></button>
+                    </form>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cache Management Section -->
+<div class="sf-section">
+    <div class="sf-section-head"><h4><?php echo $this->__('Cache Management') ?></h4></div>
+    <div class="sf-section-body">
+        <div class="sf-sub-section">
+            <div class="sf-btn-row">
+                <form action="<?php echo $this->getPurgeAllUrl() ?>" method="post" style="display:inline;">
+                    <input type="hidden" name="form_key" value="<?php echo $formKey ?>" />
+                    <button type="submit" class="scalable" onclick="return confirm('<?php echo $this->jsQuoteEscape($this->__('Purge entire edge cache?')) ?>')">
+                        <span><?php echo $this->__('Purge All Cache') ?></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="sf-sub-section">
+            <button type="button" class="sf-toggle-link" onclick="sfToggle('sf-purge-urls')">&#9656; <?php echo $this->__('Purge specific URLs') ?></button>
+            <div id="sf-purge-urls" class="sf-collapsible">
+                <form action="<?php echo $this->getPurgeUrlsUrl() ?>" method="post">
+                    <input type="hidden" name="form_key" value="<?php echo $formKey ?>" />
+                    <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;"><?php echo $this->__('Purge URLs (one per line):') ?></label>
+                    <textarea name="urls" rows="3"></textarea>
+                    <div style="margin-top:6px;">
+                        <button type="submit" class="scalable"><span><?php echo $this->__('Purge URLs') ?></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KV Store Browser Section -->
+<div class="sf-section">
+    <div class="sf-section-head"><h4><?php echo $this->__('KV Store') ?></h4></div>
+    <div class="sf-section-body">
+        <div class="sf-sub-section">
+            <div class="sf-btn-row" style="margin-bottom:10px;">
+                <button type="button" class="scalable" id="sf-kv-load-btn" onclick="sfKvLoad()">
+                    <span><?php echo $this->__('Load Keys') ?></span>
+                </button>
+                <input type="text" id="sf-kv-filter" placeholder="<?php echo $this->jsQuoteEscape($this->__('Filter...')) ?>"
+                       style="font-size:12px;padding:4px 8px;border:1px solid #ccc;border-radius:2px;width:180px;"
+                       onkeyup="sfKvFilter()" />
+                <select id="sf-kv-pagesize" style="font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:2px;" onchange="sfKvPageSize()">
+                    <option value="20">20 per page</option>
+                    <option value="50" selected>50 per page</option>
+                    <option value="100">100 per page</option>
+                </select>
+                <span id="sf-kv-count" style="font-size:12px;color:#888;"></span>
+            </div>
+        </div>
+
+        <div id="sf-kv-browser" style="display:none;">
+            <div id="sf-kv-loading" style="display:none;padding:10px;color:#888;font-size:12px;">
+                <?php echo $this->__('Loading...') ?>
+            </div>
+            <div id="sf-kv-error" style="display:none;padding:8px;background:#fce4e4;border:1px solid #fcc;border-radius:3px;color:#900;font-size:12px;margin-bottom:10px;"></div>
+
+            <table id="sf-kv-table" class="data" style="width:100%;font-size:12px;display:none;">
+                <thead>
+                    <tr class="headings">
+                        <th style="width:30px;padding:6px 10px;">
+                            <input type="checkbox" id="sf-kv-select-all" onchange="sfKvToggleAll(this)" />
+                        </th>
+                        <th style="padding:6px 10px;"><?php echo $this->__('Key') ?></th>
+                    </tr>
+                </thead>
+                <tbody id="sf-kv-tbody"></tbody>
+            </table>
+
+            <div id="sf-kv-empty" style="display:none;padding:10px;color:#999;font-size:12px;">
+                <?php echo $this->__('No keys found.') ?>
+            </div>
+
+            <!-- Pagination -->
+            <div id="sf-kv-pager" style="display:none;padding:8px 0;font-size:12px;display:flex;justify-content:space-between;align-items:center;">
+                <div id="sf-kv-page-info" style="color:#888;"></div>
+                <div id="sf-kv-page-nav"></div>
+            </div>
+
+            <!-- Actions bar -->
+            <div id="sf-kv-actions" style="display:none;margin-top:8px;padding:8px 0;border-top:1px solid #eee;">
+                <div class="sf-btn-row">
+                    <button type="button" class="scalable" onclick="sfKvDeleteSelected()" id="sf-kv-delete-btn" disabled>
+                        <span><?php echo $this->__('Delete Selected') ?></span>
+                    </button>
+                    <span id="sf-kv-selected-count" style="font-size:12px;color:#888;"></span>
+                    <span style="font-size:11px;color:#aaa;margin-left:8px;"><?php echo $this->__('Tip: Shift+click to select a range') ?></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #sf-kv-page-nav a,
+    #sf-kv-page-nav span {
+        display: inline-block;
+        padding: 2px 8px;
+        margin: 0 1px;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        text-decoration: none;
+        color: #333;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    #sf-kv-page-nav a:hover { background: #e8e8e8; }
+    #sf-kv-page-nav span.sf-kv-current { background: #3d6d93; color: #fff; border-color: #3d6d93; cursor: default; }
+    #sf-kv-page-nav span.sf-kv-disabled { color: #ccc; cursor: default; }
+    #sf-kv-tbody tr:hover { background: #f5f8fc; }
+    #sf-kv-tbody tr.sf-kv-selected { background: #e3f2fd; }
+</style>
+
+<script>
+/* ===== Toggle ===== */
+function sfToggle(id) {
+    var el = document.getElementById(id);
+    el.classList.toggle('sf-open');
+    var link = event.target.closest('.sf-toggle-link');
+    if (link) {
+        var arrow = el.classList.contains('sf-open') ? '\u25BE' : '\u25B8';
+        link.innerHTML = arrow + ' ' + link.textContent.trim().substring(1).trim();
+    }
+}
+
+/* ===== Full Sync ===== */
+var sfSyncRunning = false;
+
+async function storefrontFullSync() {
+    if (sfSyncRunning) return;
+    sfSyncRunning = true;
+
+    var btn = document.getElementById('sf-full-sync-btn');
+    btn.disabled = true;
+
+    var progressEl = document.getElementById('sf-sync-progress');
+    var barEl = document.getElementById('sf-sync-bar');
+    var percentEl = document.getElementById('sf-sync-percent');
+    var labelEl = document.getElementById('sf-sync-label');
+    var stepInfoEl = document.getElementById('sf-sync-step-info');
+    var elapsedEl = document.getElementById('sf-sync-elapsed');
+    var errorEl = document.getElementById('sf-sync-error');
+    var summaryEl = document.getElementById('sf-sync-summary');
+
+    progressEl.style.display = 'block';
+    errorEl.style.display = 'none';
+    summaryEl.style.display = 'none';
+    barEl.style.width = '0%';
+    barEl.style.background = '#3d6d93';
+    percentEl.innerHTML = '0%';
+    labelEl.innerHTML = '<?php echo $this->jsQuoteEscape($this->__('Initializing...')) ?>';
+    stepInfoEl.innerHTML = '';
+
+    try {
+        var r = await mahoFetch('<?php echo $this->getFullSyncUrl() ?>', { method: 'POST' });
+        if (!r.success) {
+            showSyncError(r.error || 'Failed to initialize sync');
+            return;
+        }
+        labelEl.innerHTML = '<?php echo $this->jsQuoteEscape($this->__('Syncing')) ?> ' + r.first_step + '...';
+        stepInfoEl.innerHTML = 'Step 1 of ' + r.total_steps;
+        await runSteps();
+    } catch (e) {
+        showSyncError(e.message || 'Request failed');
+    }
+
+    async function runSteps() {
+        while (true) {
+            try {
+                var r = await mahoFetch('<?php echo $this->getSyncStepUrl() ?>', { method: 'POST' });
+                if (!r.success) {
+                    showSyncError((r.error || 'Step failed') + ' (Step ' + r.step + '/' + r.total + ': ' + r.label + ')');
+                    return;
+                }
+
+                barEl.style.width = r.percent + '%';
+                percentEl.innerHTML = r.percent + '%';
+                stepInfoEl.innerHTML = 'Step ' + r.step + ' of ' + r.total;
+                elapsedEl.innerHTML = formatMs(r.elapsed_ms);
+
+                if (r.complete) {
+                    labelEl.innerHTML = '<?php echo $this->jsQuoteEscape($this->__('Sync complete!')) ?>';
+                    barEl.style.background = '#4caf50';
+                    var successCount = 0;
+                    if (r.summary) {
+                        r.summary.forEach(function(s) { if (s.status === 'success') successCount++; });
+                    }
+                    summaryEl.innerHTML = successCount + ' of ' + r.total + ' types synced successfully.';
+                    summaryEl.style.display = 'block';
+                    sfSyncRunning = false;
+                    btn.disabled = false;
+                    return;
+                } else {
+                    labelEl.innerHTML = '<?php echo $this->jsQuoteEscape($this->__('Syncing')) ?> ' + r.next_label + '...';
+                }
+            } catch (e) {
+                showSyncError(e.message || 'Request failed');
+                return;
+            }
+        }
+    }
+
+    function showSyncError(msg) {
+        errorEl.innerHTML = msg;
+        errorEl.style.display = 'block';
+        barEl.style.background = '#e53935';
+        sfSyncRunning = false;
+        btn.disabled = false;
+    }
+
+    function formatMs(ms) {
+        if (ms < 1000) return ms + 'ms';
+        return (ms / 1000).toFixed(1) + 's';
+    }
+}
+
+/* ===== KV Browser ===== */
+var sfKv = {
+    allKeys: [],       // all keys from API
+    filtered: [],      // after text filter
+    selected: new Set(),
+    page: 1,
+    perPage: 50,
+    lastClickIndex: null  // for shift+click range selection
+};
+
+async function sfKvLoad() {
+    var browser = document.getElementById('sf-kv-browser');
+    var loading = document.getElementById('sf-kv-loading');
+    var errorEl = document.getElementById('sf-kv-error');
+
+    browser.style.display = 'block';
+    loading.style.display = 'block';
+    errorEl.style.display = 'none';
+    document.getElementById('sf-kv-table').style.display = 'none';
+    document.getElementById('sf-kv-empty').style.display = 'none';
+    document.getElementById('sf-kv-actions').style.display = 'none';
+    document.getElementById('sf-kv-pager').style.display = 'none';
+
+    try {
+        var r = await mahoFetch('<?php echo $this->getListKvKeysUrl() ?>');
+        loading.style.display = 'none';
+
+        if (!r.success) {
+            errorEl.innerHTML = r.error || 'Failed to load keys';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        sfKv.allKeys = r.keys && r.keys.keys ? r.keys.keys : (Array.isArray(r.keys) ? r.keys : []);
+        sfKv.allKeys.sort();
+        sfKv.selected.clear();
+        sfKv.page = 1;
+        sfKv.lastClickIndex = null;
+        document.getElementById('sf-kv-filter').value = '';
+        sfKv.filtered = sfKv.allKeys.slice();
+
+        document.getElementById('sf-kv-count').innerHTML = sfKv.allKeys.length + ' key(s)';
+        sfKvRender();
+    } catch (e) {
+        loading.style.display = 'none';
+        errorEl.innerHTML = e.message || 'Request failed';
+        errorEl.style.display = 'block';
+    }
+}
+
+function sfKvFilter() {
+    var filter = document.getElementById('sf-kv-filter').value.toLowerCase();
+    sfKv.filtered = filter
+        ? sfKv.allKeys.filter(function(k) { return k.toLowerCase().indexOf(filter) !== -1; })
+        : sfKv.allKeys.slice();
+    sfKv.page = 1;
+    sfKv.lastClickIndex = null;
+    document.getElementById('sf-kv-count').innerHTML = sfKv.filtered.length
+        + (filter ? ' of ' + sfKv.allKeys.length : '') + ' key(s)';
+    sfKvRender();
+}
+
+function sfKvPageSize() {
+    sfKv.perPage = parseInt(document.getElementById('sf-kv-pagesize').value, 10);
+    sfKv.page = 1;
+    sfKv.lastClickIndex = null;
+    sfKvRender();
+}
+
+function sfKvGoPage(p) {
+    var totalPages = Math.ceil(sfKv.filtered.length / sfKv.perPage);
+    if (p < 1 || p > totalPages) return;
+    sfKv.page = p;
+    sfKv.lastClickIndex = null;
+    sfKvRender();
+}
+
+function sfKvRender() {
+    var table = document.getElementById('sf-kv-table');
+    var tbody = document.getElementById('sf-kv-tbody');
+    var empty = document.getElementById('sf-kv-empty');
+    var actions = document.getElementById('sf-kv-actions');
+    var pager = document.getElementById('sf-kv-pager');
+    var selectAll = document.getElementById('sf-kv-select-all');
+
+    tbody.innerHTML = '';
+
+    if (sfKv.filtered.length === 0) {
+        table.style.display = 'none';
+        empty.style.display = 'block';
+        actions.style.display = 'none';
+        pager.style.display = 'none';
+        return;
+    }
+
+    var totalPages = Math.ceil(sfKv.filtered.length / sfKv.perPage);
+    var start = (sfKv.page - 1) * sfKv.perPage;
+    var end = Math.min(start + sfKv.perPage, sfKv.filtered.length);
+    var pageKeys = sfKv.filtered.slice(start, end);
+
+    // Check if all visible keys are selected
+    var allPageSelected = pageKeys.every(function(k) { return sfKv.selected.has(k); });
+    selectAll.checked = allPageSelected && pageKeys.length > 0;
+
+    pageKeys.forEach(function(key, i) {
+        var globalIndex = start + i;
+        var isChecked = sfKv.selected.has(key);
+        var tr = document.createElement('tr');
+        if (isChecked) tr.className = 'sf-kv-selected';
+        tr.innerHTML = '<td style="padding:4px 10px;">'
+            + '<input type="checkbox" class="sf-kv-cb" data-index="' + globalIndex + '" value="' + escapeAttr(key) + '"'
+            + (isChecked ? ' checked' : '') + ' />'
+            + '</td>'
+            + '<td style="padding:4px 10px;">'
+            + '<code style="font-size:11px;background:#f0f0f0;padding:1px 5px;border-radius:2px;">' + escapeHtml(key) + '</code>'
+            + '</td>';
+        tbody.appendChild(tr);
+    });
+
+    // Attach click handler with shift support
+    tbody.querySelectorAll('.sf-kv-cb').forEach(function(cb) {
+        cb.addEventListener('click', sfKvCheckboxClick);
+    });
+
+    table.style.display = 'table';
+    empty.style.display = 'none';
+    actions.style.display = 'block';
+
+    // Pagination
+    if (totalPages > 1) {
+        pager.style.display = 'flex';
+        document.getElementById('sf-kv-page-info').innerHTML =
+            'Showing ' + (start + 1) + '&ndash;' + end + ' of ' + sfKv.filtered.length;
+
+        var nav = document.getElementById('sf-kv-page-nav');
+        var html = '';
+        // Prev
+        if (sfKv.page > 1) {
+            html += '<a onclick="sfKvGoPage(' + (sfKv.page - 1) + ')">&laquo;</a>';
+        } else {
+            html += '<span class="sf-kv-disabled">&laquo;</span>';
+        }
+        // Page numbers — show max 7 around current
+        var pStart = Math.max(1, sfKv.page - 3);
+        var pEnd = Math.min(totalPages, pStart + 6);
+        if (pEnd - pStart < 6) pStart = Math.max(1, pEnd - 6);
+        for (var p = pStart; p <= pEnd; p++) {
+            if (p === sfKv.page) {
+                html += '<span class="sf-kv-current">' + p + '</span>';
+            } else {
+                html += '<a onclick="sfKvGoPage(' + p + ')">' + p + '</a>';
+            }
+        }
+        // Next
+        if (sfKv.page < totalPages) {
+            html += '<a onclick="sfKvGoPage(' + (sfKv.page + 1) + ')">&raquo;</a>';
+        } else {
+            html += '<span class="sf-kv-disabled">&raquo;</span>';
+        }
+        nav.innerHTML = html;
+    } else {
+        pager.style.display = 'none';
+    }
+
+    sfKvUpdateDeleteBtn();
+}
+
+/* Shift+click range selection */
+function sfKvCheckboxClick(e) {
+    var cb = e.target;
+    var index = parseInt(cb.dataset.index, 10);
+
+    if (e.shiftKey && sfKv.lastClickIndex !== null) {
+        var from = Math.min(sfKv.lastClickIndex, index);
+        var to = Math.max(sfKv.lastClickIndex, index);
+        var shouldCheck = cb.checked;
+        for (var i = from; i <= to; i++) {
+            var key = sfKv.filtered[i];
+            if (shouldCheck) {
+                sfKv.selected.add(key);
+            } else {
+                sfKv.selected.delete(key);
+            }
+        }
+        sfKvRender();
+    } else {
+        // Normal click — toggle single
+        if (cb.checked) {
+            sfKv.selected.add(cb.value);
+            cb.closest('tr').className = 'sf-kv-selected';
+        } else {
+            sfKv.selected.delete(cb.value);
+            cb.closest('tr').className = '';
+        }
+        sfKvUpdateDeleteBtn();
+    }
+
+    sfKv.lastClickIndex = index;
+}
+
+function sfKvToggleAll(master) {
+    var start = (sfKv.page - 1) * sfKv.perPage;
+    var end = Math.min(start + sfKv.perPage, sfKv.filtered.length);
+    for (var i = start; i < end; i++) {
+        if (master.checked) {
+            sfKv.selected.add(sfKv.filtered[i]);
+        } else {
+            sfKv.selected.delete(sfKv.filtered[i]);
+        }
+    }
+    sfKvRender();
+}
+
+function sfKvUpdateDeleteBtn() {
+    var btn = document.getElementById('sf-kv-delete-btn');
+    var count = document.getElementById('sf-kv-selected-count');
+    var total = sfKv.selected.size;
+    btn.disabled = total === 0;
+    count.innerHTML = total > 0 ? total + ' selected' : '';
+}
+
+async function sfKvDeleteSelected() {
+    var keys = Array.from(sfKv.selected);
+    if (keys.length === 0) return;
+    if (!confirm('Delete ' + keys.length + ' key(s)?')) return;
+
+    var btn = document.getElementById('sf-kv-delete-btn');
+    btn.disabled = true;
+
+    try {
+        var deleteUrl = '<?php echo $this->getDeleteKvAjaxUrl() ?>';
+        deleteUrl += (deleteUrl.indexOf('?') === -1 ? '?' : '&') + 'form_key=<?php echo $formKey ?>';
+        var r = await mahoFetch(deleteUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ keys: keys })
+        });
+
+        if (r.success) {
+            sfKv.allKeys = sfKv.allKeys.filter(function(k) { return !sfKv.selected.has(k); });
+            sfKv.selected.clear();
+            sfKv.lastClickIndex = null;
+            // Re-apply filter
+            var filter = document.getElementById('sf-kv-filter').value.toLowerCase();
+            sfKv.filtered = filter
+                ? sfKv.allKeys.filter(function(k) { return k.toLowerCase().indexOf(filter) !== -1; })
+                : sfKv.allKeys.slice();
+            // Adjust page if needed
+            var totalPages = Math.max(1, Math.ceil(sfKv.filtered.length / sfKv.perPage));
+            if (sfKv.page > totalPages) sfKv.page = totalPages;
+            document.getElementById('sf-kv-count').innerHTML = sfKv.allKeys.length + ' key(s)';
+            sfKvRender();
+        } else {
+            alert(r.error || 'Delete failed');
+        }
+    } catch (e) {
+        alert(e.message || 'Request failed');
+    }
+
+    btn.disabled = false;
+}
+
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+function escapeAttr(str) {
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+</script>

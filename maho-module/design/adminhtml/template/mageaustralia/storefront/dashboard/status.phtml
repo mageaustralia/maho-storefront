@@ -1,0 +1,91 @@
+<?php
+/**
+ * @var Mageaustralia_Storefront_Block_Adminhtml_Dashboard_Status $this
+ */
+$configuredStores = $this->getConfiguredStores();
+$selectedStoreId = $this->getSelectedStoreId();
+$dashboardUrl = $this->getDashboardUrl();
+?>
+
+<div class="sf-header">
+    <h3 class="icon-head"><?php echo $this->__('Storefront Dashboard') ?></h3>
+    <?php if (count($configuredStores) > 1): ?>
+        <select id="sf-store-selector" class="sf-store-select"
+                onchange="window.location='<?php echo $dashboardUrl ?>store/'+this.value+'/';">
+            <?php foreach ($configuredStores as $store): ?>
+                <option value="<?php echo (int) $store['id'] ?>"
+                    <?php if ($selectedStoreId !== null && (int) $store['id'] === $selectedStoreId): ?> selected<?php endif; ?>
+                    <?php if ($selectedStoreId === null && (int) $store['id'] === 0): ?> selected<?php endif; ?>
+                >
+                    <?php echo $this->escapeHtml($store['name']) ?>
+                    <?php if ($store['worker_code'] !== ''): ?>
+                        (<?php echo $this->escapeHtml($store['worker_code']) ?>)
+                    <?php endif; ?>
+                    <?php if ($store['website'] !== ''): ?>
+                        &mdash; <?php echo $this->escapeHtml($store['website']) ?>
+                    <?php endif; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    <?php endif; ?>
+</div>
+
+<div class="sf-section">
+    <div class="sf-section-head"><h4><?php echo $this->__('Status') ?></h4></div>
+    <div class="sf-section-body">
+        <?php if (!$this->isConfigured()): ?>
+            <div style="padding:8px 12px;background:#fdf0d5;border:1px solid #f0c36d;border-radius:3px;">
+                <?php echo $this->__('Storefront is not configured.') ?>
+                <a href="<?php echo $this->getConfigUrl() ?>"><?php echo $this->__('Configure now') ?></a>
+            </div>
+        <?php else: ?>
+            <div class="sf-status-row">
+                <div class="sf-status-item">
+                    <span class="sf-status-label"><?php echo $this->__('Worker Status') ?></span>
+                    <span id="sf-pulse-status" class="sf-status-value" style="color:#999;"><?php echo $this->__('Checking...') ?></span>
+                </div>
+                <div class="sf-status-item">
+                    <span class="sf-status-label"><?php echo $this->__('Storefront') ?></span>
+                    <a href="<?php echo $this->escapeHtml($this->getStorefrontUrl()) ?>" target="_blank" class="sf-status-value"><?php echo $this->escapeHtml($this->getStorefrontUrl()) ?></a>
+                </div>
+                <?php $workerCode = $this->getWorkerStoreCode(); ?>
+                <?php if ($workerCode !== ''): ?>
+                    <div class="sf-status-item">
+                        <span class="sf-status-label"><?php echo $this->__('Store Code') ?></span>
+                        <code class="sf-status-value"><?php echo $this->escapeHtml($workerCode) ?></code>
+                    </div>
+                <?php endif; ?>
+                <div class="sf-status-item">
+                    <span class="sf-status-label"><?php echo $this->__('Last Sync') ?></span>
+                    <?php $lastSync = $this->getLastSync(); ?>
+                    <?php if ($lastSync): ?>
+                        <span class="sf-status-value"><?php echo $this->escapeHtml($lastSync) ?></span>
+                    <?php else: ?>
+                        <span class="sf-status-value" style="color:#999;"><?php echo $this->__('Never') ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php if ($this->isConfigured()): ?>
+<script>
+mahoOnReady(async function() {
+    var el = document.getElementById('sf-pulse-status');
+    try {
+        var r = await mahoFetch('<?php echo $this->getPulseUrl() ?>');
+        if (r.success) {
+            el.innerHTML = '<span style="color:#2e7d32;">&#9679;</span> <?php echo $this->jsQuoteEscape($this->__('Connected')) ?>';
+            if (r.pulse && r.pulse.updatedAt) {
+                el.title = 'Last updated: ' + r.pulse.updatedAt;
+            }
+        } else {
+            el.innerHTML = '<span style="color:#c62828;">&#9679;</span> ' + (r.error || 'Offline');
+        }
+    } catch (e) {
+        el.innerHTML = '<span style="color:#c62828;">&#9679;</span> ' + (e.message || 'Request failed');
+    }
+});
+</script>
+<?php endif; ?>
