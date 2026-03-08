@@ -646,6 +646,7 @@ export default class CheckoutController extends Controller {
         shippingMethod: this._selectedShipping,
         paymentMethod: this._selectedPayment,
         paymentData,
+        storefrontOrigin: window.location.origin,
       });
 
       if (!response.ok) {
@@ -660,14 +661,20 @@ export default class CheckoutController extends Controller {
       localStorage.removeItem('maho_cart_qty');
       updateCartBadge();
 
-      // Store order info for success page
-      sessionStorage.setItem('maho_last_order', JSON.stringify({
-        incrementId: order.incrementId,
-        email,
-      }));
+      // Redirect-based payment methods (PayPal, Stripe hosted checkout, etc.)
+      if (order.redirectUrl) {
+        // Store token so we can verify when customer returns from payment gateway
+        sessionStorage.setItem('maho_pending_order', JSON.stringify({
+          incrementId: order.incrementId,
+          orderToken: order.orderToken,
+          email,
+        }));
+        window.location.href = order.redirectUrl;
+        return;
+      }
 
-      // Navigate to success page
-      window.Turbo?.visit('/order/success');
+      // Navigate to success page with token verification
+      window.Turbo?.visit(`/order/success?order=${encodeURIComponent(order.incrementId)}&token=${encodeURIComponent(order.orderToken)}`);
     } catch (e) {
       if (this.hasOrderErrorTarget) {
         this.orderErrorTarget.textContent = e.message;
