@@ -631,7 +631,7 @@ async function getStoreData(store: ContentStore, storeCode?: string, siteOrigin?
   ]);
   const resolved = config ?? {
     id: 'default', storeCode: storeCode || 'default', storeName: 'Maho Store',
-    baseCurrencyCode: 'USD', defaultDisplayCurrencyCode: 'USD', locale: 'en_US',
+    baseCurrencyCode: 'USD', defaultDisplayCurrencyCode: 'USD', defaultCountry: 'US', locale: 'en_US',
     timezone: 'UTC', weightUnit: 'kgs', baseUrl: '', baseMediaUrl: '',
     allowedCountries: ['US', 'AU', 'GB'], isGuestCheckoutAllowed: true, newsletterEnabled: false,
     wishlistEnabled: false, reviewsEnabled: true, logoUrl: null, logoAlt: null,

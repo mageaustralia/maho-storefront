@@ -21,7 +21,7 @@ interface ProductCardProps {
  * Larger, more prominent card for hero/spotlight positions.
  * Bigger image, larger text, rating stars, "Quick Add" button, and sale badge.
  */
-export const CardFeatured: FC<ProductCardProps> = ({ product, currency = 'AUD', priority = false }) => {
+export const CardFeatured: FC<ProductCardProps> = ({ product, currency = 'USD', priority = false }) => {
   const hasDiscount = product.specialPrice !== null && product.specialPrice < (product.price ?? 0);
   const displayPrice = product.finalPrice ?? product.price;
   const needsOptions = ['configurable', 'grouped', 'bundle', 'downloadable'].includes(product.type) || product.hasRequiredOptions;

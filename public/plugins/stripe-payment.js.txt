@@ -62,7 +62,7 @@
       // Get publishable key from window or from backend config
       this._publishableKey = window.STRIPE_PUBLISHABLE_KEY;
       if (!this._publishableKey) {
-        var configData = await this._apiGet('/api/stripe/config');
+        var configData = await this._apiGet('/api/payments/stripe/config');
         if (configData && configData.publishableKey) {
           this._publishableKey = configData.publishableKey;
         }
@@ -133,7 +133,7 @@
     var currency = (this._context?.currency || 'AUD').toLowerCase();
 
     this._paymentRequest = this._stripe.paymentRequest({
-      country: 'AU',
+      country: (this._context?.country || 'US').toUpperCase(),
       currency: currency,
       total: {
         label: 'Order Total',

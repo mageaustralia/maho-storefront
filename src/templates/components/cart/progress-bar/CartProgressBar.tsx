@@ -20,7 +20,7 @@ interface CartProgressBarProps {
  */
 export const CartProgressBar: FC<CartProgressBarProps> = ({
   threshold = 100,
-  currency = 'AUD',
+  currency = 'USD',
 }) => {
   const formatted = new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(threshold);
 

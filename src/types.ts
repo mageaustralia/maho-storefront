@@ -143,6 +143,7 @@ export interface StoreConfig {
   storeName: string;
   baseCurrencyCode: string;
   defaultDisplayCurrencyCode: string;
+  defaultCountry: string;
   locale: string;
   timezone: string;
   weightUnit: string;
