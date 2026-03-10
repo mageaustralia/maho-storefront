@@ -95,6 +95,42 @@ export const analytics = {
     });
   },
 
+  /** Track shipping info added */
+  addShippingInfo(items, total, shippingTier, currency = 'AUD') {
+    push('add_shipping_info', {
+      ecommerce: {
+        currency,
+        value: total,
+        shipping_tier: shippingTier,
+        items: items.map((item, i) => ({
+          item_id: item.sku,
+          item_name: item.name,
+          price: item.rowTotalInclTax / item.qty,
+          quantity: item.qty,
+          index: i,
+        })),
+      },
+    });
+  },
+
+  /** Track payment info added */
+  addPaymentInfo(items, total, paymentType, currency = 'AUD') {
+    push('add_payment_info', {
+      ecommerce: {
+        currency,
+        value: total,
+        payment_type: paymentType,
+        items: items.map((item, i) => ({
+          item_id: item.sku,
+          item_name: item.name,
+          price: item.rowTotalInclTax / item.qty,
+          quantity: item.qty,
+          index: i,
+        })),
+      },
+    });
+  },
+
   /** Track purchase */
   purchase(orderId, items, total, tax, shipping, currency = 'AUD') {
     push('purchase', {

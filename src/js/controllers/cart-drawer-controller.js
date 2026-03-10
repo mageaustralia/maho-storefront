@@ -8,6 +8,7 @@ import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
 import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
 import { hydrateTemplate, setSlotHtml, setSlotAttributes, showSlot } from '../template-helpers.js';
+import { analytics } from '../analytics.js';
 
 export default class CartDrawerController extends Controller {
   static targets = ['panel', 'count', 'loading', 'empty', 'items', 'footer',
@@ -84,6 +85,7 @@ export default class CartDrawerController extends Controller {
   }
 
   _renderCartFromData(cart) {
+    this._cartItems = cart.items || [];
     if (!cart.items || cart.items.length === 0) {
       this.showEmpty();
       return;
@@ -419,11 +421,16 @@ export default class CartDrawerController extends Controller {
     if (!maskedId || !itemId) return;
     this._busy = true;
 
+    const removedItem = (this._cartItems || []).find(i => String(i.id) === String(itemId));
+
     const itemEl = this.hasItemsTarget && this.itemsTarget.querySelector(`[data-item-id="${itemId}"]`);
     if (itemEl) itemEl.style.opacity = '0.3';
 
     try {
       await api.del(`/api/guest-carts/${maskedId}/items/${itemId}`);
+      if (removedItem) {
+        analytics.removeFromCart({ sku: removedItem.sku, name: removedItem.name, price: removedItem.priceInclTax || removedItem.price || 0 }, removedItem.qty);
+      }
       await this.refreshCart();
       document.dispatchEvent(new CustomEvent('cart:updated', { detail: { _fromDrawer: true } }));
     } catch {

@@ -8,6 +8,7 @@ import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
 import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
 import { hydrateTemplate, setSlotHtml, setSlotAttributes, showSlot } from '../template-helpers.js';
+import { analytics } from '../analytics.js';
 
 export default class CategoryFilterController extends Controller {
   static targets = ['grid', 'sort', 'perPage', 'count',
@@ -24,6 +25,10 @@ export default class CategoryFilterController extends Controller {
     // Parse initial products data from embedded JSON
     if (this.hasProductsDataTarget) {
       try { this._products = JSON.parse(this.productsDataTarget.textContent); } catch {}
+    }
+    // Analytics: track product list view
+    if (this._products.length > 0) {
+      analytics.viewItemList(this._products, this.categoryNameValue || 'Category', this.currencyValue);
     }
     // Store category context for product breadcrumbs (sessionStorage keeps URLs clean)
     if (this.categoryUrlValue) {
