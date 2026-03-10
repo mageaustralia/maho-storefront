@@ -27,7 +27,7 @@ export default class CheckoutController extends Controller {
     'giftcardTab', 'giftcardInput', 'giftcardsApplied',
     'gatewayError', 'gatewayErrorText',
   ];
-  static values = { countries: String, currency: { type: String, default: 'AUD' } };
+  static values = { countries: String, currency: { type: String, default: 'USD' }, country: { type: String, default: 'US' } };
 
   connect() {
     this._debounceTimer = null;
@@ -601,7 +601,7 @@ export default class CheckoutController extends Controller {
     if (container) {
       this._paymentAdapter = adapter;
       container.style.display = '';
-      adapter.init(container, { currency: this.currencyValue, api, formatPrice });
+      adapter.init(container, { currency: this.currencyValue, country: this.countryValue, api, formatPrice });
     }
   }
 

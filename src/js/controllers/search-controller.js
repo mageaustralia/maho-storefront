@@ -8,6 +8,7 @@ import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
 import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
 import { hydrateTemplate } from '../template-helpers.js';
+import { analytics } from '../analytics.js';
 
 export default class SearchController extends Controller {
   static targets = ['input', 'results', 'empty', 'productResults', 'categoryResults', 'pageResults'];
@@ -113,6 +114,7 @@ export default class SearchController extends Controller {
   submitSearch() {
     const query = this.hasInputTarget ? this.inputTarget.value.trim() : '';
     if (query.length >= 2) {
+      analytics.search(query);
       this.close();
       window.Turbo?.visit(`/search?q=${encodeURIComponent(query)}`);
     }

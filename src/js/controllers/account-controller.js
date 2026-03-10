@@ -24,7 +24,7 @@ export default class AccountController extends Controller {
     'wishlistPanel', 'wishlistGrid',
     'reviewsPanel', 'reviewsGrid',
   ];
-  static values = { countries: String, currency: { type: String, default: 'AUD' } };
+  static values = { countries: String, currency: { type: String, default: 'USD' } };
 
   connect() {
     this._countries = [];
@@ -345,18 +345,24 @@ export default class AccountController extends Controller {
 
   async loadOrders(page = 1) {
     this._ordersPage = page;
-    if (this.hasOrdersListTarget) this.ordersListTarget.innerHTML = '<p class="text-muted">Loading orders...</p>';
+    // Dim existing content instead of replacing (prevents CLS)
+    if (this.hasOrdersListTarget) {
+      this.ordersListTarget.style.opacity = '0.5';
+      this.ordersListTarget.style.pointerEvents = 'none';
+    }
     if (this.hasOrderDetailTarget) this.orderDetailTarget.style.display = 'none';
 
     try {
       const data = await api.get(`/api/customers/me/orders?page=${page}&pageSize=10`);
-      const orders = data.member || data || [];
-      const totalItems = data.totalItems || orders.length;
+      const orders = data.orders || data.member || (Array.isArray(data) ? data : []);
+      const totalItems = data.total || data.totalItems || orders.length;
       this._ordersTotalPages = Math.ceil(totalItems / 10) || 1;
 
       if (!orders.length) {
         if (this.hasOrdersListTarget) {
           this.ordersListTarget.innerHTML = '<div class="text-center py-8 text-base-content/60"><p>You haven\'t placed any orders yet.</p></div>';
+          this.ordersListTarget.style.opacity = '';
+          this.ordersListTarget.style.pointerEvents = '';
         }
         if (this.hasOrdersPaginationTarget) this.ordersPaginationTarget.style.display = 'none';
         return;
@@ -387,6 +393,8 @@ export default class AccountController extends Controller {
             }).join('')}
           </tbody>
         </table></div>`;
+        this.ordersListTarget.style.opacity = '';
+        this.ordersListTarget.style.pointerEvents = '';
       }
 
       // Pagination
@@ -402,6 +410,8 @@ export default class AccountController extends Controller {
     } catch (e) {
       if (this.hasOrdersListTarget) {
         this.ordersListTarget.innerHTML = '<p class="text-muted">Could not load orders.</p>';
+        this.ordersListTarget.style.opacity = '';
+        this.ordersListTarget.style.pointerEvents = '';
       }
     }
   }
@@ -426,67 +436,70 @@ export default class AccountController extends Controller {
     if (this.hasOrderDetailTarget) {
       const items = order.items || [];
       const statusClass = (order.status || '').toLowerCase().replace(/[^a-z]/g, '');
-
       const badgeColor = statusClass === 'complete' ? 'badge-success' : statusClass === 'processing' ? 'badge-info' : statusClass === 'pending' ? 'badge-warning' : 'badge-ghost';
+      const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
       this.orderDetailTarget.innerHTML = `
-        <button class="btn btn-sm btn-ghost gap-1 mb-4" data-action="account#backToOrders">
+        <button class="btn btn-sm btn-outline gap-1 mb-5" data-action="account#backToOrders">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3L5 8l5 5"/></svg>
           Back to Orders
         </button>
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold">Order #${escapeHtml(incrementId || String(order.id))}</h3>
+
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+          <div>
+            <h3 class="text-xl font-bold">Order #${escapeHtml(incrementId || String(order.id))}</h3>
+            ${orderDate ? `<p class="text-sm text-base-content/50 mt-0.5">Placed on ${orderDate}</p>` : ''}
+          </div>
           <div class="flex items-center gap-2">
             <span class="badge ${badgeColor}">${escapeHtml(order.status || '')}</span>
             <button class="btn btn-sm btn-outline" data-action="account#reorder" data-order-id="${order.id}">Reorder</button>
           </div>
         </div>
-        <div class="mb-6">
-          <h4 class="font-semibold mb-2">Items</h4>
-          <div class="overflow-x-auto"><table class="table table-sm">
-            <thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th class="text-right">Price</th></tr></thead>
-            <tbody>
-              ${items.map(item => `<tr>
-                <td>${escapeHtml(item.name || '')}</td>
-                <td class="text-base-content/60">${escapeHtml(item.sku || '')}</td>
-                <td>${item.qtyOrdered || item.qty || 0}</td>
-                <td class="text-right">${formatPrice(item.rowTotalInclTax || item.rowTotal || 0, this.currencyValue)}</td>
-              </tr>`).join('')}
-            </tbody>
-          </table></div>
-        </div>
-        <div class="mb-6">
-          <h4 class="font-semibold mb-2">Order Totals</h4>
-          <div class="max-w-xs ml-auto text-sm space-y-1">
-            <div class="flex justify-between"><span>Subtotal</span><span>${formatPrice(order.subtotal || 0, this.currencyValue)}</span></div>
-            ${order.shippingAmount ? `<div class="flex justify-between"><span>Shipping</span><span>${formatPrice(order.shippingAmount, this.currencyValue)}</span></div>` : ''}
-            ${order.taxAmount ? `<div class="flex justify-between"><span>Tax</span><span>${formatPrice(order.taxAmount, this.currencyValue)}</span></div>` : ''}
-            ${order.discountAmount ? `<div class="flex justify-between"><span>Discount</span><span class="text-success">${formatPrice(order.discountAmount, this.currencyValue)}</span></div>` : ''}
-            <div class="flex justify-between font-bold text-base pt-1 border-t border-base-200"><span>Grand Total</span><span>${formatPrice(order.grandTotal || 0, this.currencyValue)}</span></div>
-          </div>
-        </div>
-        ${order.shippingAddress || order.billingAddress ? `
-        <div class="mb-6">
-          <h4 class="font-semibold mb-2">Addresses</h4>
+
+        <div class="flex flex-col gap-5">
+          ${order.shippingAddress || order.billingAddress ? `
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            ${order.shippingAddress ? `<div class="bg-base-200/50 rounded-lg p-4">
-              <h5 class="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-1">Shipping Address</h5>
-              <p class="text-sm leading-relaxed">${escapeHtml(order.shippingAddress.firstName || '')} ${escapeHtml(order.shippingAddress.lastName || '')}<br>
-              ${escapeHtml(order.shippingAddress.street || '')}<br>
-              ${escapeHtml(order.shippingAddress.city || '')} ${escapeHtml(order.shippingAddress.postcode || '')}<br>
-              ${escapeHtml(order.shippingAddress.countryId || '')}</p>
-            </div>` : ''}
-            ${order.billingAddress ? `<div class="bg-base-200/50 rounded-lg p-4">
-              <h5 class="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-1">Billing Address</h5>
+            ${order.billingAddress ? `<div class="border border-base-200 rounded-lg p-4">
+              <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2">Billing Address</h5>
               <p class="text-sm leading-relaxed">${escapeHtml(order.billingAddress.firstName || '')} ${escapeHtml(order.billingAddress.lastName || '')}<br>
               ${escapeHtml(order.billingAddress.street || '')}<br>
-              ${escapeHtml(order.billingAddress.city || '')} ${escapeHtml(order.billingAddress.postcode || '')}<br>
+              ${escapeHtml(order.billingAddress.city || '')}${order.billingAddress.region ? ', ' + escapeHtml(typeof order.billingAddress.region === 'object' ? order.billingAddress.region.name || '' : order.billingAddress.region) : ''} ${escapeHtml(order.billingAddress.postcode || '')}<br>
               ${escapeHtml(order.billingAddress.countryId || '')}</p>
             </div>` : ''}
+            ${order.shippingAddress ? `<div class="border border-base-200 rounded-lg p-4">
+              <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2">Shipping Address</h5>
+              <p class="text-sm leading-relaxed">${escapeHtml(order.shippingAddress.firstName || '')} ${escapeHtml(order.shippingAddress.lastName || '')}<br>
+              ${escapeHtml(order.shippingAddress.street || '')}<br>
+              ${escapeHtml(order.shippingAddress.city || '')}${order.shippingAddress.region ? ', ' + escapeHtml(typeof order.shippingAddress.region === 'object' ? order.shippingAddress.region.name || '' : order.shippingAddress.region) : ''} ${escapeHtml(order.shippingAddress.postcode || '')}<br>
+              ${escapeHtml(order.shippingAddress.countryId || '')}</p>
+            </div>` : ''}
+          </div>` : ''}
+
+          <div class="border border-base-200 rounded-lg overflow-hidden">
+            <div class="overflow-x-auto"><table class="table table-sm">
+              <thead class="bg-base-200/50"><tr><th>Product</th><th>SKU</th><th class="text-center">Qty</th><th class="text-right">Price</th></tr></thead>
+              <tbody>
+                ${items.map(item => `<tr>
+                  <td class="font-medium">${escapeHtml(item.name || '')}</td>
+                  <td class="text-base-content/50 text-xs font-mono">${escapeHtml(item.sku || '')}</td>
+                  <td class="text-center">${item.qtyOrdered || item.qty || 0}</td>
+                  <td class="text-right">${formatPrice(item.rowTotalInclTax || item.rowTotal || 0, this.currencyValue)}</td>
+                </tr>`).join('')}
+              </tbody>
+              <tfoot class="bg-base-200/30">
+                ${order.subtotal ? `<tr><td colspan="3" class="text-right text-sm">Subtotal</td><td class="text-right text-sm">${formatPrice(order.subtotal, this.currencyValue)}</td></tr>` : ''}
+                ${order.shippingAmount ? `<tr><td colspan="3" class="text-right text-sm">Shipping</td><td class="text-right text-sm">${formatPrice(order.shippingAmount, this.currencyValue)}</td></tr>` : ''}
+                ${order.taxAmount ? `<tr><td colspan="3" class="text-right text-sm">Tax</td><td class="text-right text-sm">${formatPrice(order.taxAmount, this.currencyValue)}</td></tr>` : ''}
+                ${order.discountAmount ? `<tr><td colspan="3" class="text-right text-sm">Discount</td><td class="text-right text-sm text-success">${formatPrice(order.discountAmount, this.currencyValue)}</td></tr>` : ''}
+                <tr class="font-bold"><td colspan="3" class="text-right">Grand Total</td><td class="text-right">${formatPrice(order.grandTotal || 0, this.currencyValue)}</td></tr>
+              </tfoot>
+            </table></div>
           </div>
-        </div>` : ''}
-        <div class="mb-6 order-invoices-section" data-order-id="${order.id}">
-          <h4 class="font-semibold mb-2">Invoices</h4>
-          <p class="text-sm text-base-content/60 order-invoices-loading">Loading invoices...</p>
+
+          <div class="order-invoices-section" data-order-id="${order.id}">
+            <h4 class="font-semibold mb-2 text-sm">Invoices</h4>
+            <p class="text-sm text-base-content/50 order-invoices-loading">Loading...</p>
+          </div>
         </div>
       `;
       this.orderDetailTarget.style.display = '';
