@@ -8,7 +8,7 @@
  * Shared formatting utilities for server-side templates.
  */
 
-export function formatPrice(amount: number | null, currency: string = 'AUD'): string {
+export function formatPrice(amount: number | null, currency: string = 'USD'): string {
   if (amount === null) return '';
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(amount);
 }

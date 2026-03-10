@@ -15,7 +15,7 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
-export const ProductCard: FC<ProductCardProps> = ({ product, currency = 'AUD', priority = false }) => {
+export const ProductCard: FC<ProductCardProps> = ({ product, currency = 'USD', priority = false }) => {
   const hasDiscount = product.specialPrice !== null && product.specialPrice < (product.price ?? 0);
   const displayPrice = product.finalPrice ?? product.price;
   const needsOptions = ['configurable', 'grouped', 'bundle', 'downloadable'].includes(product.type) || product.hasRequiredOptions;

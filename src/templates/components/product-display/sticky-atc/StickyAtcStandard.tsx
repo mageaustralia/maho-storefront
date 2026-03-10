@@ -28,7 +28,7 @@ export const StickyAtcStandard: FC<StickyAtcProps> = ({
   price,
   finalPrice,
   sku,
-  currency = 'AUD',
+  currency = 'USD',
 }) => {
   const hasDiscount = finalPrice !== undefined && finalPrice < price;
   const displayPrice = finalPrice ?? price;

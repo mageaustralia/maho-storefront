@@ -25,7 +25,7 @@ export const AccountPage: FC<AccountPageProps> = ({ config, categories, countrie
     <Seo title={`My Account | ${config.storeName}`} />
     <div class="py-8" data-controller="account"
       data-account-countries-value={JSON.stringify(countries)}
-      data-account-currency-value={config.defaultDisplayCurrencyCode || 'AUD'}>
+      data-account-currency-value={config.defaultDisplayCurrencyCode || 'USD'}>
 
       {/* Not logged in state — shown by default, hidden by JS when authenticated */}
       <div class="flex justify-center py-12" data-account-target="guestState">

@@ -22,7 +22,7 @@ interface ProductCardProps {
  * Modern aesthetic — no button, just clickable card.
  * Configurable products get hover-swatch overlay on desktop.
  */
-export const ProductCard: FC<ProductCardProps> = ({ product, currency = 'AUD', priority = false }) => {
+export const ProductCard: FC<ProductCardProps> = ({ product, currency = 'USD', priority = false }) => {
   const hasDiscount = product.specialPrice !== null && product.specialPrice < (product.price ?? 0);
   const displayPrice = product.finalPrice ?? product.price;
   const isConfigurable = product.type === 'configurable';

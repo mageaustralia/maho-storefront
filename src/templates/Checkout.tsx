@@ -26,7 +26,8 @@ export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countr
     <Seo title={`Checkout | ${config.storeName}`} />
     <div class="py-8" data-controller="checkout"
       data-checkout-countries-value={JSON.stringify(countries)}
-      data-checkout-currency-value={config.defaultDisplayCurrencyCode || 'AUD'}>
+      data-checkout-currency-value={config.defaultDisplayCurrencyCode || 'USD'}
+      data-checkout-country-value={config.defaultCountry || 'US'}>
 
       <h1 class="text-3xl font-bold tracking-tight mb-6">Checkout</h1>
 
