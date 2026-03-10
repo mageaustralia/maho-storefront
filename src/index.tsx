@@ -798,6 +798,56 @@ app.all('/api/*', async (c) => {
   responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
 
+  // Order verify: strip accountToken from body, set as HttpOnly cookie
+  if (path.match(/^\/api\/orders\/[^/]+\/verify$/) && response.status === 200) {
+    try {
+      const json = await response.json() as Record<string, unknown>;
+      const accountToken = json.accountToken as string | undefined;
+      delete json.accountToken;
+      if (accountToken) {
+        responseHeaders.append('Set-Cookie',
+          `order_auth_token=${accountToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=600; Path=/api/customers/create-from-order`);
+        json.canCreateAccount = true;
+      }
+      return new Response(JSON.stringify(json), {
+        status: response.status,
+        headers: responseHeaders,
+      });
+    } catch {
+      // Fall through to default response
+    }
+  }
+
+  // Create account from order: read cookie, inject token into request body for backend
+  if (path === '/api/customers/create-from-order' && method === 'POST') {
+    const cookie = c.req.header('Cookie') || '';
+    const match = cookie.match(/order_auth_token=([^;]+)/);
+    if (match) {
+      try {
+        const clientBody = await c.req.json() as Record<string, unknown>;
+        clientBody.accountToken = decodeURIComponent(match[1]);
+        const retryHeaders = new Headers(headers);
+        retryHeaders.set('Content-Type', 'application/json');
+        const retryResponse = await fetch(targetUrl, {
+          method: 'POST',
+          headers: retryHeaders,
+          body: JSON.stringify(clientBody),
+        });
+        const retryResponseHeaders = new Headers(retryResponse.headers);
+        retryResponseHeaders.set('Access-Control-Allow-Origin', '*');
+        // Clear the cookie after use
+        retryResponseHeaders.append('Set-Cookie',
+          'order_auth_token=; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Path=/api/customers/create-from-order');
+        return new Response(retryResponse.body, {
+          status: retryResponse.status,
+          headers: retryResponseHeaders,
+        });
+      } catch {
+        // Fall through to default response
+      }
+    }
+  }
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -1350,7 +1400,7 @@ app.post('/sync', async (c) => {
 
       // Detect payment plugins from backend and inject config
       try {
-        const stripeApiUrl = `${getApiUrl(c.env, stores, storeCode)}/api/stripe/config`;
+        const stripeApiUrl = `${getApiUrl(c.env, stores, storeCode)}/api/payments/stripe/config`;
         const stripeHeaders: Record<string, string> = { 'Accept': 'application/json' };
         if (storeCode) stripeHeaders['X-Store-Code'] = storeCode;
         if (c.env.MAHO_API_BASIC_AUTH) stripeHeaders['Authorization'] = `Basic ${btoa(c.env.MAHO_API_BASIC_AUTH)}`;
