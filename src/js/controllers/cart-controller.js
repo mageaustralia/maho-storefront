@@ -8,6 +8,7 @@ import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
 import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart, getRecentlyViewed } from '../utils.js';
 import { hydrateTemplate, setSlotHtml, setSlotAttributes, showSlot } from '../template-helpers.js';
+import { analytics } from '../analytics.js';
 
 export default class CartController extends Controller {
   static targets = ['count', 'qty', 'addButton', 'message', 'items', 'content', 'empty', 'loading',
@@ -103,6 +104,7 @@ export default class CartController extends Controller {
   }
 
   _renderCart(cart) {
+    this._cartItems = cart.items || [];
     if (!cart.items || cart.items.length === 0) {
       if (this.hasContentTarget) this.contentTarget.style.display = 'none';
       if (this.hasEmptyTarget) this.emptyTarget.style.display = '';
@@ -427,6 +429,9 @@ export default class CartController extends Controller {
     if (!maskedId) return;
     this._busy = true;
 
+    // Capture item data for analytics before removal
+    const removedItem = (this._cartItems || []).find(i => String(i.id) === String(itemId));
+
     const itemEl = this.hasItemsTarget && this.itemsTarget.querySelector(`[data-item-id="${itemId}"]`);
     if (itemEl) itemEl.style.opacity = '0.3';
 
@@ -435,6 +440,9 @@ export default class CartController extends Controller {
       if (response.ok) {
         const cart = await response.json();
         this._renderCart(cart);
+        if (removedItem) {
+          analytics.removeFromCart({ sku: removedItem.sku, name: removedItem.name, price: removedItem.priceInclTax || removedItem.price || 0 }, removedItem.qty);
+        }
       } else {
         this.loadCart();
       }

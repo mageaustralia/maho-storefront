@@ -96,13 +96,16 @@ export default class ProductController extends Controller {
     // Render recently viewed products
     this._renderRecentlyViewed(productData.productUrlKey);
 
-    // Analytics: track product view
-    analytics.viewItem({
+    // Store product info for analytics events (add to cart, etc.)
+    this._analyticsProduct = {
       sku: this.skuValue,
       name: productData.productName || "",
       price: parseFloat(productData.productPrice || 0),
       finalPrice: parseFloat(productData.productFinalPrice || 0),
-    }, this.currencyValue);
+    };
+
+    // Analytics: track product view
+    analytics.viewItem(this._analyticsProduct, this.currencyValue);
 
     // Bundle pricing: parse options and calculate initial configured price
     if (this.bundleOptionsValue) {
@@ -667,7 +670,7 @@ export default class ProductController extends Controller {
       document.dispatchEvent(new CustomEvent('cart:open'));
 
       // Analytics: track add to cart
-      analytics.addToCart({ sku: this.skuValue, name: '', price: 0, finalPrice: 0 }, qty);
+      analytics.addToCart(this._analyticsProduct || { sku: this.skuValue, name: '', price: 0, finalPrice: 0 }, qty, this.currencyValue);
 
       // Collapse options on mobile after successful add
       if (this.hasOptionsPanelTarget && this._isMobile && this._isMobile()) {

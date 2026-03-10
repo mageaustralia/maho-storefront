@@ -491,6 +491,11 @@ export default class CheckoutController extends Controller {
     event.preventDefault();
     if (!this._selectedShipping) return;
 
+    // Analytics: track shipping info
+    if (this._cart?.items?.length) {
+      analytics.addShippingInfo(this._cart.items, this._cart.prices?.grandTotal || 0, this._selectedShipping, this.currencyValue);
+    }
+
     this._openStep(3);
     this._fetchPaymentMethods();
   }
@@ -552,6 +557,11 @@ export default class CheckoutController extends Controller {
     this._selectedPayment = event.target.value;
     if (this.hasPlaceOrderBtnTarget) this.placeOrderBtnTarget.disabled = false;
     this._activatePaymentAdapter(this._selectedPayment);
+
+    // Analytics: track payment info
+    if (this._cart?.items?.length) {
+      analytics.addPaymentInfo(this._cart.items, this._cart.prices?.grandTotal || 0, this._selectedPayment, this.currencyValue);
+    }
   }
 
   /**
