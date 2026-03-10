@@ -86,7 +86,7 @@ export default class OrderSuccessController extends Controller {
           order.grandTotal,
           order.tax || 0,
           order.shipping || 0,
-          order.currency || 'AUD',
+          order.currency || 'USD',
         );
       }
     } catch {
@@ -97,7 +97,7 @@ export default class OrderSuccessController extends Controller {
   _renderOrderSummary(order) {
     if (!order.items?.length || !this.hasOrderSummaryTarget) return;
 
-    const currency = order.currency || 'AUD';
+    const currency = order.currency || 'USD';
 
     // Render items
     if (this.hasOrderItemsTarget) {

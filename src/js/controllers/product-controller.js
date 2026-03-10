@@ -14,7 +14,7 @@ export default class ProductController extends Controller {
   static targets = ['price', 'stock', 'addButton', 'mainImage', 'galleryThumb', 'optionGroup', 'qty', 'message', 'sku', 'optionLabel',
     'carousel', 'galleryTrack', 'slideCounter', 'fullscreen', 'fullscreenTrack', 'fullscreenCounter', 'optionsPanel', 'stickyPrice', 'actionsSticky',
     'bundleConfiguredPrice', 'bundleTotal'];
-  static values = { variants: String, type: String, productId: String, sku: String, currency: { type: String, default: 'AUD' }, bundleOptions: { type: String, default: '' }, swatchMap: { type: String, default: '' }, colorImages: { type: String, default: '' } };
+  static values = { variants: String, type: String, productId: String, sku: String, currency: { type: String, default: 'USD' }, bundleOptions: { type: String, default: '' }, swatchMap: { type: String, default: '' }, colorImages: { type: String, default: '' } };
 
   connect() {
     this.selectedOptions = {};

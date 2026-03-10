@@ -34,8 +34,13 @@ export const analytics = {
     });
   },
 
+  /** Track site search */
+  search(searchTerm) {
+    push('search', { search_term: searchTerm });
+  },
+
   /** Track product detail view */
-  viewItem(product, currency = 'AUD') {
+  viewItem(product, currency = 'USD') {
     push('view_item', {
       ecommerce: {
         currency,
@@ -46,7 +51,7 @@ export const analytics = {
   },
 
   /** Track product list view (category page) */
-  viewItemList(products, listName, currency = 'AUD') {
+  viewItemList(products, listName, currency = 'USD') {
     push('view_item_list', {
       ecommerce: {
         currency,
@@ -57,7 +62,7 @@ export const analytics = {
   },
 
   /** Track add to cart */
-  addToCart(product, qty = 1, currency = 'AUD') {
+  addToCart(product, qty = 1, currency = 'USD') {
     push('add_to_cart', {
       ecommerce: {
         currency,
@@ -68,7 +73,7 @@ export const analytics = {
   },
 
   /** Track remove from cart */
-  removeFromCart(product, qty = 1, currency = 'AUD') {
+  removeFromCart(product, qty = 1, currency = 'USD') {
     push('remove_from_cart', {
       ecommerce: {
         currency,
@@ -79,7 +84,7 @@ export const analytics = {
   },
 
   /** Track checkout begin */
-  beginCheckout(items, total, currency = 'AUD') {
+  beginCheckout(items, total, currency = 'USD') {
     push('begin_checkout', {
       ecommerce: {
         currency,
@@ -96,7 +101,7 @@ export const analytics = {
   },
 
   /** Track shipping info added */
-  addShippingInfo(items, total, shippingTier, currency = 'AUD') {
+  addShippingInfo(items, total, shippingTier, currency = 'USD') {
     push('add_shipping_info', {
       ecommerce: {
         currency,
@@ -114,7 +119,7 @@ export const analytics = {
   },
 
   /** Track payment info added */
-  addPaymentInfo(items, total, paymentType, currency = 'AUD') {
+  addPaymentInfo(items, total, paymentType, currency = 'USD') {
     push('add_payment_info', {
       ecommerce: {
         currency,
@@ -132,7 +137,7 @@ export const analytics = {
   },
 
   /** Track purchase */
-  purchase(orderId, items, total, tax, shipping, currency = 'AUD') {
+  purchase(orderId, items, total, tax, shipping, currency = 'USD') {
     push('purchase', {
       ecommerce: {
         transaction_id: orderId,

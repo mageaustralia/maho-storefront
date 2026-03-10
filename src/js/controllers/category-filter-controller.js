@@ -15,7 +15,7 @@ export default class CategoryFilterController extends Controller {
     'topPagination', 'topPageInfo', 'bottomPagination', 'bottomPageInfo',
     'priceMin', 'priceMax', 'priceMinLabel', 'priceMaxLabel', 'priceClear', 'priceFilter', 'productsData',
     'filtersContainer', 'activeFilters', 'filterDrawer', 'filterDrawerBody', 'drawerClearBtn'];
-  static values = { categoryId: Number, categoryUrl: { type: String, default: '' }, categoryName: { type: String, default: '' }, currency: { type: String, default: 'AUD' }, totalItems: Number, currentPage: Number, totalPages: Number, swatchLabels: { type: Boolean, default: true } };
+  static values = { categoryId: Number, categoryUrl: { type: String, default: '' }, categoryName: { type: String, default: '' }, currency: { type: String, default: 'USD' }, totalItems: Number, currentPage: Number, totalPages: Number, swatchLabels: { type: Boolean, default: true } };
 
   connect() {
     this._products = [];
