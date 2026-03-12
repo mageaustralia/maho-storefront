@@ -1,0 +1,834 @@
+"use strict";(()=>{var q=Object.defineProperty;var j=(n,e,t)=>e in n?q(n,e,{enumerable:!0,configurable:!0,writable:!0,value:t}):n[e]=t;var s=(n,e,t)=>(j(n,typeof e!="symbol"?e+"":e,t),t);var k=class{constructor(e,t){s(this,"origin");s(this,"storeCode");s(this,"stripePublishableKey",null);s(this,"googleMapsKey",null);s(this,"detectedCountry",null);this.origin=e.replace(/\/$/,""),this.storeCode=t}storeQuery(e="?"){return this.storeCode?`${e}store=${this.storeCode}`:""}headers(){return{"Content-Type":"application/ld+json",Accept:"application/ld+json"}}async post(e,t){return fetch(`${this.origin}${e}${this.storeQuery(e.includes("?")?"&":"?")}`,{method:"POST",headers:this.headers(),body:JSON.stringify(t)})}async get(e){let t=await fetch(`${this.origin}${e}${this.storeQuery(e.includes("?")?"&":"?")}`,{headers:{Accept:"application/ld+json"}});if(!t.ok)throw new Error(`API ${t.status}`);return t.json()}async fetchProducts(e){let t=e.map(i=>`skus[]=${encodeURIComponent(i)}`).join("&"),o=this.storeCode?`&store=${this.storeCode}`:"",a=await fetch(`${this.origin}/embed/products?${t}${o}`);if(!a.ok)throw new Error(`Failed to fetch products: ${a.status}`);let r=await a.json();return r.config?.stripePublishableKey&&(this.stripePublishableKey=r.config.stripePublishableKey),r.config?.googleMapsKey&&(this.googleMapsKey=r.config.googleMapsKey),r.config?.detectedCountry&&(this.detectedCountry=r.config.detectedCountry),r.products??[]}async createCart(){let e=await this.post("/api/guest-carts",{});if(!e.ok)throw new Error(`Failed to create cart: ${e.status}`);return(await e.json()).maskedId}async addToCart(e,t,o,a){let r={sku:t,qty:o};a&&Object.keys(a).length&&(r.superAttribute=a);let i=await this.post(`/api/guest-carts/${e}/items`,r);if(!i.ok){let c=await i.json().catch(()=>({}));throw new Error(c.detail||c.message||`Failed to add to cart: ${i.status}`)}return i.json()}async getCart(e){return this.get(`/api/guest-carts/${e}`)}async getShippingMethods(e,t){let o=await this.post(`/api/guest-carts/${e}/shipping-methods`,{address:t});if(!o.ok){let a=await o.json().catch(()=>({}));throw new Error(a["hydra:description"]||a.detail||"Could not load shipping methods")}return o.json()}async getPaymentMethods(e){return this.get(`/api/guest-carts/${e}/payment-methods`)}async getStripeConfig(){try{return await this.get("/api/payments/stripe/config")}catch{return null}}async createPaymentIntent(e){let t=await this.post("/api/payments/stripe/payment-intents",{cartId:e});if(!t.ok){let o=await t.json().catch(()=>({}));throw new Error(o.message||"Could not create payment")}return t.json()}async placeOrder(e,t){let o=await this.post(`/api/guest-carts/${e}/place-order`,t);if(!o.ok){let a=await o.json().catch(()=>({}));throw new Error(a["hydra:description"]||a.detail||a.message||"Failed to place order")}return o.json()}checkoutUrl(e){return`${this.origin}/checkout?cart_id=${e}`}productUrl(e){return`${this.origin}/${e}`}};var A=`
+:host {
+  display: block;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --maho-accent: #2563eb;
+  --maho-accent-hover: #1d4ed8;
+  --maho-text: #1f2937;
+  --maho-text-muted: #6b7280;
+  --maho-bg: #ffffff;
+  --maho-border: #e5e7eb;
+  --maho-radius: 8px;
+  --maho-success: #16a34a;
+  --maho-error: #dc2626;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.maho-card {
+  background: var(--maho-bg);
+  border: 1px solid var(--maho-border);
+  border-radius: var(--maho-radius);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+  cursor: pointer;
+}
+.maho-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.maho-card-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #f9fafb;
+  display: block;
+}
+.maho-card-body {
+  padding: 12px;
+}
+.maho-card-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--maho-text);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.maho-card-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--maho-text);
+}
+.maho-card-price-old {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--maho-text-muted);
+  text-decoration: line-through;
+  margin-left: 6px;
+}
+.maho-card-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: var(--maho-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--maho-radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: center;
+}
+.maho-card-btn:hover {
+  background: var(--maho-accent-hover);
+}
+.maho-card-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.maho-card-out {
+  font-size: 12px;
+  color: var(--maho-error);
+  margin-top: 6px;
+  text-align: center;
+}
+`,w=`
+:host {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --maho-accent: #2563eb;
+  --maho-accent-hover: #1d4ed8;
+  --maho-text: #1f2937;
+  --maho-text-muted: #6b7280;
+  --maho-bg: #ffffff;
+  --maho-border: #e5e7eb;
+  --maho-radius: 8px;
+  --maho-success: #16a34a;
+  --maho-error: #dc2626;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.maho-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: maho-fade-in 0.2s ease;
+}
+@keyframes maho-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes maho-slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.maho-lightbox {
+  background: var(--maho-bg);
+  border-radius: 12px;
+  width: 90vw;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: maho-slide-up 0.25s ease;
+}
+@media (max-width: 640px) {
+  .maho-lightbox {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+  }
+}
+.maho-lb-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(0,0,0,0.06);
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--maho-text-muted);
+  z-index: 2;
+  transition: background 0.15s;
+}
+.maho-lb-close:hover {
+  background: rgba(0,0,0,0.12);
+}
+.maho-lb-image {
+  max-width: 360px;
+  max-height: 360px;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #f9fafb;
+  display: block;
+  margin: 0 auto;
+}
+.maho-lb-gallery {
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px;
+  overflow-x: auto;
+}
+.maho-lb-thumb {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #f9fafb;
+  flex-shrink: 0;
+}
+.maho-lb-thumb.active {
+  border-color: var(--maho-accent);
+}
+.maho-lb-body {
+  padding: 16px;
+}
+.maho-lb-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--maho-text);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.maho-lb-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--maho-text);
+  margin-bottom: 4px;
+}
+.maho-lb-price-old {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--maho-text-muted);
+  text-decoration: line-through;
+  margin-left: 8px;
+}
+.maho-lb-desc {
+  font-size: 14px;
+  color: var(--maho-text-muted);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.maho-lb-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.maho-lb-option-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--maho-text);
+  margin-bottom: 4px;
+}
+.maho-lb-option-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.maho-lb-swatch {
+  padding: 6px 14px;
+  border: 1px solid var(--maho-border);
+  border-radius: 6px;
+  font-size: 13px;
+  background: var(--maho-bg);
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--maho-text);
+}
+.maho-lb-swatch:hover {
+  border-color: var(--maho-accent);
+}
+.maho-lb-swatch.selected {
+  border-color: var(--maho-accent);
+  background: #eff6ff;
+  color: var(--maho-accent);
+  font-weight: 600;
+}
+.maho-lb-swatch.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.maho-lb-qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.maho-lb-qty label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--maho-text);
+}
+.maho-lb-qty input {
+  width: 60px;
+  padding: 6px 8px;
+  border: 1px solid var(--maho-border);
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+.maho-lb-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid var(--maho-border);
+}
+.maho-lb-add {
+  width: 100%;
+  padding: 12px;
+  background: var(--maho-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--maho-radius);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.maho-lb-add:hover {
+  background: var(--maho-accent-hover);
+}
+.maho-lb-add:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.maho-lb-checkout {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: var(--maho-accent);
+  border: 1px solid var(--maho-accent);
+  border-radius: var(--maho-radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  text-align: center;
+  display: none;
+}
+.maho-lb-checkout:hover {
+  background: #eff6ff;
+}
+.maho-lb-checkout.visible {
+  display: block;
+}
+.maho-lb-error {
+  font-size: 13px;
+  color: var(--maho-error);
+  margin-top: 8px;
+  display: none;
+}
+.maho-lb-error.visible {
+  display: block;
+}
+.maho-lb-success {
+  font-size: 13px;
+  color: var(--maho-success);
+  margin-top: 8px;
+  display: none;
+}
+.maho-lb-success.visible {
+  display: block;
+}
+
+/* Checkout flow steps */
+.maho-co-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  padding-right: 52px;
+  border-bottom: 1px solid var(--maho-border);
+  position: relative;
+}
+.maho-co-back {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(0,0,0,0.06);
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--maho-text-muted);
+  flex-shrink: 0;
+}
+.maho-co-back:hover { background: rgba(0,0,0,0.12); }
+.maho-co-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--maho-text);
+  flex: 1;
+}
+.maho-co-steps {
+  display: flex;
+  gap: 4px;
+}
+.maho-co-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--maho-border);
+}
+.maho-co-dot.active { background: var(--maho-accent); }
+.maho-co-dot.done { background: var(--maho-success); }
+
+.maho-co-body {
+  padding: 16px;
+}
+.maho-co-body fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+.maho-co-body legend, .maho-co-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--maho-text-muted);
+  margin-bottom: 4px;
+  display: block;
+}
+.maho-co-input, .maho-co-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--maho-border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--maho-text);
+  background: var(--maho-bg);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.maho-co-input:focus, .maho-co-select:focus {
+  border-color: var(--maho-accent);
+}
+.maho-co-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.maho-co-actions {
+  padding: 16px;
+  border-top: 1px solid var(--maho-border);
+}
+.maho-co-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--maho-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--maho-radius);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.maho-co-btn:hover { background: var(--maho-accent-hover); }
+.maho-co-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.maho-co-error {
+  font-size: 13px;
+  color: var(--maho-error);
+  margin-top: 8px;
+  display: none;
+}
+.maho-co-error.visible { display: block; }
+
+/* Shipping method radio list */
+.maho-co-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.maho-co-method {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--maho-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.maho-co-method:hover { border-color: var(--maho-accent); }
+.maho-co-method.selected { border-color: var(--maho-accent); background: #eff6ff; }
+.maho-co-method input { accent-color: var(--maho-accent); }
+.maho-co-method-info { flex: 1; }
+.maho-co-method-title { font-size: 14px; font-weight: 500; color: var(--maho-text); }
+.maho-co-method-price { font-size: 14px; font-weight: 600; color: var(--maho-text); white-space: nowrap; }
+
+/* Payment */
+.maho-co-stripe-card {
+  padding: 10px 12px;
+  border: 1px solid var(--maho-border);
+  border-radius: 6px;
+  background: var(--maho-bg);
+  margin-bottom: 12px;
+  min-height: 44px;
+}
+.maho-co-stripe-card.StripeElement--focus { border-color: var(--maho-accent); }
+
+/* Cart summary in checkout */
+.maho-co-summary {
+  margin-bottom: 16px;
+}
+.maho-co-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--maho-border);
+}
+.maho-co-item:last-child { border-bottom: none; }
+.maho-co-item-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #f9fafb;
+  flex-shrink: 0;
+}
+.maho-co-item-info { flex: 1; min-width: 0; }
+.maho-co-item-name { font-size: 13px; font-weight: 500; color: var(--maho-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.maho-co-item-meta { font-size: 12px; color: var(--maho-text-muted); }
+.maho-co-item-price { font-size: 13px; font-weight: 600; color: var(--maho-text); white-space: nowrap; }
+.maho-co-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  font-size: 13px;
+}
+.maho-co-total-row { display: flex; justify-content: space-between; }
+.maho-co-total-row.grand { font-weight: 700; font-size: 15px; padding-top: 6px; border-top: 1px solid var(--maho-border); }
+
+/* Order confirmation */
+.maho-co-confirm {
+  text-align: center;
+  padding: 32px 16px;
+}
+.maho-co-confirm-icon {
+  width: 64px;
+  height: 64px;
+  background: #dcfce7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+.maho-co-confirm-icon svg { width: 32px; height: 32px; color: var(--maho-success); }
+.maho-co-confirm h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--maho-text); }
+.maho-co-confirm p { font-size: 14px; color: var(--maho-text-muted); line-height: 1.5; }
+.maho-co-confirm .order-id { font-weight: 600; color: var(--maho-text); }
+
+/* Cart badge */
+.maho-cart-badge {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999998;
+  background: var(--maho-accent);
+  color: #fff;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.15s;
+}
+.maho-cart-badge:hover {
+  transform: scale(1.08);
+}
+.maho-cart-badge.visible {
+  display: flex;
+}
+.maho-cart-badge svg {
+  width: 24px;
+  height: 24px;
+}
+.maho-cart-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--maho-error);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+`;var E=class extends HTMLElement{constructor(){super(...arguments);s(this,"product",null);s(this,"currency","USD");s(this,"_onClick",null)}static get observedAttributes(){return["currency"]}setProduct(t){this.product=t,this.render()}setCurrency(t){this.currency=t}setClickHandler(t){this._onClick=t}formatPrice(t){return t==null?"":new Intl.NumberFormat("en-US",{style:"currency",currency:this.currency}).format(t)}render(){if(!this.product)return;let t=this.product,o=this.shadowRoot||this.attachShadow({mode:"open"}),a=t.finalPrice??t.price,r=t.price&&t.finalPrice&&t.price>t.finalPrice,i=t.stockStatus!=="out_of_stock",c=t.smallImageUrl||t.imageUrl||t.thumbnailUrl||"";o.innerHTML=`
+      <style>${A}</style>
+      <div class="maho-card">
+        ${c?`<img class="maho-card-image" src="${this.escapeAttr(c)}" alt="${this.escapeAttr(t.name)}" loading="lazy" />`:""}
+        <div class="maho-card-body">
+          <div class="maho-card-name">${this.escapeHtml(t.name)}</div>
+          <div class="maho-card-price">
+            ${this.formatPrice(a)}
+            ${r?`<span class="maho-card-price-old">${this.formatPrice(t.price)}</span>`:""}
+          </div>
+          ${i?`<button class="maho-card-btn" type="button">${t.configurableOptions?.length||t.hasRequiredOptions?"Select Options":"Add to Cart"}</button>`:'<div class="maho-card-out">Out of Stock</div>'}
+        </div>
+      </div>
+    `;let d=o.querySelector(".maho-card");d&&d.addEventListener("click",()=>{this._onClick&&this.product&&this._onClick(this.product)})}escapeHtml(t){let o=document.createElement("span");return o.textContent=t,o.innerHTML}escapeAttr(t){return t.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}};var z="https://js.stripe.com/v3/",S=class{constructor(e,t,o,a,r,i,c,d="",p=""){s(this,"container");s(this,"api");s(this,"cartManager");s(this,"currency");s(this,"storeOrigin");s(this,"defaultCountry");s(this,"countries");s(this,"googleMapsKey");s(this,"detectedCountry");s(this,"step","cart");s(this,"cart",null);s(this,"shippingMethods",[]);s(this,"paymentMethods",[]);s(this,"selectedShipping","");s(this,"selectedPayment","");s(this,"address",{email:"",firstName:"",lastName:"",street:"",street2:"",city:"",postcode:"",countryId:"",regionId:"",region:"",telephone:""});s(this,"stripe",null);s(this,"stripeElements",null);s(this,"cardElement",null);s(this,"cardComplete",!1);s(this,"orderResult",null);s(this,"_placesSessionToken","");s(this,"_streetTimer",null);this.container=e,this.api=t,this.cartManager=o,this.currency=a,this.storeOrigin=r,this.defaultCountry=i,this.countries=c,this.googleMapsKey=d,this.detectedCountry=p,this.address.countryId=p||i}async start(){this.step="cart",await this.loadCart(),this.render()}async loadCart(){let e=this.cartManager.getCartId();if(e)try{this.cart=await this.api.getCart(e)}catch{this.cart=null}}formatPrice(e){return e==null?"":new Intl.NumberFormat("en-US",{style:"currency",currency:this.currency}).format(e)}esc(e){return e.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}escHtml(e){let t=document.createElement("span");return t.textContent=e,t.innerHTML}get stepIndex(){return["cart","shipping","delivery","payment","confirm"].indexOf(this.step)}renderDots(){return["cart","shipping","delivery","payment"].map((t,o)=>`<span class="maho-co-dot ${o<this.stepIndex?"done":""} ${o===this.stepIndex?"active":""}"></span>`).join("")}render(){let t=`<style>${w.replace(/:host\s*\{/g,".maho-embed-root {")}</style>`;switch(t+='<div class="maho-embed-root"><div class="maho-overlay"><div class="maho-lightbox">',this.step){case"cart":t+=this.renderCart();break;case"shipping":t+=this.renderShipping();break;case"delivery":t+=this.renderDelivery();break;case"payment":t+=this.renderPayment();break;case"confirm":t+=this.renderConfirm();break}t+="</div></div></div>",this.container.innerHTML=t,this.bindCommon(),this.step==="payment"&&this.mountStripe(),this.step==="shipping"&&this.initAddressAutocomplete()}renderCart(){if(!this.cart||!this.cart.items?.length)return`
+        <div class="maho-co-header">
+          <span class="maho-co-title">Your Cart</span>
+          <button class="maho-lb-close" type="button" data-close>&times;</button>
+        </div>
+        <div class="maho-co-body" style="text-align:center;padding:32px;">
+          <p style="color:var(--maho-text-muted)">Your cart is empty.</p>
+        </div>
+      `;let e=this.cart.items.map(o=>`
+      <div class="maho-co-item">
+        ${o.thumbnailUrl?`<img class="maho-co-item-thumb" src="${this.esc(o.thumbnailUrl)}" alt="" />`:""}
+        <div class="maho-co-item-info">
+          <div class="maho-co-item-name">${this.escHtml(o.name)}</div>
+          <div class="maho-co-item-meta">Qty: ${o.qty}${o.options?.length?" &middot; "+o.options.map(a=>this.escHtml(a.value)).join(", "):""}</div>
+        </div>
+        <div class="maho-co-item-price">${this.formatPrice(o.rowTotalInclTax||o.rowTotal)}</div>
+      </div>
+    `).join(""),t=this.cart.prices;return`
+      <div class="maho-co-header">
+        <span class="maho-co-title">Your Cart</span>
+        <div class="maho-co-steps">${this.renderDots()}</div>
+        <button class="maho-lb-close" type="button" data-close>&times;</button>
+      </div>
+      <div class="maho-co-body">
+        <div class="maho-co-summary">${e}</div>
+        <div class="maho-co-totals">
+          <div class="maho-co-total-row"><span>Subtotal</span><span>${this.formatPrice(t.subtotalInclTax||t.subtotal)}</span></div>
+          ${t.taxAmount?`<div class="maho-co-total-row"><span>Tax</span><span>${this.formatPrice(t.taxAmount)}</span></div>`:""}
+          <div class="maho-co-total-row grand"><span>Total</span><span>${this.formatPrice(t.grandTotal)}</span></div>
+        </div>
+      </div>
+      <div class="maho-co-actions">
+        <button class="maho-co-btn" type="button" data-action="to-shipping">Checkout</button>
+      </div>
+    `}renderShipping(){let e=this.address,t=this.countries.map(i=>`<option value="${this.esc(i.id)}" ${i.id===e.countryId?"selected":""}>${this.escHtml(i.name)}</option>`).join(""),o=this.countries.find(i=>i.id===e.countryId),a=o?.regions&&o.regions.length>0,r=a?'<option value="">Select Region</option>'+o.regions.map(i=>`<option value="${i.id}" ${String(i.id)===e.regionId?"selected":""}>${this.escHtml(i.name)}</option>`).join(""):"";return`
+      <div class="maho-co-header">
+        <button class="maho-co-back" type="button" data-action="to-cart">&larr;</button>
+        <span class="maho-co-title">Shipping Address</span>
+        <div class="maho-co-steps">${this.renderDots()}</div>
+        <button class="maho-lb-close" type="button" data-close>&times;</button>
+      </div>
+      <div class="maho-co-body">
+        <fieldset>
+          <legend>Email *</legend>
+          <input class="maho-co-input" type="email" data-field="email" value="${this.esc(e.email)}" placeholder="you@example.com" autocomplete="email" />
+        </fieldset>
+        <div class="maho-co-row">
+          <fieldset>
+            <legend>First Name *</legend>
+            <input class="maho-co-input" type="text" data-field="firstName" value="${this.esc(e.firstName)}" autocomplete="given-name" />
+          </fieldset>
+          <fieldset>
+            <legend>Last Name *</legend>
+            <input class="maho-co-input" type="text" data-field="lastName" value="${this.esc(e.lastName)}" autocomplete="family-name" />
+          </fieldset>
+        </div>
+        <fieldset style="position:relative">
+          <legend>Street Address *</legend>
+          <input class="maho-co-input" type="text" data-field="street" value="${this.esc(e.street)}" placeholder="Street address" autocomplete="off" />
+          <div data-street-suggestions style="display:none;position:absolute;top:100%;left:0;right:0;z-index:10;background:var(--maho-bg);border:1px solid var(--maho-border);border-top:none;border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;"></div>
+        </fieldset>
+        <fieldset>
+          <input class="maho-co-input" type="text" data-field="street2" value="${this.esc(e.street2)}" placeholder="Apt, suite, etc. (optional)" autocomplete="address-line2" />
+        </fieldset>
+        <div class="maho-co-row">
+          <fieldset>
+            <legend>City *</legend>
+            <input class="maho-co-input" type="text" data-field="city" value="${this.esc(e.city)}" />
+          </fieldset>
+          <fieldset>
+            <legend>Postcode *</legend>
+            <input class="maho-co-input" type="text" data-field="postcode" value="${this.esc(e.postcode)}" />
+          </fieldset>
+        </div>
+        <div class="maho-co-row">
+          <fieldset>
+            <legend>Country *</legend>
+            <select class="maho-co-select" data-field="countryId">
+              <option value="">Select Country</option>
+              ${t}
+            </select>
+          </fieldset>
+          <fieldset>
+            <legend>State / Region</legend>
+            <div data-region-container>
+              ${a?`<select class="maho-co-select" data-field="regionId">${r}</select>`:`<input class="maho-co-input" type="text" data-field="region" value="${this.esc(e.region)}" placeholder="Region (optional)" />`}
+            </div>
+          </fieldset>
+        </div>
+        <fieldset>
+          <legend>Phone *</legend>
+          <input class="maho-co-input" type="tel" data-field="telephone" value="${this.esc(e.telephone)}" />
+        </fieldset>
+        <div class="maho-co-error" data-error></div>
+      </div>
+      <div class="maho-co-actions">
+        <button class="maho-co-btn" type="button" data-action="to-delivery">Continue to Shipping Method</button>
+      </div>
+    `}renderDelivery(){let e=this.shippingMethods.length===0?'<p style="color:var(--maho-text-muted);font-size:14px;">Loading shipping methods...</p>':this.shippingMethods.map((t,o)=>{let a=t.carrierTitle&&t.carrierTitle!==t.title?`${t.carrierTitle} \u2013 ${t.title}`:t.carrierTitle||t.title,r=this.selectedShipping===t.code||!this.selectedShipping&&o===0;return`
+            <label class="maho-co-method ${r?"selected":""}" data-method="${this.esc(t.code)}">
+              <input type="radio" name="shipping" value="${this.esc(t.code)}" ${r?"checked":""} />
+              <div class="maho-co-method-info">
+                <div class="maho-co-method-title">${this.escHtml(a)}</div>
+              </div>
+              <div class="maho-co-method-price">${this.formatPrice(t.price)}</div>
+            </label>
+          `}).join("");return`
+      <div class="maho-co-header">
+        <button class="maho-co-back" type="button" data-action="to-shipping">&larr;</button>
+        <span class="maho-co-title">Shipping Method</span>
+        <div class="maho-co-steps">${this.renderDots()}</div>
+        <button class="maho-lb-close" type="button" data-close>&times;</button>
+      </div>
+      <div class="maho-co-body">
+        <div class="maho-co-methods" data-methods>${e}</div>
+        <div class="maho-co-error" data-error></div>
+      </div>
+      <div class="maho-co-actions">
+        <button class="maho-co-btn" type="button" data-action="to-payment" ${this.shippingMethods.length===0?"disabled":""}>Continue to Payment</button>
+      </div>
+    `}renderPayment(){let e=this.cart?.prices,t=this.shippingMethods.find(o=>o.code===this.selectedShipping);return`
+      <div class="maho-co-header">
+        <button class="maho-co-back" type="button" data-action="to-delivery">&larr;</button>
+        <span class="maho-co-title">Payment</span>
+        <div class="maho-co-steps">${this.renderDots()}</div>
+        <button class="maho-lb-close" type="button" data-close>&times;</button>
+      </div>
+      <div class="maho-co-body">
+        <div class="maho-co-totals" style="margin-bottom:16px;">
+          <div class="maho-co-total-row"><span>Subtotal</span><span>${this.formatPrice(e?.subtotalInclTax||e?.subtotal)}</span></div>
+          ${t?`<div class="maho-co-total-row"><span>Shipping</span><span>${this.formatPrice(t.price)}</span></div>`:""}
+          ${e?.taxAmount?`<div class="maho-co-total-row"><span>Tax</span><span>${this.formatPrice(e.taxAmount)}</span></div>`:""}
+          <div class="maho-co-total-row grand"><span>Total</span><span>${this.formatPrice(e?.grandTotal)}</span></div>
+        </div>
+
+        <div class="maho-co-label">Card Details</div>
+        <div class="maho-co-stripe-card" data-stripe-card>
+          <p style="font-size:13px;color:var(--maho-text-muted)">Loading payment...</p>
+        </div>
+        <div class="maho-co-error" data-error></div>
+      </div>
+      <div class="maho-co-actions">
+        <button class="maho-co-btn" type="button" data-action="place-order" disabled>
+          Pay ${this.formatPrice(e?.grandTotal)}
+        </button>
+      </div>
+    `}renderConfirm(){return`
+      <div class="maho-co-header">
+        <span class="maho-co-title"></span>
+        <button class="maho-lb-close" type="button" data-close>&times;</button>
+      </div>
+      <div class="maho-co-confirm">
+        <div class="maho-co-confirm-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h3>Order Confirmed!</h3>
+        <p>Thank you for your purchase.<br>
+        Your order number is <span class="order-id">#${this.escHtml(this.orderResult?.incrementId??"")}</span>.</p>
+        <p style="margin-top:12px;">A confirmation email has been sent to<br><strong>${this.escHtml(this.address.email)}</strong></p>
+      </div>
+      <div class="maho-co-actions">
+        <button class="maho-co-btn" type="button" data-close>Done</button>
+      </div>
+    `}bindCommon(){this.container.querySelectorAll("[data-close]").forEach(e=>e.addEventListener("click",()=>this.onClose())),this.container.querySelector(".maho-overlay")?.addEventListener("click",e=>{e.target.classList.contains("maho-overlay")&&this.onClose()}),this.container.querySelectorAll("[data-field]").forEach(e=>{let t=e.dataset.field;e.addEventListener("input",()=>{this.address[t]=e.value}),e.addEventListener("change",()=>{this.address[t]=e.value,t==="countryId"&&(this.address.regionId="",this.address.region="",this.updateRegionField())})}),this.container.querySelectorAll("[data-method]").forEach(e=>{e.addEventListener("click",()=>{this.selectedShipping=e.dataset.method,this.container.querySelectorAll(".maho-co-method").forEach(t=>t.classList.remove("selected")),e.classList.add("selected"),e.querySelector("input").checked=!0})}),this.container.querySelectorAll("[data-action]").forEach(e=>{e.addEventListener("click",()=>{let t=e.dataset.action;this.handleAction(t,e)})})}async handleAction(e,t){let o=this.container.querySelector("[data-error]"),a=i=>{o&&(o.textContent=i,o.classList.add("visible"))},r=()=>{o&&o.classList.remove("visible")};switch(e){case"to-cart":this.step="cart",await this.loadCart(),this.render();break;case"to-shipping":this.step="shipping",this.render();break;case"to-delivery":if(r(),!this.address.email||!this.address.firstName||!this.address.lastName||!this.address.street||!this.address.city||!this.address.postcode||!this.address.countryId||!this.address.telephone){a("Please fill in all required fields.");return}t.disabled=!0,t.textContent="Loading...";try{let i=this.buildAddress(),c=this.cartManager.getCartId();this.shippingMethods=await this.api.getShippingMethods(c,i),this.shippingMethods.length>0&&!this.selectedShipping&&(this.selectedShipping=this.shippingMethods[0].code),this.step="delivery",this.render()}catch(i){t.disabled=!1,t.textContent="Continue to Shipping Method",a(i.message||"Failed to load shipping methods")}break;case"to-payment":if(r(),!this.selectedShipping&&this.shippingMethods.length>0&&(this.selectedShipping=this.shippingMethods[0].code),!this.selectedShipping){a("Please select a shipping method.");return}t.disabled=!0,t.textContent="Loading...";try{await this.loadCart();let i=this.cartManager.getCartId();this.paymentMethods=await this.api.getPaymentMethods(i);let c=this.paymentMethods.find(d=>d.code==="stripe_card");this.selectedPayment=c?"stripe_card":this.paymentMethods[0]?.code??"",this.step="payment",this.render()}catch(i){t.disabled=!1,t.textContent="Continue to Payment",a(i.message||"Failed to load payment methods")}break;case"place-order":r(),t.disabled=!0,t.textContent="Processing...";try{await this.placeOrder()}catch(i){t.disabled=!1,t.textContent=`Pay ${this.formatPrice(this.cart?.prices?.grandTotal)}`,a(i.message||"Failed to place order")}break}}initAddressAutocomplete(){if(!this.googleMapsKey)return;let e=this.container.querySelector('[data-field="street"]'),t=this.container.querySelector("[data-street-suggestions]");!e||!t||(this._placesSessionToken=crypto.randomUUID(),e.addEventListener("input",()=>{clearTimeout(this._streetTimer);let o=e.value.trim();o.length>4?(e.setAttribute("autocomplete","off"),this._streetTimer=setTimeout(()=>this.fetchStreetSuggestions(o,t),250)):(e.setAttribute("autocomplete","address-line1"),t.style.display="none")}),document.addEventListener("click",o=>{!t.contains(o.target)&&o.target!==e&&(t.style.display="none")}))}async fetchStreetSuggestions(e,t){try{let o=this.detectedCountry||this.address.countryId||"",a={input:e,sessionToken:this._placesSessionToken,includedPrimaryTypes:["street_address","subpremise","premise"]};o&&(a.includedRegionCodes=[o.toUpperCase()]);let r=await fetch("https://places.googleapis.com/v1/places:autocomplete",{method:"POST",headers:{"Content-Type":"application/json","X-Goog-Api-Key":this.googleMapsKey},body:JSON.stringify(a)});if(!r.ok)return;let c=(await r.json()).suggestions||[];if(!c.length){t.style.display="none";return}t.innerHTML=c.map((d,p)=>`
+        <div data-suggestion-idx="${p}" style="padding:10px 12px;cursor:pointer;font-size:13px;color:var(--maho-text);border-bottom:1px solid var(--maho-border);transition:background 0.15s;"
+          onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='transparent'">
+          ${this.escHtml(d.placePrediction?.text?.text||"")}
+        </div>
+      `).join(""),t.style.display="block",t.querySelectorAll("[data-suggestion-idx]").forEach(d=>{d.addEventListener("click",async()=>{let p=parseInt(d.dataset.suggestionIdx,10);t.style.display="none";let v=c[p]?.placePrediction?.placeId;if(v)try{let y=await fetch(`https://places.googleapis.com/v1/places/${v}?fields=addressComponents,formattedAddress&sessionToken=${this._placesSessionToken}`,{headers:{"X-Goog-Api-Key":this.googleMapsKey}});if(!y.ok)return;let m=await y.json();m.addressComponents&&this.applyGooglePlace(m.addressComponents),this._placesSessionToken=crypto.randomUUID()}catch{}})})}catch{}}applyGooglePlace(e){let t=m=>e.find(h=>h.types.includes(m)),o=t("street_number")?.longText||"",a=t("route")?.longText||"",r=t("subpremise")?.longText||"",i=t("locality")?.longText||t("sublocality_level_1")?.longText||t("postal_town")?.longText||"",c=t("administrative_area_level_1")?.longText||"",d=t("administrative_area_level_1")?.shortText||"",p=t("postal_code")?.longText||"",u=t("country")?.shortText||"";if(this.address.street=[o,a].filter(Boolean).join(" "),this.address.city=i,this.address.postcode=p,u){this.address.countryId=u;let m=this.countries.find(h=>h.id===u);if(m?.regions?.length){let h=m.regions.find(l=>l.name.toLowerCase()===c.toLowerCase()||l.code.toLowerCase()===d.toLowerCase());h&&(this.address.regionId=String(h.id),this.address.region="")}}let v={street:this.address.street,city:this.address.city,postcode:this.address.postcode,countryId:this.address.countryId};for(let[m,h]of Object.entries(v)){let l=this.container.querySelector(`[data-field="${m}"]`);l&&(l.value=h)}let y=this.container.querySelector('[data-field="street2"]');if(y&&(y.value=r),this.updateRegionField(),this.address.regionId){let m=this.container.querySelector('[data-field="regionId"]');m&&(m.value=this.address.regionId)}else if(this.address.region){let m=this.container.querySelector('[data-field="region"]');m&&(m.value=this.address.region)}}updateRegionField(){let e=this.container.querySelector("[data-region-container]");if(!e)return;let t=this.countries.find(a=>a.id===this.address.countryId);if(t?.regions&&t.regions.length>0){let a='<option value="">Select Region</option>'+t.regions.map(i=>`<option value="${i.id}">${this.escHtml(i.name)}</option>`).join("");e.innerHTML=`<select class="maho-co-select" data-field="regionId">${a}</select>`;let r=e.querySelector("select");r.addEventListener("change",()=>{this.address.regionId=r.value})}else{e.innerHTML='<input class="maho-co-input" type="text" data-field="region" value="" placeholder="Region (optional)" />';let a=e.querySelector("input");a.addEventListener("input",()=>{this.address.region=a.value})}}buildAddress(){let e=this.address;return{firstName:e.firstName,lastName:e.lastName,street:e.street2?[e.street,e.street2]:[e.street],city:e.city,postcode:e.postcode,countryId:e.countryId,regionId:e.regionId||"",region:e.region||"",telephone:e.telephone}}async mountStripe(){let e=this.container.querySelector("[data-stripe-card]");if(e)try{if(window.Stripe||await new Promise((o,a)=>{let r=document.createElement("script");r.src=z,r.onload=()=>o(),r.onerror=()=>a(new Error("Failed to load Stripe")),document.head.appendChild(r)}),!this.api.stripePublishableKey){let o=await this.api.getStripeConfig();if(!o?.publishableKey){e.innerHTML='<p style="font-size:13px;color:var(--maho-error)">Payment not configured.</p>';return}this.api.stripePublishableKey=o.publishableKey}this.stripe=window.Stripe(this.api.stripePublishableKey),this.stripeElements=this.stripe.elements(),this.cardElement=this.stripeElements.create("card",{style:{base:{fontSize:"15px",color:"#1f2937","::placeholder":{color:"#9ca3af"}}}}),e.innerHTML="",this.cardElement.mount(e),this.cardElement.on("change",o=>{this.cardComplete=o.complete;let a=this.container.querySelector('[data-action="place-order"]');if(a&&(a.disabled=!o.complete),o.error){let r=this.container.querySelector("[data-error]");r&&(r.textContent=o.error.message,r.classList.add("visible"))}})}catch(t){e.innerHTML=`<p style="font-size:13px;color:var(--maho-error)">${this.escHtml(t.message||"Payment error")}</p>`}}async placeOrder(){let e=this.cartManager.getCartId(),t=null;if(this.selectedPayment==="stripe_card"&&this.stripe&&this.cardElement){if(!this.cardComplete)throw new Error("Please complete your card details.");let a=await this.api.createPaymentIntent(e),r=await this.stripe.confirmCardPayment(a.clientSecret,{payment_method:{card:this.cardElement}});if(r.error)throw new Error(r.error.message||"Payment failed.");t={stripe_payment_intent_id:r.paymentIntent.id}}let o=await this.api.placeOrder(e,{email:this.address.email,shippingAddress:this.buildAddress(),billingAddress:this.buildAddress(),shippingMethod:this.selectedShipping,paymentMethod:this.selectedPayment,paymentData:t,storefrontOrigin:this.storeOrigin});if(o.redirectUrl){window.open(o.redirectUrl,"_blank");return}this.orderResult={incrementId:o.incrementId},this.cartManager.clearCart(),this.step="confirm",this.render()}onClose(){if(this.cardElement){try{this.cardElement.destroy()}catch{}this.cardElement=null}this.stripeElements=null,this.step==="confirm"&&(this.container.innerHTML="",this.step="cart",this.cart=null,this.orderResult=null),this.container.style.display="none",document.body.style.overflow=""}};function I(n,e){let t=n.configurableOptions;return!t.length||!t.every(a=>e[a.code]!=null)?null:n.variants.find(a=>t.every(r=>{let i=e[r.code];return a.attributes[r.code]===i}))??null}function H(n,e,t){let o=new Set,a={...t};delete a[e];let r=n.configurableOptions.find(i=>i.code===e);if(!r)return o;for(let i of r.values)n.variants.some(d=>d.attributes[e]!==i.id||!d.inStock?!1:Object.entries(a).every(([p,u])=>d.attributes[p]===u))&&o.add(i.id);return o}function O(n,e){let t=I(n,e);if(t){let r=t.finalPrice??t.price,i=t.price&&t.finalPrice&&t.price>t.finalPrice?t.price:null;return{price:r,oldPrice:i}}let o=n.finalPrice??n.price,a=n.price&&n.finalPrice&&n.price>n.finalPrice?n.price:null;return{price:o,oldPrice:a}}var $=class extends HTMLElement{constructor(){super();s(this,"product",null);s(this,"cart",null);s(this,"api",null);s(this,"currency","USD");s(this,"storeOrigin","");s(this,"defaultCountry","US");s(this,"countries",[]);s(this,"googleMapsKey","");s(this,"detectedCountry","");s(this,"selected",{});s(this,"shadow");s(this,"lightDomOverlay",null);s(this,"checkoutFlow",null);this.shadow=this.attachShadow({mode:"open"})}setContext(t,o,a,r="",i=""){this.api=t,this.defaultCountry=o,this.countries=a,this.googleMapsKey=r,this.detectedCountry=i}open(t,o,a,r){this.product=t,this.cart=o,this.currency=a,this.storeOrigin=r,this.selected={},this.render(),document.body.style.overflow="hidden"}openCheckout(t,o,a){this.cart=t,this.currency=o,this.storeOrigin=a,this.startCheckout()}close(){this.shadow.innerHTML="",this.lightDomOverlay&&(this.lightDomOverlay.style.display="none"),document.body.style.overflow=""}resetCheckout(){this.checkoutFlow=null,this.lightDomOverlay&&(this.lightDomOverlay.remove(),this.lightDomOverlay=null)}startCheckout(){if(!this.cart||!this.api)return;if(this.shadow.innerHTML="",this.checkoutFlow&&this.lightDomOverlay){this.lightDomOverlay.style.display="",document.body.style.overflow="hidden",this.checkoutFlow.render();return}this.lightDomOverlay&&(this.lightDomOverlay.remove(),this.lightDomOverlay=null);let t=document.createElement("div");t.id="maho-checkout-overlay",document.body.appendChild(t),this.lightDomOverlay=t,document.body.style.overflow="hidden";let o=new S(t,this.api,this.cart,this.currency,this.storeOrigin,this.defaultCountry,this.countries,this.googleMapsKey,this.detectedCountry);this.checkoutFlow=o,o.start()}formatPrice(t){return t==null?"":new Intl.NumberFormat("en-US",{style:"currency",currency:this.currency}).format(t)}render(){if(!this.product)return;let t=this.product,{price:o,oldPrice:a}=O(t,this.selected),r=t.stockStatus!=="out_of_stock",i=t.imageUrl||t.smallImageUrl||"",c=t.mediaGallery?.length?t.mediaGallery.sort((l,f)=>l.position-f.position):[],d=I(t,this.selected),p=d?.imageUrl,u=p||i,v=t.configurableOptions?.length>0,y=v?t.configurableOptions.every(l=>this.selected[l.code]!=null):!0,m=d?d.inStock:r,h=r&&y&&m;this.shadow.innerHTML=`
+      <style>${w}</style>
+      <div class="maho-overlay">
+        <div class="maho-lightbox">
+          <button class="maho-lb-close" type="button">&times;</button>
+
+          ${u?`<img class="maho-lb-image" src="${this.esc(u)}" alt="${this.esc(t.name)}" />`:""}
+
+          ${c.length>1?`
+            <div class="maho-lb-gallery">
+              ${c.map((l,f)=>`
+                <img class="maho-lb-thumb ${(p?l.url===p:f===0)?"active":""}"
+                  src="${this.esc(l.url)}" alt="${this.esc(l.label||"")}" data-url="${this.esc(l.url)}" />
+              `).join("")}
+            </div>
+          `:""}
+
+          <div class="maho-lb-body">
+            <div class="maho-lb-name">${this.escapeHtml(t.name)}</div>
+            <div class="maho-lb-price" data-price>
+              ${this.formatPrice(o)}
+              ${a?`<span class="maho-lb-price-old">${this.formatPrice(a)}</span>`:""}
+            </div>
+
+            ${t.shortDescription?`<div class="maho-lb-desc">${t.shortDescription}</div>`:""}
+
+            ${v?`
+              <div class="maho-lb-options">
+                ${t.configurableOptions.map(l=>{let f=H(t,l.code,this.selected);return`
+                    <div>
+                      <div class="maho-lb-option-label">${this.escapeHtml(l.label)}</div>
+                      <div class="maho-lb-option-values">
+                        ${l.values.map(b=>{let g=this.selected[l.code]===b.id,x=f.has(b.id);return`<button type="button"
+                            class="maho-lb-swatch ${g?"selected":""} ${x?"":"disabled"}"
+                            data-option="${this.esc(l.code)}" data-value="${b.id}"
+                            ${x?"":"disabled"}>
+                            ${this.escapeHtml(b.label)}
+                          </button>`}).join("")}
+                      </div>
+                    </div>
+                  `}).join("")}
+              </div>
+            `:""}
+
+            <div class="maho-lb-qty">
+              <label>Qty</label>
+              <input type="number" value="1" min="1" max="99" data-qty />
+            </div>
+          </div>
+
+          <div class="maho-lb-actions">
+            <button class="maho-lb-add" type="button" ${h?"":"disabled"} data-add>
+              ${r?"Add to Cart":"Out of Stock"}
+            </button>
+            <div class="maho-lb-error" data-error></div>
+            <div class="maho-lb-success" data-success></div>
+          </div>
+        </div>
+      </div>
+    `,this.bindEvents()}bindEvents(){this.shadow.querySelector(".maho-lb-close")?.addEventListener("click",()=>this.close()),this.shadow.querySelector(".maho-overlay")?.addEventListener("click",o=>{o.target.classList.contains("maho-overlay")&&this.close()});let t=o=>{o.key==="Escape"&&(this.close(),document.removeEventListener("keydown",t))};document.addEventListener("keydown",t),this.shadow.querySelectorAll(".maho-lb-thumb").forEach(o=>{o.addEventListener("click",()=>{let a=o.dataset.url;if(!a)return;let r=this.shadow.querySelector(".maho-lb-image");r&&(r.src=a),this.shadow.querySelectorAll(".maho-lb-thumb").forEach(i=>i.classList.remove("active")),o.classList.add("active")})}),this.shadow.querySelectorAll(".maho-lb-swatch:not(.disabled)").forEach(o=>{o.addEventListener("click",()=>{let a=o.dataset.option,r=parseInt(o.dataset.value,10);this.selected[a]===r?delete this.selected[a]:this.selected[a]=r,this.render()})}),this.shadow.querySelector("[data-add]")?.addEventListener("click",async()=>{if(!this.product||!this.cart)return;let o=this.shadow.querySelector("[data-add]"),a=this.shadow.querySelector("[data-error]"),r=this.shadow.querySelector("[data-success]"),i=this.shadow.querySelector("[data-qty]"),c=parseInt(i?.value||"1",10);o.disabled=!0,o.textContent="Adding...",a.classList.remove("visible"),r.classList.remove("visible");try{let d=this.product.configurableOptions?.length?Object.fromEntries(Object.entries(this.selected).map(([p,u])=>[this.product.configurableOptions.find(y=>y.code===p)?.id??p,u])):void 0;await this.cart.addItem(this.product.sku,c,d),this.startCheckout()}catch(d){a.textContent=d.message||"Failed to add to cart",a.classList.add("visible"),o.textContent="Add to Cart",o.disabled=!1}})}escapeHtml(t){let o=document.createElement("span");return o.textContent=t,o.innerHTML}esc(t){return t.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}};var P="maho_embed_cart_id",M=class{constructor(e,t){s(this,"api");s(this,"cartId",null);s(this,"itemCount",0);s(this,"onUpdate");this.api=e,this.onUpdate=t,this.cartId=this.loadCartId()}loadCartId(){try{return localStorage.getItem(P)}catch{return null}}saveCartId(e){this.cartId=e;try{localStorage.setItem(P,e)}catch{}}async ensureCart(){if(this.cartId)return this.cartId;let e=await this.api.createCart();return this.saveCartId(e),e}async addItem(e,t,o){let a=await this.ensureCart();await this.api.addToCart(a,e,t,o),this.itemCount+=t,this.onUpdate(this.itemCount)}async refreshCount(){if(this.cartId)try{let e=await this.api.getCart(this.cartId);this.itemCount=e.itemsQty??0,this.onUpdate(this.itemCount)}catch{this.cartId=null;try{localStorage.removeItem(P)}catch{}this.itemCount=0,this.onUpdate(0)}}getCheckoutUrl(){return this.cartId?this.api.checkoutUrl(this.cartId):null}getItemCount(){return this.itemCount}getCartId(){return this.cartId}clearCart(){this.cartId=null,this.itemCount=0;try{localStorage.removeItem(P)}catch{}this.onUpdate(0)}};customElements.get("maho-product-card")||customElements.define("maho-product-card",E);customElements.get("maho-lightbox")||customElements.define("maho-lightbox",$);var T=class extends HTMLElement{constructor(){super();s(this,"shadow");s(this,"_onClick",null);this.shadow=this.attachShadow({mode:"open"})}setClickHandler(t){this._onClick=t}render(t,o){this.shadow.innerHTML=`
+      <style>${w}
+        :host { --maho-accent: ${o}; }
+      </style>
+      <div class="maho-cart-badge ${t>0?"visible":""}" data-badge>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        <span class="maho-cart-count">${t}</span>
+      </div>
+    `;let a=this.shadow.querySelector("[data-badge]");a&&a.addEventListener("click",()=>{this._onClick&&this._onClick()})}};customElements.get("maho-cart-badge")||customElements.define("maho-cart-badge",T);(function(){let n=document.currentScript||document.querySelector("script[data-store]");if(!n){console.error("[Maho Embed] No script tag found with data-store attribute");return}let e=n.getAttribute("data-store")||n.src.replace(/\/embed\.js.*$/,""),t=n.getAttribute("data-store-code")||void 0,o=n.getAttribute("data-currency")||"USD",a=n.getAttribute("data-accent")||"#2563eb",r=n.getAttribute("data-country")||"US",i=n.getAttribute("data-google-maps-key")||"";if(!e){console.error("[Maho Embed] data-store attribute is required");return}let c=new k(e,t),d=document.createElement("maho-lightbox");document.body.appendChild(d);let p=document.createElement("maho-cart-badge");document.body.appendChild(p);let u=new M(c,h=>{p.render(h,a)});p.setClickHandler(()=>{d.openCheckout(u,o,e)});let v=[];(async()=>{try{let f=t?`?store=${t}`:"",b=await fetch(`${e}/api/countries${f}`,{headers:{Accept:"application/ld+json"}});if(b.ok){let g=await b.json();v=(g.member??g??[]).map(x=>({id:x.id||x.iso2Code,name:x.name,regions:x.availableRegions}))}}catch{}let h=i||c.googleMapsKey||"",l=c.detectedCountry||"";d.setContext(c,r,v,h,l)})(),d.setContext(c,r,v,i);function y(h){d.open(h,u,o,e)}async function m(){let h=document.querySelectorAll("[data-maho-product]");if(!h.length)return;let l=Array.from(new Set(Array.from(h).map(g=>g.dataset.mahoProduct).filter(Boolean))),f;try{f=await c.fetchProducts(l)}catch(g){console.error("[Maho Embed] Failed to fetch products:",g);return}let b=new Map(f.map(g=>[g.sku,g]));h.forEach(g=>{let x=g.dataset.mahoProduct,L=b.get(x);if(!L){g.style.display="none";return}let C=document.createElement("maho-product-card");C.setCurrency(o),C.setClickHandler(y),C.setProduct(L),a!=="#2563eb"&&C.style.setProperty("--maho-accent",a),g.replaceWith(C)}),await u.refreshCount()}document.readyState==="loading"?document.addEventListener("DOMContentLoaded",m):m(),window.MahoEmbed={api:c,cart:u,openProduct:y,openCheckout(){d.openCheckout(u,o,e)},addProduct(h,l){c.fetchProducts([h]).then(f=>{if(!f.length)return;let b=document.createElement("maho-product-card");b.setCurrency(o),b.setClickHandler(y),b.setProduct(f[0]),l.appendChild(b)})}}})();})();
