@@ -26,8 +26,15 @@ export default class CheckoutController extends Controller {
     'promoTabs', 'couponTab', 'couponForm', 'couponApplied', 'couponInput', 'couponBadge',
     'giftcardTab', 'giftcardInput', 'giftcardsApplied',
     'gatewayError', 'gatewayErrorText',
+    'streetSuggestions',
   ];
-  static values = { countries: String, currency: { type: String, default: 'USD' }, country: { type: String, default: 'US' } };
+  static values = {
+    countries: String,
+    currency: { type: String, default: 'USD' },
+    country: { type: String, default: 'US' },
+    googleMapsKey: { type: String, default: '' },
+    detectedCountry: { type: String, default: '' },
+  };
 
   connect() {
     this._debounceTimer = null;
@@ -42,8 +49,17 @@ export default class CheckoutController extends Controller {
 
     try { this._countries = JSON.parse(this.countriesValue || '[]'); } catch { this._countries = []; }
 
+    // Cart handoff from embed widget: ?cart_id=xxx
+    const params = new URLSearchParams(window.location.search);
+    const handoffCartId = params.get('cart_id');
+    if (handoffCartId) {
+      api.setCartId(handoffCartId);
+      localStorage.setItem('maho_cart_qty', '0'); // will be refreshed by loadSidebar
+      history.replaceState(null, '', window.location.pathname);
+    }
+
     // Show error from payment gateway redirect (e.g. unsupported currency)
-    const errorParam = new URLSearchParams(window.location.search).get('error');
+    const errorParam = params.get('error');
     if (errorParam) {
       if (this.hasGatewayErrorTarget) {
         this.gatewayErrorTextTarget.textContent = errorParam;
@@ -52,6 +68,9 @@ export default class CheckoutController extends Controller {
       // Clean URL
       history.replaceState(null, '', window.location.pathname);
     }
+
+    // Initialize address autocomplete
+    this._initAddressSearch();
 
     // Load cart summary
     this.loadSidebar();
@@ -64,6 +83,12 @@ export default class CheckoutController extends Controller {
     } else {
       // Show guest login prompt
       if (this.hasGuestLoginTarget) this.guestLoginTarget.style.display = '';
+      // Default country to detected country (via Cloudflare IP geolocation)
+      if (this.detectedCountryValue && this.hasCountryTarget) {
+        const detected = this.detectedCountryValue.toUpperCase();
+        const validCountry = Array.from(this.countryTarget.options).some(o => o.value === detected);
+        if (validCountry) this.countryTarget.value = detected;
+      }
       // Trigger country change to populate regions for default country
       if (this.hasCountryTarget && this.countryTarget.value) {
         this.onCountryChange();
@@ -937,5 +962,138 @@ export default class CheckoutController extends Controller {
       }
       dispatchCartEvent();
     } catch {}
+  }
+
+  // ---- Address Autocomplete (Google Places API New — REST) ----
+
+  _initAddressSearch() {
+    if (!this.googleMapsKeyValue || !this.hasStreetTarget) return;
+    this._streetAutocompleteTimer = null;
+    this._streetSuggestions = [];
+    this._placesSessionToken = crypto.randomUUID();
+
+    const input = this.streetTarget;
+
+    input.addEventListener('input', () => {
+      clearTimeout(this._streetAutocompleteTimer);
+      const q = input.value.trim();
+      if (q.length > 4) {
+        // Suppress browser/1Password autocomplete when Google kicks in
+        input.setAttribute('autocomplete', 'off');
+        input.setAttribute('data-1p-ignore', '');
+        input.setAttribute('data-lpignore', 'true');
+        input.setAttribute('data-form-type', 'other');
+        this._streetAutocompleteTimer = setTimeout(() => this._fetchStreetSuggestions(q), 250);
+      } else {
+        // Restore browser autocomplete for short input
+        input.setAttribute('autocomplete', 'address-line1');
+        input.removeAttribute('data-1p-ignore');
+        input.removeAttribute('data-lpignore');
+        input.removeAttribute('data-form-type');
+        this._hideStreetSuggestions();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (this.hasStreetSuggestionsTarget && !this.streetSuggestionsTarget.contains(e.target) && e.target !== this.streetTarget) {
+        this._hideStreetSuggestions();
+      }
+    });
+  }
+
+  _hideStreetSuggestions() {
+    if (this.hasStreetSuggestionsTarget) this.streetSuggestionsTarget.style.display = 'none';
+  }
+
+  async _fetchStreetSuggestions(query) {
+    if (!this.hasStreetSuggestionsTarget) return;
+    try {
+      const biasCountry = this.detectedCountryValue || (this.hasCountryTarget ? this.countryTarget.value : '') || '';
+      const body = {
+        input: query,
+        sessionToken: this._placesSessionToken,
+        includedPrimaryTypes: ['street_address', 'subpremise', 'premise'],
+      };
+      if (biasCountry) body.includedRegionCodes = [biasCountry.toUpperCase()];
+
+      const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': this.googleMapsKeyValue },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const suggestions = data.suggestions || [];
+      if (!suggestions.length) { this._hideStreetSuggestions(); return; }
+
+      this._streetSuggestions = suggestions;
+      this.streetSuggestionsTarget.innerHTML = suggestions.map((s, i) =>
+        `<div data-idx="${i}" class="px-3 py-2.5 cursor-pointer text-sm hover:bg-base-200 border-b border-base-200 last:border-b-0">${escapeHtml(s.placePrediction?.text?.text || '')}</div>`
+      ).join('');
+      this.streetSuggestionsTarget.style.display = 'block';
+
+      this.streetSuggestionsTarget.querySelectorAll('[data-idx]').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = parseInt(el.dataset.idx, 10);
+          this._selectStreetSuggestion(this._streetSuggestions[idx]);
+        });
+      });
+    } catch (err) {
+      console.warn('[Checkout] Address suggestion error:', err);
+    }
+  }
+
+  async _selectStreetSuggestion(suggestion) {
+    this._hideStreetSuggestions();
+    const placeId = suggestion?.placePrediction?.placeId;
+    if (!placeId) return;
+    try {
+      const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}?fields=addressComponents,formattedAddress&sessionToken=${this._placesSessionToken}`, {
+        headers: { 'X-Goog-Api-Key': this.googleMapsKeyValue },
+      });
+      if (!res.ok) return;
+      const place = await res.json();
+      if (place.addressComponents) this._applyGooglePlace(place.addressComponents);
+      // New session token
+      this._placesSessionToken = crypto.randomUUID();
+    } catch (err) {
+      console.warn('[Checkout] Place fetch error:', err);
+    }
+  }
+
+  _applyGooglePlace(components) {
+    const get = (type) => components.find(c => c.types.includes(type));
+    const streetNumber = get('street_number')?.longText || '';
+    const route = get('route')?.longText || '';
+    const subpremise = get('subpremise')?.longText || '';
+    const city = get('locality')?.longText || get('sublocality_level_1')?.longText || get('postal_town')?.longText || '';
+    const state = get('administrative_area_level_1')?.longText || '';
+    const stateShort = get('administrative_area_level_1')?.shortText || '';
+    const postcode = get('postal_code')?.longText || '';
+    const countryCode = get('country')?.shortText || '';
+
+    const street = [streetNumber, route].filter(Boolean).join(' ');
+    if (this.hasStreetTarget) this.streetTarget.value = street;
+    if (this.hasStreet2Target) this.street2Target.value = subpremise;
+    if (this.hasCityTarget) this.cityTarget.value = city;
+    if (this.hasPostcodeTarget) this.postcodeTarget.value = postcode;
+
+    if (countryCode && this.hasCountryTarget) {
+      this.countryTarget.value = countryCode;
+      this.onCountryChange();
+      requestAnimationFrame(() => {
+        if (this.hasRegionTarget && this.regionTarget.style.display !== 'none') {
+          const regionOpts = Array.from(this.regionTarget.options);
+          const match = regionOpts.find(o =>
+            o.textContent.toLowerCase() === state.toLowerCase() ||
+            o.textContent.toLowerCase() === stateShort.toLowerCase()
+          );
+          if (match) this.regionTarget.value = match.value;
+        } else if (this.hasRegionTextTarget) {
+          this.regionTextTarget.value = state;
+        }
+        this.onAddressChange();
+      });
+    }
   }
 }
