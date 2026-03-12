@@ -348,4 +348,6 @@ export interface Env {
   DEV_SECRET?: string;        // HMAC signing key for dev session cookies
   MAHO_API_BASIC_AUTH?: string; // Optional basic auth for API (user:pass)
   STORES?: string;       // JSON array of StorefrontStore
+  GOOGLE_MAPS_KEY?: string; // Google Places Autocomplete API key
+  STRIPE_SECRET_KEY?: string; // Stripe secret key for creating PaymentIntents (embed widget)
 }

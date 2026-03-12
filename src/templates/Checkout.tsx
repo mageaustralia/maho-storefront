@@ -19,15 +19,19 @@ interface CheckoutPageProps {
   stores?: StorefrontStore[];
   currentStoreCode?: string;
   devData?: DevData | null;
+  googleMapsKey?: string;
+  detectedCountry?: string;
 }
 
-export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countries, stores, currentStoreCode, devData }) => (
+export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countries, stores, currentStoreCode, devData, googleMapsKey, detectedCountry }) => (
   <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
     <Seo title={`Checkout | ${config.storeName}`} />
     <div class="py-8" data-controller="checkout"
       data-checkout-countries-value={JSON.stringify(countries)}
       data-checkout-currency-value={config.defaultDisplayCurrencyCode || 'USD'}
-      data-checkout-country-value={config.defaultCountry || 'US'}>
+      data-checkout-country-value={config.defaultCountry || 'US'}
+      {...(googleMapsKey ? { 'data-checkout-google-maps-key-value': googleMapsKey } : {})}
+      {...(detectedCountry ? { 'data-checkout-detected-country-value': detectedCountry } : {})}>
 
       <h1 class="text-3xl font-bold tracking-tight mb-6">Checkout</h1>
 
@@ -113,10 +117,13 @@ export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countr
                   <input type="text" id="checkout-company" class="input w-full" data-checkout-target="company"
                     data-action="input->checkout#onAddressChange" />
                 </fieldset>
-                <fieldset class="fieldset">
+                <fieldset class="fieldset relative">
                   <legend class="fieldset-legend">Street Address <span class="text-error">*</span></legend>
                   <input type="text" id="checkout-street" class="input w-full" data-checkout-target="street" required
                     placeholder="Street address, P.O. box" data-action="input->checkout#onAddressChange" />
+                  <div data-checkout-target="streetSuggestions"
+                    class="absolute z-50 left-0 right-0 top-full bg-base-100 border border-base-300 rounded-b-lg shadow-lg max-h-48 overflow-y-auto"
+                    style="display:none"></div>
                 </fieldset>
                 <fieldset class="fieldset">
                   <input type="text" id="checkout-street2" class="input w-full" data-checkout-target="street2"

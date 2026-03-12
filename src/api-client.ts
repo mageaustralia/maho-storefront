@@ -137,6 +137,15 @@ export class MahoApiClient {
     return this.fetch<Product>(`/api/products/${id}`);
   }
 
+  async fetchProductBySku(sku: string): Promise<Product | null> {
+    const data = await this.fetch<{ member: Product[] }>(`/api/products?search=${encodeURIComponent(sku)}&itemsPerPage=5`);
+    // search is fuzzy — find exact SKU match
+    const product = data.member?.find(p => p.sku === sku);
+    if (!product) return null;
+    // Fetch full detail with variants/options
+    return this.fetch<Product>(`/api/products/${product.id}`);
+  }
+
   async fetchAllProductsFull(page: number = 1, itemsPerPage: number = 50): Promise<{ products: Product[]; totalItems: number }> {
     const data = await this.fetch<{ member: Product[]; totalItems: number }>(
       `/api/products?fullDetail=1&page=${page}&itemsPerPage=${itemsPerPage}`
