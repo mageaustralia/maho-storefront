@@ -12,6 +12,12 @@ import { hydrateTemplate, setSlotHtml, setSlotAttributes, showSlot, PLACEHOLDER_
 // Client-driven freshness revalidation.
 // Edge cache throttle ensures at most 1 check per key per 60s across all visitors.
 // Client calls Maho API directly. If stale, updates KV and patches the DOM in-place.
+
+// Only log when dev toolbar is active
+const _devToolbar = document.querySelector('.dev-toolbar');
+const _log = (...args) => { if (_devToolbar) console.log(...args); };
+const _warn = (...args) => { if (_devToolbar) console.warn(...args); };
+
 export default class FreshnessController extends Controller {
   connect() {
     this._checking = false;
@@ -30,7 +36,7 @@ export default class FreshnessController extends Controller {
   async check() {
     const meta = document.querySelector('[data-freshness-type]');
     if (!meta) {
-      console.log('[freshness] no meta element found');
+      _log('[freshness] no meta element found');
       return;
     }
 
@@ -39,10 +45,10 @@ export default class FreshnessController extends Controller {
     const apiPath = meta.dataset.freshnessApi;
     const renderedVersion = meta.dataset.freshnessVersion;
 
-    console.log('[freshness] check started', { type, kvKey, apiPath, renderedVersion });
+    _log('[freshness] check started', { type, kvKey, apiPath, renderedVersion });
 
     if (!type || !kvKey || !apiPath) {
-      console.log('[freshness] missing required data attributes');
+      _log('[freshness] missing required data attributes');
       return;
     }
 
@@ -85,7 +91,7 @@ export default class FreshnessController extends Controller {
       let freshProducts = null;
       if (type === 'category') {
         const catId = meta.dataset.freshnessCategoryId;
-        console.log('[freshness] category check, catId:', catId);
+        _log('[freshness] category check, catId:', catId);
         if (catId) {
           const productsResp = await api.get(
             `/api/products?categoryId=${catId}&order[position]=asc&page=1&itemsPerPage=24`
@@ -94,23 +100,23 @@ export default class FreshnessController extends Controller {
             products: productsResp.member ?? [],
             totalItems: productsResp.totalItems ?? 0,
           };
-          console.log('[freshness] products fetched:', freshProducts.totalItems, 'items');
+          _log('[freshness] products fetched:', freshProducts.totalItems, 'items');
         }
       }
 
       // Build version fingerprint (mirrors server-side template logic)
       const freshVersion = this._buildVersion(type, freshData, freshProducts);
 
-      console.log('[freshness] version comparison', { renderedVersion, freshVersion, match: freshVersion === renderedVersion });
+      _log('[freshness] version comparison', { renderedVersion, freshVersion, match: freshVersion === renderedVersion });
 
       if (freshVersion === renderedVersion) {
         // Data unchanged — nothing to do
-        console.log('[freshness] versions match, no update needed');
+        _log('[freshness] versions match, no update needed');
         return;
       }
 
       // Stale — update KV in background (fire-and-forget) so next visitor gets fresh data
-      console.log('[freshness] stale detected', { kvKey, renderedVersion, freshVersion });
+      _log('[freshness] stale detected', { kvKey, renderedVersion, freshVersion });
 
       // KV keys are store-prefixed (e.g. "sv_2:category:audio")
       const storePrefix = window.MAHO_STORE_CODE ? `${window.MAHO_STORE_CODE}:` : '';
@@ -156,7 +162,7 @@ export default class FreshnessController extends Controller {
       meta.dataset.freshnessVersion = freshVersion;
 
     } catch (err) {
-      console.warn('[freshness] check failed:', err);
+      _warn('[freshness] check failed:', err);
     } finally {
       this._checking = false;
     }
@@ -202,15 +208,15 @@ export default class FreshnessController extends Controller {
   }
 
   _patchProduct(data) {
-    console.log('[freshness] patching product DOM with:', data.name, data.finalPrice, data.imageUrl);
-    console.log('[freshness] mediaGallery:', data.mediaGallery);
+    _log('[freshness] patching product DOM with:', data.name, data.finalPrice, data.imageUrl);
+    _log('[freshness] mediaGallery:', data.mediaGallery);
 
     // Update product images - handle both gallery and single-image layouts
     const gallery = data.mediaGallery || [];
     const galleryTrack = document.querySelector('.gallery-track');
     const mainImageContainer = document.querySelector('.product-main-image');
 
-    console.log('[freshness] DOM elements found:', {
+    _log('[freshness] DOM elements found:', {
       galleryLength: gallery.length,
       hasGalleryTrack: !!galleryTrack,
       hasMainImageContainer: !!mainImageContainer
@@ -218,7 +224,7 @@ export default class FreshnessController extends Controller {
 
     if (gallery.length > 1 && galleryTrack) {
       // Multi-image gallery layout
-      console.log('[freshness] updating gallery track with', gallery.length, 'images:', gallery.map(g => g.url));
+      _log('[freshness] updating gallery track with', gallery.length, 'images:', gallery.map(g => g.url));
       galleryTrack.innerHTML = gallery.map((img, i) =>
         `<div class="gallery-slide"><img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.label || data.name || '')}" loading="${i === 0 ? 'eager' : 'lazy'}" /></div>`
       ).join('');
@@ -227,24 +233,24 @@ export default class FreshnessController extends Controller {
       if (counter) counter.textContent = `1 / ${gallery.length}`;
       // Update thumbnails
       const thumbContainer = document.querySelector('.product-thumbnails');
-      console.log('[freshness] updating thumbnails, container found:', !!thumbContainer);
+      _log('[freshness] updating thumbnails, container found:', !!thumbContainer);
       if (thumbContainer) {
         thumbContainer.innerHTML = gallery.map((img, i) =>
           `<img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.label || data.name || '')}" loading="lazy" class="product-thumb${i === 0 ? ' active' : ''}" data-product-target="galleryThumb" data-action="click->product#selectImage" data-full-image="${escapeHtml(img.url)}" />`
         ).join('');
       }
-      console.log('[freshness] updated gallery with', gallery.length, 'images');
+      _log('[freshness] updated gallery with', gallery.length, 'images');
     } else if (mainImageContainer) {
       // Single image or placeholder layout
       const imgUrl = gallery[0]?.url || data.imageUrl;
       if (imgUrl) {
         mainImageContainer.innerHTML = `<img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(data.name || '')}" data-product-target="mainImage" />`;
-        console.log('[freshness] updated main image to:', imgUrl);
+        _log('[freshness] updated main image to:', imgUrl);
       } else {
         mainImageContainer.innerHTML = '<div class="product-image-placeholder">No Image</div>';
       }
     } else {
-      console.log('[freshness] no image container found - gallery:', !!galleryTrack, 'main:', !!mainImageContainer);
+      _log('[freshness] no image container found - gallery:', !!galleryTrack, 'main:', !!mainImageContainer);
     }
 
     // Update price (handles both regular and sale price layouts)
@@ -260,7 +266,7 @@ export default class FreshnessController extends Controller {
       } else {
         priceBlock.innerHTML = `<span class="price-current">${formatPrice(data.finalPrice ?? data.price, currency)}</span>`;
       }
-      console.log('[freshness] updated price to:', data.finalPrice ?? data.price, 'currency:', currency);
+      _log('[freshness] updated price to:', data.finalPrice ?? data.price, 'currency:', currency);
     }
 
     // Update stock status
@@ -270,7 +276,7 @@ export default class FreshnessController extends Controller {
       stockEl.innerHTML = inStock
         ? '<span class="in-stock">In Stock</span>'
         : '<span class="out-of-stock">Out of Stock</span>';
-      console.log('[freshness] updated stock to:', data.stockStatus);
+      _log('[freshness] updated stock to:', data.stockStatus);
     }
 
     // Update product name
@@ -290,7 +296,7 @@ export default class FreshnessController extends Controller {
     const homeCmsEl = document.querySelector('[data-controller="home-carousel"] > div');
     if (homeCmsEl) {
       homeCmsEl.innerHTML = data.content;
-      console.log('[freshness] patched homepage CMS content');
+      _log('[freshness] patched homepage CMS content');
       return;
     }
 
@@ -298,7 +304,7 @@ export default class FreshnessController extends Controller {
     const contentEl = document.querySelector('.cms-content, .cms-page-content');
     if (contentEl) {
       contentEl.innerHTML = data.content;
-      console.log('[freshness] patched CMS page content');
+      _log('[freshness] patched CMS page content');
     }
 
     // Update title (skip for homepage which doesn't have an h1)
