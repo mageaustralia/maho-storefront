@@ -28,6 +28,15 @@ export class BasePaymentAdapter {
   }
 
   /**
+   * Called early in checkout (at connect time) to initialize pre-payment UX.
+   * Use this to replace the email field with an enhanced element (e.g. Stripe Link).
+   * Return true if the adapter mounted something, false to skip.
+   * @param {object} context - { emailContainer, currency, country, prefillEmail, onEmail, onAddress, onPaymentReady }
+   * @returns {Promise<boolean>}
+   */
+  async initEarly(context) { return false; }
+
+  /**
    * Called when this payment method is selected.
    * Load external SDKs, render card fields, mount buttons, etc.
    * @param {HTMLElement} container - The DOM element to render into

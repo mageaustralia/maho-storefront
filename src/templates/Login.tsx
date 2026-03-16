@@ -10,6 +10,7 @@ import type { Category, StoreConfig, StorefrontStore } from '../types';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
+import { ExtensionSlot } from './components/ExtensionSlot';
 
 interface LoginPageProps {
   config: StoreConfig;
@@ -43,6 +44,8 @@ export const LoginPage: FC<LoginPageProps> = ({ config, categories, stores, curr
               <button type="submit" class="btn btn-primary w-full mt-2" data-auth-target="submitBtn">Sign In</button>
             </fieldset>
           </form>
+
+          <ExtensionSlot name="auth.login.after" config={config} />
 
           <div class="flex items-center justify-center gap-2 text-sm mt-4">
             <a href="/forgot-password" class="text-primary hover:underline">Forgot password?</a>

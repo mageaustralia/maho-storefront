@@ -11,7 +11,7 @@
     "build:js": "esbuild src/js/app.js --bundle --minify --format=esm --outfile=public/controllers.js.txt --external:https://cdn.jsdelivr.net/* && esbuild src/embed/embed.ts --bundle --minify --format=iife --outfile=public/embed.js.txt --target=es2020",
     "build:css": "unocss \"src/**/*.tsx\" \"src/**/*.ts\" \"src/**/*.js\" --out-file public/styles.css",
     "build:css:legacy": "node scripts/build-theme.js",
-    "generate": "node scripts/generate-store-registry.js",
+    "generate": "node scripts/generate-store-registry.js && node scripts/generate-plugin-registry.js",
     "build": "npm run generate && npm run build:css && npm run build:js",
     "manifest": "node scripts/generate-manifest.js",
     "split-css": "node scripts/split-css.js",
