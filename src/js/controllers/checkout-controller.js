@@ -16,9 +16,11 @@ export default class CheckoutController extends Controller {
     'guestLogin', 'loginForm', 'loginEmail', 'loginPassword', 'loginBtn', 'loginError',
     'email', 'emailContainer', 'firstName', 'lastName', 'company', 'street', 'street2', 'city', 'postcode', 'country', 'region', 'regionText', 'telephone',
     'addressSelector', 'addressSelect', 'addressSummary', 'summaryContent', 'addressForm',
-    'step1', 'step2', 'step3', 'body1', 'body2', 'body3', 'check1', 'check2', 'check3',
-    'shippingMethods', 'shippingError', 'continuePaymentBtn',
+    'shippingMethods', 'shippingError',
     'paymentMethods', 'placeOrderBtn', 'orderError', 'paymentFields',
+    'billingSame', 'billingForm',
+    'billingFirstName', 'billingLastName', 'billingStreet', 'billingCity', 'billingPostcode', 'billingCountry', 'billingTelephone',
+    'saveInfo', 'saveInfoRow',
     'sidebarLoading', 'sidebarItems', 'sidebarTotals',
     'sidebarSubtotal', 'sidebarDiscount', 'sidebarDiscountRow',
     'sidebarShipping', 'sidebarShippingRow', 'sidebarTax',
@@ -79,6 +81,7 @@ export default class CheckoutController extends Controller {
     const token = localStorage.getItem('maho_token');
     if (token) {
       if (this.hasGuestLoginTarget) this.guestLoginTarget.style.display = 'none';
+      if (this.hasSaveInfoRowTarget) this.saveInfoRowTarget.style.display = 'none';
       this._prefillFromCustomer();
     } else {
       // Show guest login prompt
@@ -535,7 +538,16 @@ export default class CheckoutController extends Controller {
     this._selectedShipping = event.target.value;
     this._selectedShippingPrice = parseFloat(event.target.dataset.price) || 0;
     this._updateSidebarShipping(this._selectedShippingPrice);
-    if (this.hasContinuePaymentBtnTarget) this.continuePaymentBtnTarget.disabled = false;
+
+    // Analytics: track shipping info
+    if (this._cart?.items?.length) {
+      analytics.addShippingInfo(this._cart.items, this._cart.prices?.grandTotal || 0, this._selectedShipping, this.currencyValue);
+    }
+
+    // Auto-load payment methods when shipping is selected (single-page flow)
+    if (!this._paymentMethodsLoaded) {
+      this._fetchPaymentMethods();
+    }
   }
 
   _updateSidebarShipping(amount) {
@@ -559,49 +571,32 @@ export default class CheckoutController extends Controller {
     if (this.hasSidebarTotalTarget) this.sidebarTotalTarget.textContent = formatPrice(Math.max(0, total), this.currencyValue);
   }
 
-  // ---- Step Navigation ----
+  // ---- Billing Address ----
 
-  continueToShipping(event) {
-    event.preventDefault();
-    const addr = this._getAddress();
-    // Email may come from the Stripe Link element (stored in _customerEmail) or the email input
-    const email = this.hasEmailTarget ? this.emailTarget.value.trim() : (this._customerEmail || '');
-
-    if (!email || !this._isAddressComplete(addr)) {
-      // Highlight empty required fields
-      const fields = ['firstName', 'lastName', 'street', 'city', 'postcode', 'telephone'];
-      fields.forEach(f => {
-        const target = this[`has${f.charAt(0).toUpperCase() + f.slice(1)}Target`] ? this[`${f}Target`] : null;
-        if (target && !target.value.trim()) target.classList.add('input-error');
-        else if (target) target.classList.remove('input-error');
-      });
-      // Only highlight email if the native input exists (not replaced by Link)
-      if (this.hasEmailTarget && !this.emailTarget.value.trim()) this.emailTarget.classList.add('input-error');
-      if (this.hasCountryTarget && !this.countryTarget.value) this.countryTarget.classList.add('input-error');
-      return;
+  toggleBillingForm() {
+    const same = this.hasBillingSameTarget ? this.billingSameTarget.checked : true;
+    if (this.hasBillingFormTarget) {
+      this.billingFormTarget.style.display = same ? 'none' : '';
     }
-
-    // Mark step 1 complete, open step 2
-    this._openStep(2);
-
-    // Fetch shipping methods if not already loaded
-    if (!this._selectedShipping) this._fetchShippingMethods();
   }
 
-  continueToPayment(event) {
-    event.preventDefault();
-    if (!this._selectedShipping) return;
-
-    // Analytics: track shipping info
-    if (this._cart?.items?.length) {
-      analytics.addShippingInfo(this._cart.items, this._cart.prices?.grandTotal || 0, this._selectedShipping, this.currencyValue);
+  _getBillingAddress() {
+    if (this.hasBillingSameTarget && this.billingSameTarget.checked) {
+      return this._getAddress(); // Same as shipping
     }
-
-    this._openStep(3);
-    this._fetchPaymentMethods();
+    return {
+      firstName: this.hasBillingFirstNameTarget ? this.billingFirstNameTarget.value.trim() : '',
+      lastName: this.hasBillingLastNameTarget ? this.billingLastNameTarget.value.trim() : '',
+      street: [this.hasBillingStreetTarget ? this.billingStreetTarget.value.trim() : ''],
+      city: this.hasBillingCityTarget ? this.billingCityTarget.value.trim() : '',
+      postcode: this.hasBillingPostcodeTarget ? this.billingPostcodeTarget.value.trim() : '',
+      countryId: this.hasBillingCountryTarget ? this.billingCountryTarget.value : '',
+      telephone: this.hasBillingTelephoneTarget ? this.billingTelephoneTarget.value.trim() : '',
+    };
   }
 
   async _fetchPaymentMethods() {
+    if (this._paymentMethodsLoaded) return;
     const maskedId = api.cartId();
     if (!maskedId) return;
 
@@ -644,6 +639,7 @@ export default class CheckoutController extends Controller {
 
         // Auto-select first
         this._selectedPayment = visibleMethods[0].code;
+        this._paymentMethodsLoaded = true;
         if (this.hasPlaceOrderBtnTarget) this.placeOrderBtnTarget.disabled = false;
         this._activatePaymentAdapter(this._selectedPayment);
       }
@@ -706,43 +702,45 @@ export default class CheckoutController extends Controller {
     }
   }
 
-  toggleStep(event) {
-    const step = parseInt(event.currentTarget.dataset.step, 10);
-    // Only allow opening completed or current steps
-    this._openStep(step);
-  }
-
-  _openStep(activeStep) {
-    [1, 2, 3].forEach(n => {
-      const stepEl = this[`hasStep${n}Target`] ? this[`step${n}Target`] : null;
-      const bodyEl = this[`hasBody${n}Target`] ? this[`body${n}Target`] : null;
-      const checkEl = this[`hasCheck${n}Target`] ? this[`check${n}Target`] : null;
-
-      if (!stepEl) return;
-
-      if (n === activeStep) {
-        stepEl.classList.remove('collapsed');
-        stepEl.classList.add('active');
-        if (bodyEl) bodyEl.style.display = '';
-      } else if (n < activeStep) {
-        stepEl.classList.remove('active');
-        stepEl.classList.add('collapsed');
-        if (bodyEl) bodyEl.style.display = 'none';
-        if (checkEl) checkEl.style.display = '';
-      } else {
-        stepEl.classList.remove('active');
-        stepEl.classList.add('collapsed');
-        if (bodyEl) bodyEl.style.display = 'none';
-        if (checkEl) checkEl.style.display = 'none';
-      }
-    });
+  _showOrderError(msg) {
+    if (this.hasOrderErrorTarget) {
+      this.orderErrorTarget.textContent = msg;
+      this.orderErrorTarget.style.display = '';
+    }
   }
 
   // ---- Place Order ----
 
   async placeOrder(event) {
     event.preventDefault();
-    if (!this._selectedShipping || !this._selectedPayment) return;
+
+    // Validate all required fields
+    const email = this.hasEmailTarget ? this.emailTarget.value.trim() : (this._customerEmail || '');
+    const addr = this._getAddress();
+
+    if (!email || !this._isAddressComplete(addr)) {
+      // Highlight empty required fields
+      const fields = ['firstName', 'lastName', 'street', 'city', 'postcode', 'telephone'];
+      fields.forEach(f => {
+        const target = this[`has${f.charAt(0).toUpperCase() + f.slice(1)}Target`] ? this[`${f}Target`] : null;
+        if (target && !target.value.trim()) target.classList.add('input-error');
+        else if (target) target.classList.remove('input-error');
+      });
+      if (this.hasEmailTarget && !this.emailTarget.value.trim()) this.emailTarget.classList.add('input-error');
+      if (this.hasCountryTarget && !this.countryTarget.value) this.countryTarget.classList.add('input-error');
+      this._showOrderError('Please fill in all required fields.');
+      return;
+    }
+
+    if (!this._selectedShipping) {
+      this._showOrderError('Please select a shipping method.');
+      return;
+    }
+
+    if (!this._selectedPayment) {
+      this._showOrderError('Please select a payment method.');
+      return;
+    }
 
     const btn = this.hasPlaceOrderBtnTarget ? this.placeOrderBtnTarget : event.currentTarget;
     const originalText = btn.textContent;
@@ -758,19 +756,18 @@ export default class CheckoutController extends Controller {
       return;
     }
 
-    const addr = this._getAddress();
-    const email = this.hasEmailTarget ? this.emailTarget.value.trim() : (this._customerEmail || '');
-
     try {
       // Let the payment adapter tokenize (get nonce, etc.) before submitting
       const paymentData = this._paymentAdapter
         ? await this._paymentAdapter.tokenize()
         : null;
 
+      const billingAddr = this._getBillingAddress();
+
       const response = await api.post(`/api/guest-carts/${maskedId}/place-order`, {
         email,
         shippingAddress: addr,
-        billingAddress: addr,
+        billingAddress: billingAddr,
         shippingMethod: this._selectedShipping,
         paymentMethod: this._selectedPayment,
         paymentData,
