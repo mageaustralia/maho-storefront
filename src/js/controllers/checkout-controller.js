@@ -477,6 +477,9 @@ export default class CheckoutController extends Controller {
     const maskedId = api.cartId();
     if (!maskedId) return;
 
+    // Reset payment methods when shipping changes (new address may have different options)
+    this._paymentMethodsLoaded = false;
+
     if (this.hasShippingMethodsTarget) {
       this.shippingMethodsTarget.innerHTML = '<p class="methods-loading">Loading shipping methods...</p>';
     }
@@ -523,7 +526,9 @@ export default class CheckoutController extends Controller {
         this._selectedShipping = methods[0].code;
         this._selectedShippingPrice = methods[0].price || 0;
         this._updateSidebarShipping(this._selectedShippingPrice);
-        if (this.hasContinuePaymentBtnTarget) this.continuePaymentBtnTarget.disabled = false;
+
+        // Auto-load payment methods (single-page flow)
+        this._fetchPaymentMethods();
       }
     } catch (e) {
       if (this.hasShippingErrorTarget) {
