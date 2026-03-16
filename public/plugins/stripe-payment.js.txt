@@ -353,7 +353,29 @@
     if (!cartId) {
       throw new Error('No active cart found. Please add items to your cart.');
     }
-    var piResponse = await this._apiPost('/api/payments/stripe/payment-intents', { cartId: cartId });
+
+    // Read shipping method + address from the checkout form so the Worker
+    // can set shipping on the cart before creating the PaymentIntent.
+    var piBody = { cartId: cartId };
+    var shippingRadio = document.querySelector('input[name="shipping_method"]:checked');
+    if (shippingRadio) {
+      piBody.shippingMethod = shippingRadio.value;
+      // Collect address from checkout form targets
+      var getVal = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+      piBody.shippingAddress = {
+        firstName: getVal('checkout-firstname'),
+        lastName: getVal('checkout-lastname'),
+        street: [getVal('checkout-street'), getVal('checkout-street2')].filter(Boolean),
+        city: getVal('checkout-city'),
+        postcode: getVal('checkout-postcode'),
+        countryId: getVal('checkout-country'),
+        regionId: getVal('checkout-region') || undefined,
+        region: getVal('checkout-region-text') || undefined,
+        telephone: getVal('checkout-telephone'),
+      };
+    }
+
+    var piResponse = await this._apiPost('/api/payments/stripe/payment-intents', piBody);
 
     if (piResponse.error) {
       throw new Error(piResponse.message || 'Could not initialize payment.');
