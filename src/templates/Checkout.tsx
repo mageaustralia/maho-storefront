@@ -43,8 +43,8 @@ export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countr
       </div>
 
       <div class="grid grid-cols-[1fr_340px] gap-10 items-start max-lg:grid-cols-1">
-        {/* Main checkout steps */}
-        <div class="flex flex-col gap-4">
+        {/* Main checkout — single page flow */}
+        <div class="flex flex-col gap-6">
 
           {/* Guest login prompt (shown for guests, hidden when logged in) */}
           <div class="card bg-base-100 shadow-sm" data-checkout-target="guestLogin">
@@ -76,14 +76,25 @@ export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countr
             </div>
           </div>
 
-          {/* Step 1: Shipping Address */}
-          <div class="card bg-base-100 shadow-sm" data-checkout-target="step1">
-            <div class="flex items-center gap-3 p-4 cursor-pointer bg-base-200 rounded-t-lg" data-action="click->checkout#toggleStep" data-step="1">
-              <span class="badge badge-outline badge-sm">1</span>
-              <span class="font-semibold">Shipping Address</span>
-              <span class="ml-auto text-success hidden" data-checkout-target="check1">&#10003;</span>
+          {/* Contact */}
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              <h2 class="text-lg font-semibold mb-3">Contact</h2>
+              <div data-checkout-target="emailContainer">
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">Email <span class="text-error">*</span></legend>
+                  <input type="email" id="checkout-email" class="input w-full" data-checkout-target="email" required
+                    placeholder="you@example.com" data-action="input->checkout#onAddressChange blur->checkout#onEmailBlur" />
+                </fieldset>
+              </div>
             </div>
-            <div class="card-body" data-checkout-target="body1">
+          </div>
+
+          {/* Shipping Address */}
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              <h2 class="text-lg font-semibold mb-3">Shipping Address</h2>
+
               {/* Saved address selector (shown for logged-in users with addresses) */}
               <fieldset class="fieldset mb-4" data-checkout-target="addressSelector" style="display:none">
                 <legend class="fieldset-legend text-xs">Ship to a saved address</legend>
@@ -97,13 +108,6 @@ export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countr
               </fieldset>
 
               <div class="flex flex-col gap-3" data-checkout-target="addressForm">
-                <div data-checkout-target="emailContainer">
-                  <fieldset class="fieldset">
-                    <legend class="fieldset-legend">Email <span class="text-error">*</span></legend>
-                    <input type="email" id="checkout-email" class="input w-full" data-checkout-target="email" required
-                      placeholder="you@example.com" data-action="input->checkout#onAddressChange blur->checkout#onEmailBlur" />
-                  </fieldset>
-                </div>
                 <div class="grid grid-cols-2 gap-3">
                   <fieldset class="fieldset">
                     <legend class="fieldset-legend">First Name <span class="text-error">*</span></legend>
@@ -175,49 +179,101 @@ export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countr
                     data-action="input->checkout#onAddressChange" />
                 </fieldset>
               </div>
-              <button class="btn btn-primary w-full mt-4" data-action="checkout#continueToShipping"
-                data-checkout-target="continueShippingBtn">
-                Continue to Shipping
-              </button>
             </div>
           </div>
 
-          {/* Step 2: Shipping Method */}
-          <div class="card bg-base-100 shadow-sm" data-checkout-target="step2">
-            <div class="flex items-center gap-3 p-4 cursor-pointer bg-base-200 rounded-t-lg" data-action="click->checkout#toggleStep" data-step="2">
-              <span class="badge badge-outline badge-sm">2</span>
-              <span class="font-semibold">Shipping Method</span>
-              <span class="ml-auto text-success hidden" data-checkout-target="check2">&#10003;</span>
-            </div>
-            <div class="card-body" data-checkout-target="body2" style="display:none">
+          {/* Shipping Method */}
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              <h2 class="text-lg font-semibold mb-3">Shipping Method</h2>
               <div class="space-y-2" data-checkout-target="shippingMethods">
-                <p class="text-sm text-base-content/60">Loading shipping methods...</p>
+                <p class="text-sm text-base-content/60">Enter your address above to see shipping options.</p>
               </div>
               <div class="text-sm text-error mt-2" data-checkout-target="shippingError" style="display:none"></div>
-              <button class="btn btn-primary w-full mt-4" data-action="checkout#continueToPayment"
-                data-checkout-target="continuePaymentBtn" disabled>
-                Continue to Payment
-              </button>
             </div>
           </div>
 
-          {/* Step 3: Payment Method */}
-          <div class="card bg-base-100 shadow-sm" data-checkout-target="step3">
-            <div class="flex items-center gap-3 p-4 cursor-pointer bg-base-200 rounded-t-lg" data-action="click->checkout#toggleStep" data-step="3">
-              <span class="badge badge-outline badge-sm">3</span>
-              <span class="font-semibold">Payment</span>
-              <span class="ml-auto text-success hidden" data-checkout-target="check3">&#10003;</span>
-            </div>
-            <div class="card-body" data-checkout-target="body3" style="display:none">
+          {/* Payment */}
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              <h2 class="text-lg font-semibold mb-3">Payment</h2>
               <div class="space-y-2" data-checkout-target="paymentMethods">
-                <p class="text-sm text-base-content/60">Loading payment methods...</p>
+                <p class="text-sm text-base-content/60">Select a shipping method to see payment options.</p>
               </div>
 
               {/* Payment adapter fields — populated dynamically by the active payment adapter */}
               <div data-checkout-target="paymentFields" style="display:none" class="mt-4"></div>
 
-              <div class="text-sm text-error mt-2" data-checkout-target="orderError" style="display:none"></div>
-              <button class="btn btn-primary w-full mt-4" data-action="checkout#placeOrder"
+              {/* Billing address toggle */}
+              <div class="mt-4 pt-4 border-t border-base-200">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="checkbox checkbox-sm" data-checkout-target="billingSame" checked
+                    data-action="change->checkout#toggleBillingForm" />
+                  <span class="text-sm">Billing address same as shipping</span>
+                </label>
+                <div data-checkout-target="billingForm" style="display:none" class="mt-3 flex flex-col gap-3">
+                  <div class="grid grid-cols-2 gap-3">
+                    <fieldset class="fieldset">
+                      <legend class="fieldset-legend text-xs">First Name <span class="text-error">*</span></legend>
+                      <input type="text" class="input w-full input-sm" data-checkout-target="billingFirstName" />
+                    </fieldset>
+                    <fieldset class="fieldset">
+                      <legend class="fieldset-legend text-xs">Last Name <span class="text-error">*</span></legend>
+                      <input type="text" class="input w-full input-sm" data-checkout-target="billingLastName" />
+                    </fieldset>
+                  </div>
+                  <fieldset class="fieldset">
+                    <legend class="fieldset-legend text-xs">Street Address <span class="text-error">*</span></legend>
+                    <input type="text" class="input w-full input-sm" data-checkout-target="billingStreet" />
+                  </fieldset>
+                  <div class="grid grid-cols-3 gap-3">
+                    <fieldset class="fieldset">
+                      <legend class="fieldset-legend text-xs">City <span class="text-error">*</span></legend>
+                      <input type="text" class="input w-full input-sm" data-checkout-target="billingCity" />
+                    </fieldset>
+                    <fieldset class="fieldset">
+                      <legend class="fieldset-legend text-xs">Postcode <span class="text-error">*</span></legend>
+                      <input type="text" class="input w-full input-sm" data-checkout-target="billingPostcode" />
+                    </fieldset>
+                    <fieldset class="fieldset">
+                      <legend class="fieldset-legend text-xs">Country <span class="text-error">*</span></legend>
+                      <select class="select select-sm w-full" data-checkout-target="billingCountry">
+                        {countries.map(c => (
+                          <option key={c.id} value={c.id}
+                            selected={c.id === (config.allowedCountries?.[0] || 'AU')}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </fieldset>
+                  </div>
+                  <fieldset class="fieldset">
+                    <legend class="fieldset-legend text-xs">Phone <span class="text-error">*</span></legend>
+                    <input type="tel" class="input w-full input-sm" data-checkout-target="billingTelephone" />
+                  </fieldset>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Promo Codes */}
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              <PromoTabs controller="checkout" />
+            </div>
+          </div>
+
+          {/* Save Info + Place Order */}
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              {/* Save info for guests */}
+              <label class="flex items-center gap-2 cursor-pointer mb-4" data-checkout-target="saveInfoRow">
+                <input type="checkbox" class="checkbox checkbox-sm" data-checkout-target="saveInfo" />
+                <span class="text-sm">Save my information for faster checkout next time</span>
+              </label>
+
+              <div class="text-sm text-error mb-3" data-checkout-target="orderError" style="display:none"></div>
+              <button class="btn btn-primary btn-lg w-full" data-action="checkout#placeOrder"
                 data-checkout-target="placeOrderBtn" disabled>
                 Place Order
               </button>
@@ -271,8 +327,6 @@ export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countr
               <span data-checkout-target="sidebarTotal"><span class="inline-block h-4 w-16 bg-base-300 rounded animate-pulse"></span></span>
             </div>
           </div>
-
-          <PromoTabs controller="checkout" hidden />
         </div>
       </div>
     </div>
