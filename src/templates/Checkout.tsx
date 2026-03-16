@@ -11,6 +11,7 @@ import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
 import { PromoTabs } from './components/PromoTabs';
+import { ExtensionSlot } from './components/ExtensionSlot';
 
 interface CheckoutPageProps {
   config: StoreConfig;
@@ -70,6 +71,7 @@ export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countr
                   <button type="button" class="link link-hover text-sm" data-action="checkout#hideLoginForm">Continue as guest</button>
                 </div>
                 <div class="text-sm text-error mt-2" data-checkout-target="loginError" style="display:none"></div>
+                <ExtensionSlot name="checkout.login.after" config={config} />
               </div>
             </div>
           </div>
@@ -95,11 +97,13 @@ export const CheckoutPage: FC<CheckoutPageProps> = ({ config, categories, countr
               </fieldset>
 
               <div class="flex flex-col gap-3" data-checkout-target="addressForm">
-                <fieldset class="fieldset">
-                  <legend class="fieldset-legend">Email <span class="text-error">*</span></legend>
-                  <input type="email" id="checkout-email" class="input w-full" data-checkout-target="email" required
-                    placeholder="you@example.com" data-action="input->checkout#onAddressChange" />
-                </fieldset>
+                <div data-checkout-target="emailContainer">
+                  <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Email <span class="text-error">*</span></legend>
+                    <input type="email" id="checkout-email" class="input w-full" data-checkout-target="email" required
+                      placeholder="you@example.com" data-action="input->checkout#onAddressChange blur->checkout#onEmailBlur" />
+                  </fieldset>
+                </div>
                 <div class="grid grid-cols-2 gap-3">
                   <fieldset class="fieldset">
                     <legend class="fieldset-legend">First Name <span class="text-error">*</span></legend>

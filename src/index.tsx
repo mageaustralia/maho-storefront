@@ -237,7 +237,7 @@ app.use('*', async (c, next) => {
 // Routes excluded from the password gate
 const GATE_EXCLUDED = new Set([
   '/styles.css', '/controllers.js', '/embed.js', '/robots.txt', '/favicon.ico',
-  '/sync', '/cache/delete', '/cache/keys', '/cache/purge',
+  '/sync', '/cache/delete', '/cache/keys', '/cache/purge', '/cache/warm-urls',
   '/dev/login', '/dev/logout', '/dev/preview',
   '/dev/config', '/dev/tokens',
 ]);
@@ -508,9 +508,14 @@ function withEdgeCache(ttlSeconds: number) {
     cacheUrl.searchParams.set('_v', versionTag);
     const cacheKey = new Request(cacheUrl.toString(), { method: 'GET' });
 
-    // Browser cache headers for HTML: cache but always revalidate via ETag
+    // Browser cache: serve cached page instantly, revalidate in background via ETag.
+    // max-age=60: browser uses cached copy for 60s without any network request.
+    // stale-while-revalidate=86400: after max-age expires, browser shows stale page
+    // instantly while fetching fresh version in the background for next navigation.
+    // Combined with the freshness controller (which patches stale DOM in-place),
+    // this means revisits are always instant and content self-corrects.
     const browserHeaders = {
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'public, max-age=60, stale-while-revalidate=86400',
       'ETag': `"${versionTag}"`,
     };
 
@@ -1014,9 +1019,13 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
   const apiUrl = getApiUrl(c.env, stores, currentStoreCode);
 
   let cartId: string;
+  let shippingMethod: string | undefined;
+  let shippingAddress: any;
   try {
-    const body = await c.req.json() as { cartId?: string };
+    const body = await c.req.json() as { cartId?: string; shippingMethod?: string; shippingAddress?: any };
     cartId = body.cartId || '';
+    shippingMethod = body.shippingMethod;
+    shippingAddress = body.shippingAddress;
   } catch {
     return c.json({ error: true, message: 'Invalid request body' }, 400);
   }
@@ -1025,19 +1034,45 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
     return c.json({ error: true, message: 'cartId is required' }, 400);
   }
 
-  // Fetch cart totals from Maho backend (guest cart endpoint works with basic auth)
-  const cartHeaders: Record<string, string> = { 'Accept': 'application/ld+json' };
-  if (currentStoreCode) cartHeaders['X-Store-Code'] = currentStoreCode;
-  if (c.env.MAHO_API_BASIC_AUTH) cartHeaders['Authorization'] = `Basic ${btoa(c.env.MAHO_API_BASIC_AUTH)}`;
+  // Common headers for Maho API calls
+  const mahoHeaders: Record<string, string> = {
+    'Accept': 'application/ld+json',
+    'Content-Type': 'application/ld+json',
+  };
+  if (currentStoreCode) mahoHeaders['X-Store-Code'] = currentStoreCode;
+  if (c.env.MAHO_API_BASIC_AUTH) mahoHeaders['Authorization'] = `Basic ${btoa(c.env.MAHO_API_BASIC_AUTH)}`;
 
+  // If shipping info provided, set it on the cart first so grandTotal includes shipping
+  let shippingPrice = 0;
+  if (shippingMethod && shippingAddress) {
+    // POST shipping-methods with address to set address + get available rates
+    const methodsRes = await fetch(`${apiUrl}/api/guest-carts/${cartId}/shipping-methods`, {
+      method: 'POST',
+      headers: mahoHeaders,
+      body: JSON.stringify({ address: shippingAddress }),
+    });
+    if (methodsRes.ok) {
+      const methods = await methodsRes.json() as Array<{ code: string; price: number }>;
+      const matched = methods.find(m => m.code === shippingMethod);
+      if (matched) shippingPrice = matched.price || 0;
+    }
+  }
+
+  // Fetch cart totals from Maho backend
   const cartUrl = `${apiUrl}/api/guest-carts/${cartId}`;
-  const cartRes = await fetch(cartUrl, { headers: cartHeaders });
+  const cartRes = await fetch(cartUrl, { headers: { 'Accept': 'application/ld+json', ...mahoHeaders } });
   if (!cartRes.ok) {
     return c.json({ error: true, message: 'Cart not found' }, 404);
   }
 
-  const cart = await cartRes.json() as { prices?: { grandTotal?: number }; currency?: string };
-  const grandTotal = cart.prices?.grandTotal;
+  const cart = await cartRes.json() as { prices?: { grandTotal?: number; shippingAmount?: number | null }; currency?: string };
+  let grandTotal = cart.prices?.grandTotal || 0;
+
+  // If the cart doesn't include shipping yet (no shippingAmount), add the matched shipping price
+  if (shippingPrice > 0 && (!cart.prices?.shippingAmount || cart.prices.shippingAmount === 0)) {
+    grandTotal += shippingPrice;
+  }
+
   if (!grandTotal || grandTotal <= 0) {
     return c.json({ error: true, message: 'Cart is empty or has no total' }, 400);
   }
@@ -1585,6 +1620,47 @@ app.post('/cache/delete', async (c) => {
   } catch (e) {
     return c.json({ error: (e as Error).message }, 500);
   }
+});
+
+// List all warmable URLs from KV (auth-protected) — used by deploy.sh to prewarm externally
+app.get('/cache/warm-urls', async (c) => {
+  if (!checkSyncAuth(c)) return c.json({ error: 'Unauthorized' }, 401);
+
+  const store = new CloudflareKVStore(c.env.CONTENT);
+  const stores = await getStoreRegistry(c.env);
+  const urls: string[] = ['/'];
+
+  const storeCodes = stores.length > 0 ? stores.map(s => s.code) : [undefined];
+  for (const storeCode of storeCodes) {
+    const prefix = storeCode ? `${storeCode}:` : '';
+
+    const [categoryKeys, productKeys, cmsKeys, blogKeys] = await Promise.all([
+      store.list(`${prefix}category:`),
+      store.list(`${prefix}product:`),
+      store.list(`${prefix}cms:`),
+      store.list(`${prefix}blog:`),
+    ]);
+
+    for (const key of categoryKeys) {
+      const slug = key.replace(`${prefix}category:`, '');
+      if (slug && !slug.includes(':')) urls.push(`/${slug}`);  // handles both "women" and "women/shirts"
+    }
+    for (const key of productKeys) {
+      const slug = key.replace(`${prefix}product:`, '');
+      if (slug && !slug.includes(':')) urls.push(`/${slug}`);
+    }
+    for (const key of cmsKeys) {
+      const slug = key.replace(`${prefix}cms:`, '');
+      if (slug && slug !== 'home' && !slug.includes(':')) urls.push(`/page/${slug}`);
+    }
+    for (const key of blogKeys) {
+      const slug = key.replace(`${prefix}blog:`, '');
+      if (slug && !slug.includes(':')) urls.push(`/blog/${slug}`);
+    }
+  }
+
+  urls.push('/blog');
+  return c.json({ urls: [...new Set(urls)] });
 });
 
 // List KV keys by prefix (auth-protected)

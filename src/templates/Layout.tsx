@@ -21,6 +21,7 @@ import { AnnouncementBar } from './components/navigation/announcement-bar/Announ
 import { NewsletterPopup } from './components/engagement/newsletter/NewsletterPopup';
 import { NewsletterPopupImage } from './components/engagement/newsletter/NewsletterPopupImage';
 import { NewsletterFlyout } from './components/engagement/newsletter/NewsletterFlyout';
+import { PluginHeadScripts } from './components/PluginHeadScripts';
 
 interface FooterPage { identifier: string; title: string; }
 
@@ -49,7 +50,7 @@ export const Layout: FC<LayoutProps> = ({ config, categories, footerPages, store
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
         <link rel="stylesheet" href={googleFontsUrl} />
         <link rel="stylesheet" href={`/styles.css${v}`} data-turbo-track="reload" />
-        <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];window.MAHO_API_URL=${JSON.stringify(apiUrl)};window.MAHO_STORE_CODE=${JSON.stringify(currentStoreCode || '')};window.MAHO_CURRENCY=${JSON.stringify(config.baseCurrencyCode || 'USD')};window.MAHO_THEME=${JSON.stringify(themeName)};` }} />
+        <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];window.MAHO_API_URL=${JSON.stringify(apiUrl)};window.MAHO_STORE_CODE=${JSON.stringify(currentStoreCode || '')};window.MAHO_CURRENCY=${JSON.stringify(config.baseCurrencyCode || 'USD')};window.MAHO_THEME=${JSON.stringify(themeName)};document.addEventListener('turbo:before-render',function(e){e.detail.newBody.querySelectorAll('script[data-cfasync]').forEach(function(s){s.remove()})});` }} />
         <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-esm.min.js" data-turbo-track="reload"></script>
         <script type="module" src={`/controllers.js${v}`} data-turbo-track="reload"></script>
         {config.extensions?.paymentPlugins?.length ? (
@@ -63,6 +64,7 @@ export const Layout: FC<LayoutProps> = ({ config, categories, footerPages, store
             ))}
           </>
         ) : null}
+        <PluginHeadScripts config={config} />
       </head>
       <body class="bg-base-100 text-base-content" data-controller="freshness wishlist" data-store={currentStoreCode || ''}>
         {(() => {

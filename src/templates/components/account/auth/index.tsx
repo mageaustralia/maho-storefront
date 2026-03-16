@@ -6,6 +6,7 @@
 
 import { jsx } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
+import type { StoreConfig } from '../../../../types';
 import { getVariant } from '../../../../page-config';
 import { AuthLoginForm } from './AuthLoginForm';
 import { AuthRegisterForm } from './AuthRegisterForm';
@@ -13,6 +14,7 @@ import { AuthForgotPassword } from './AuthForgotPassword';
 
 export interface AuthFormProps {
   mode: 'login' | 'register' | 'forgot';
+  config?: StoreConfig;
 }
 
 const variants: Record<string, Record<string, FC>> = {
@@ -23,11 +25,11 @@ const variants: Record<string, Record<string, FC>> = {
   },
 };
 
-export const AuthForm: FC<AuthFormProps> = ({ mode }) => {
+export const AuthForm: FC<AuthFormProps> = ({ mode, config }) => {
   const variant = getVariant('account', 'auth', 'standard');
   const modeMap = variants[variant] ?? variants.standard;
   const Component = modeMap[mode] ?? modeMap.login;
-  return <Component />;
+  return <Component config={config} />;
 };
 
 export { AuthLoginForm, AuthRegisterForm, AuthForgotPassword };

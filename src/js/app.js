@@ -18,6 +18,7 @@ import OrderSuccessController from './controllers/order-success-controller.js';
 import FreshnessController from './controllers/freshness-controller.js';
 import AuthController from './controllers/auth-controller.js';
 import AuthStateController from './controllers/auth-state-controller.js';
+import { pluginControllers } from '../generated/plugin-controllers.ts';
 import AccountController from './controllers/account-controller.js';
 import CarouselController from './controllers/carousel-controller.js';
 import WishlistController from './controllers/wishlist-controller.js';
@@ -49,6 +50,11 @@ if (!window.__stimulusApp) {
   application.register('freshness', FreshnessController);
   application.register('auth', AuthController);
   application.register('auth-state', AuthStateController);
+
+  // Auto-register plugin controllers
+  for (const { name, controller } of pluginControllers) {
+    application.register(name, controller);
+  }
   application.register('account', AccountController);
   application.register('carousel', CarouselController);
   application.register('wishlist', WishlistController);

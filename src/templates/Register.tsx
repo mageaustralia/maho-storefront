@@ -10,6 +10,7 @@ import type { Category, StoreConfig, StorefrontStore } from '../types';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
+import { ExtensionSlot } from './components/ExtensionSlot';
 
 interface RegisterPageProps {
   config: StoreConfig;
@@ -57,6 +58,8 @@ export const RegisterPage: FC<RegisterPageProps> = ({ config, categories, stores
               <button type="submit" class="btn btn-primary w-full mt-2" data-auth-target="submitBtn">Create Account</button>
             </fieldset>
           </form>
+
+          <ExtensionSlot name="auth.register.after" config={config} />
 
           <div class="flex items-center justify-center gap-2 text-sm mt-4">
             <span class="text-base-content/60">Already have an account?</span>

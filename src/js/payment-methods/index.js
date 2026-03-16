@@ -16,6 +16,7 @@
  * The checkout controller does NOT need any changes.
  */
 
+import { BasePaymentAdapter } from './base-adapter.js';
 import { BraintreeAdapter } from './braintree-adapter.js';
 
 const adapters = [
@@ -38,6 +39,17 @@ export function registerAdapter(adapter) {
  */
 export function getAdapter(methodCode) {
   return adapters.find(a => a.match(methodCode)) ?? null;
+}
+
+/**
+ * Find an adapter that supports early initialization (e.g. Stripe Link).
+ * Returns the first adapter with a non-default initEarly(), or null.
+ */
+export function getEarlyInitAdapter() {
+  return adapters.find(a =>
+    typeof a.initEarly === 'function' &&
+    a.initEarly !== BasePaymentAdapter.prototype.initEarly
+  ) ?? null;
 }
 
 /**

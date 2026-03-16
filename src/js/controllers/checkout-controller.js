@@ -9,12 +9,12 @@ import { api } from '../api.js';
 import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
 import { analytics } from '../analytics.js';
 import { hydrateTemplate, setSlotHtml, setSlotAttributes, showSlot, PLACEHOLDER_IMAGE } from '../template-helpers.js';
-import { getAdapter, hasAdapter, getAbsorbedMethods } from '../payment-methods/index.js';
+import { getAdapter, hasAdapter, getAbsorbedMethods, getEarlyInitAdapter } from '../payment-methods/index.js';
 
 export default class CheckoutController extends Controller {
   static targets = [
     'guestLogin', 'loginForm', 'loginEmail', 'loginPassword', 'loginBtn', 'loginError',
-    'email', 'firstName', 'lastName', 'company', 'street', 'street2', 'city', 'postcode', 'country', 'region', 'regionText', 'telephone',
+    'email', 'emailContainer', 'firstName', 'lastName', 'company', 'street', 'street2', 'city', 'postcode', 'country', 'region', 'regionText', 'telephone',
     'addressSelector', 'addressSelect', 'addressSummary', 'summaryContent', 'addressForm',
     'step1', 'step2', 'step3', 'body1', 'body2', 'body3', 'check1', 'check2', 'check3',
     'shippingMethods', 'shippingError', 'continuePaymentBtn',
@@ -93,6 +93,62 @@ export default class CheckoutController extends Controller {
       if (this.hasCountryTarget && this.countryTarget.value) {
         this.onCountryChange();
       }
+    }
+
+    // Allow payment adapters to enhance the email field (e.g. Stripe Link)
+    this._initEarlyAdapter();
+  }
+
+  async _initEarlyAdapter(retries = 0) {
+    const adapter = getEarlyInitAdapter();
+    if (!adapter) {
+      if (retries < 20) {
+        setTimeout(() => this._initEarlyAdapter(retries + 1), 150);
+      }
+      return;
+    }
+    if (!this.hasEmailContainerTarget) return;
+
+    try {
+      const mounted = await adapter.initEarly({
+        emailContainer: this.emailContainerTarget,
+        currency: this.currencyValue,
+        country: this.hasCountryTarget ? this.countryTarget.value : this.countryValue,
+        prefillEmail: this.hasEmailTarget ? this.emailTarget.value : '',
+        onEmail: (email) => {
+          this._customerEmail = email;
+          if (this.hasEmailTarget) this.emailTarget.value = email;
+          this.onAddressChange();
+          // Pre-fill login form email (but don't auto-expand — user clicks "Sign in" if they want)
+          if (this.hasLoginEmailTarget) this.loginEmailTarget.value = email;
+        },
+        onAddress: (addr) => {
+          if (addr.firstName && this.hasFirstNameTarget) this.firstNameTarget.value = addr.firstName;
+          if (addr.lastName && this.hasLastNameTarget) this.lastNameTarget.value = addr.lastName;
+          if (addr.street && this.hasStreetTarget) this.streetTarget.value = addr.street;
+          if (addr.street2 && this.hasStreet2Target) this.street2Target.value = addr.street2;
+          if (addr.city && this.hasCityTarget) this.cityTarget.value = addr.city;
+          if (addr.postcode && this.hasPostcodeTarget) this.postcodeTarget.value = addr.postcode;
+          if (addr.country && this.hasCountryTarget) {
+            this.countryTarget.value = addr.country;
+            this.onCountryChange();
+          }
+          if (addr.region && this.hasRegionTarget) {
+            const opt = Array.from(this.regionTarget.options).find(o => o.text === addr.region || o.value === addr.region);
+            if (opt) this.regionTarget.value = opt.value;
+            else if (this.hasRegionTextTarget) this.regionTextTarget.value = addr.region;
+          }
+          if (addr.telephone && this.hasTelephoneTarget) this.telephoneTarget.value = addr.telephone;
+          this.onAddressChange();
+        },
+        onPaymentReady: () => {
+          this._earlyPaymentReady = true;
+          this._earlyPaymentAdapter = adapter;
+        },
+      });
+      if (mounted) this._earlyAdapterMounted = true;
+    } catch (e) {
+      // Early init failed — email field stays as-is, no degradation
     }
   }
 
@@ -364,6 +420,23 @@ export default class CheckoutController extends Controller {
     this._debounceTimer = setTimeout(() => this._fetchShippingMethods(), 500);
   }
 
+  /**
+   * Micro-save email on blur for abandoned cart recovery.
+   * Saves the email to the guest cart so the backend can send recovery emails.
+   * The email is also sent as part of the shipping estimate request when address fields are filled.
+   */
+  onEmailBlur() {
+    const email = this.hasEmailTarget ? this.emailTarget.value.trim() : '';
+    if (!email || !email.includes('@') || email === this._lastSavedEmail) return;
+    if (localStorage.getItem('maho_token')) return; // Already logged in
+
+    this._lastSavedEmail = email;
+    this._customerEmail = email;
+
+    // TODO: Save email to cart for abandoned cart recovery once
+    // the API supports PUT /api/guest-carts/{id} with customerEmail
+  }
+
   _getAddress() {
     const street1 = this.hasStreetTarget ? this.streetTarget.value.trim() : '';
     const street2 = this.hasStreet2Target ? this.street2Target.value.trim() : '';
@@ -491,17 +564,20 @@ export default class CheckoutController extends Controller {
   continueToShipping(event) {
     event.preventDefault();
     const addr = this._getAddress();
-    const email = this.hasEmailTarget ? this.emailTarget.value.trim() : '';
+    // Email may come from the Stripe Link element (stored in _customerEmail) or the email input
+    const email = this.hasEmailTarget ? this.emailTarget.value.trim() : (this._customerEmail || '');
 
     if (!email || !this._isAddressComplete(addr)) {
       // Highlight empty required fields
-      const fields = ['email', 'firstName', 'lastName', 'street', 'city', 'postcode', 'telephone'];
+      const fields = ['firstName', 'lastName', 'street', 'city', 'postcode', 'telephone'];
       fields.forEach(f => {
         const target = this[`has${f.charAt(0).toUpperCase() + f.slice(1)}Target`] ? this[`${f}Target`] : null;
         if (target && !target.value.trim()) target.classList.add('input-error');
         else if (target) target.classList.remove('input-error');
       });
-      if (!this.countryTarget.value) this.countryTarget.classList.add('input-error');
+      // Only highlight email if the native input exists (not replaced by Link)
+      if (this.hasEmailTarget && !this.emailTarget.value.trim()) this.emailTarget.classList.add('input-error');
+      if (this.hasCountryTarget && !this.countryTarget.value) this.countryTarget.classList.add('input-error');
       return;
     }
 
@@ -683,7 +759,7 @@ export default class CheckoutController extends Controller {
     }
 
     const addr = this._getAddress();
-    const email = this.hasEmailTarget ? this.emailTarget.value.trim() : '';
+    const email = this.hasEmailTarget ? this.emailTarget.value.trim() : (this._customerEmail || '');
 
     try {
       // Let the payment adapter tokenize (get nonce, etc.) before submitting

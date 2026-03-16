@@ -6,12 +6,14 @@
 
 import { jsx } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
+import type { StoreConfig } from '../../../../types';
+import { ExtensionSlot } from '../../ExtensionSlot';
 
 /**
  * Register form — first/last name, email, password with confirm.
  * Wired to auth Stimulus controller.
  */
-export const AuthRegisterForm: FC = () => (
+export const AuthRegisterForm: FC<{ config?: StoreConfig }> = ({ config }) => (
   <div class="card bg-base-100 shadow-lg w-full max-w-md" data-controller="auth" data-auth-mode-value="register">
     <div class="card-body">
       <h1 class="text-2xl font-bold text-center">Create Account</h1>
@@ -46,6 +48,8 @@ export const AuthRegisterForm: FC = () => (
           <button type="submit" class="btn btn-primary w-full mt-2" data-auth-target="submitBtn">Create Account</button>
         </fieldset>
       </form>
+
+      {config ? <ExtensionSlot name="auth.register.after" config={config} /> : null}
 
       <div class="flex items-center justify-center gap-2 text-sm mt-4">
         <span class="text-base-content/60">Already have an account?</span>
