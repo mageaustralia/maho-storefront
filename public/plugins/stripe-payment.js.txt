@@ -97,13 +97,7 @@
         if (event.value && event.value.email) {
           context.onEmail(event.value.email);
         }
-        if (event.complete) {
-          self._linkAuthenticated = true;
-          context.onPaymentReady();
-        }
       });
-
-      this._linkAuthenticated = false;
       return true;
 
     } catch (e) {
@@ -147,37 +141,9 @@
       }
       this._elements = this._stripe.elements();
 
-      // If Link already authenticated, show a summary with option to use card instead
-      if (this._linkAuthenticated) {
-        container.innerHTML =
-          '<div class="flex items-center gap-2 p-3 bg-base-200/50 rounded-lg mb-3">' +
-          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>' +
-          '<span class="text-sm">Paying with <strong>Link</strong></span>' +
-          '</div>' +
-          '<a href="#" id="stripe-use-card" class="text-sm text-primary hover:underline">Use a different payment method</a>' +
-          '<div id="stripe-card-fields" style="display:none">' +
-          '<div id="stripe-pr-button" style="display:none"></div>' +
-          '<div id="stripe-pr-divider" style="display:none" class="divider text-xs text-base-content/40 my-3">Or pay with card</div>' +
-          '<div id="stripe-card-element" style="padding: 10px 12px; min-height: 40px; border: 1px solid oklch(var(--bc) / 0.25); border-radius: var(--radius-field, 0.25rem); background: var(--color-base-100, #fff);"></div>' +
-          '</div>' +
-          '<div id="stripe-card-errors" role="alert" class="text-sm text-error mt-1"></div>';
-
-        var useCardLink = document.getElementById('stripe-use-card');
-        var cardFields = document.getElementById('stripe-card-fields');
-        var self = this;
-        if (useCardLink && cardFields) {
-          useCardLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            self._linkAuthenticated = false;
-            cardFields.style.display = '';
-            useCardLink.style.display = 'none';
-            if (!self._cardElement) self._mountCardElement();
-          });
-        }
-        return;
-      }
-
       // Build the container HTML — PR button slot + card fields
+      // Note: Link Authentication Element handles email/identity only.
+      // Payment still requires card entry or Google Pay/Apple Pay.
       container.innerHTML =
         '<div id="stripe-pr-button" style="display:none"></div>' +
         '<div id="stripe-pr-divider" style="display:none" class="divider text-xs text-base-content/40 my-3">Or pay with card</div>' +
@@ -367,35 +333,11 @@
       return { stripe_payment_intent_id: piId };
     }
 
-    // Link flow — create PaymentIntent and confirm with Link's saved payment method
-    if (this._linkAuthenticated && this._stripe) {
-      var cartId = this._api ? this._api.cartId() : localStorage.getItem('maho_cart_id');
-      if (!cartId) throw new Error('No active cart found.');
-
-      var piResponse = await this._apiPost('/api/payments/stripe/payment-intents', { cartId: cartId });
-      if (piResponse.error) throw new Error(piResponse.message || 'Could not initialize payment.');
-
-      // Create a new elements instance with the client secret for payment confirmation
-      var payElements = this._stripe.elements({ clientSecret: piResponse.clientSecret });
-      // Mount a hidden payment element to access Link's saved PM
-      var tempDiv = document.createElement('div');
-      tempDiv.style.display = 'none';
-      document.body.appendChild(tempDiv);
-      var pe = payElements.create('payment');
-      pe.mount(tempDiv);
-
-      var linkResult = await this._stripe.confirmPayment({
-        elements: payElements,
-        confirmParams: { return_url: window.location.origin + '/order/success' },
-        redirect: 'if_required',
-      });
-
-      pe.destroy();
-      tempDiv.remove();
-
-      if (linkResult.error) throw new Error(linkResult.error.message || 'Payment failed.');
-      return { stripe_payment_intent_id: linkResult.paymentIntent.id };
-    }
+    // Link flow — Link authenticated but we still need card details.
+    // Link only verifies identity (email + SMS), the actual payment still
+    // goes through the card element. Fall through to the card flow below.
+    // If Link provided a saved payment method, it would have been handled
+    // by the Payment Request Button flow above (via _prPaymentIntentId).
 
     // Card flow
     if (!this._stripe || !this._cardElement) {
