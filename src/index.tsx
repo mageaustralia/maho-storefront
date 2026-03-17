@@ -1885,11 +1885,24 @@ app.post('/sync', async (c) => {
           await store.put(`${prefix}products:category:${cat.id}:page:1`, data);
           storeProductCount += data.products.length;
 
+          // Cache each product individually by urlKey for fast product page loads
+          for (const p of data.products) {
+            if (p.urlKey) {
+              c.executionCtx.waitUntil(store.put(`${prefix}product:${p.urlKey}`, p, 86400));
+            }
+          }
+
           const totalPages = Math.ceil(data.totalItems / 24);
           for (let pg = 2; pg <= Math.min(totalPages, 3); pg++) {
             const pageData = await storeApiClient.fetchCategoryProducts(cat.id, pg, 24);
             await store.put(`${prefix}products:category:${cat.id}:page:${pg}`, pageData);
             storeProductCount += pageData.products.length;
+
+            for (const p of pageData.products) {
+              if (p.urlKey) {
+                c.executionCtx.waitUntil(store.put(`${prefix}product:${p.urlKey}`, p, 86400));
+              }
+            }
           }
         } catch (e) {
           results[`${storeCode || 'default'}:category:${cat.id}`] = `error: ${(e as Error).message}`;
