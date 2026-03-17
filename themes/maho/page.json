@@ -30,7 +30,11 @@
         "sort": "standard",
         "pagination": "standard"
       },
-      "gridColumns": { "mobile": 2, "tablet": 3, "desktop": 4 },
+      "gridColumns": {
+        "mobile": 2,
+        "tablet": 3,
+        "desktop": 4
+      },
       "filterPosition": "sidebar-left",
       "showSubcategories": true,
       "swatchLabels": true
@@ -73,6 +77,11 @@
         "dashboard": "standard",
         "orders": "standard",
         "address-book": "standard"
+      }
+    },
+    "checkout": {
+      "components": {
+        "layout": "single-page"
       }
     }
   }
