@@ -44,6 +44,9 @@ export default class AuthStateController extends Controller {
   logout() {
     localStorage.removeItem('maho_token');
     localStorage.removeItem('maho_customer');
+    localStorage.removeItem('maho_cart_id');
+    localStorage.removeItem('maho_cart_qty');
+    updateCartBadge();
     document.dispatchEvent(new CustomEvent('auth:changed'));
     window.Turbo?.visit('/');
   }
