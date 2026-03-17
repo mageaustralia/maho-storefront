@@ -126,7 +126,7 @@ export const AccountPage: FC<AccountPageProps> = ({ config, categories, countrie
               </div>
 
               {/* Address Form (hidden by default) */}
-              <div class="mt-4 p-4 bg-base-200/50 rounded-lg" data-account-target="addressFormWrapper" style="display:none">
+              <div class="mt-4 p-4 bg-base-200/50 rounded-lg max-w-lg" data-account-target="addressFormWrapper" style="display:none">
                 <h3 class="font-semibold mb-3" data-account-target="addressFormTitle">Add Address</h3>
                 <div class="text-sm" data-account-target="addressMessage"></div>
                 <form data-action="submit->account#saveAddress" novalidate class="flex flex-col gap-3">
