@@ -452,9 +452,9 @@ export default class AccountController extends Controller {
       const shippingMethod = order.shippingDescription || order.shippingMethod || '';
 
       this.orderDetailTarget.innerHTML = `
-        <div class="flex items-center gap-2 mb-5">
-          <button class="btn btn-sm btn-ghost btn-circle" data-action="account#backToOrders">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 4L7 10l6 6"/></svg>
+        <div class="flex items-center gap-3 mb-5">
+          <button class="text-base-content/60 hover:text-base-content" data-action="account#backToOrders">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <div class="flex-1">
             <h3 class="text-xl font-bold">Order #${escapeHtml(incrementId || String(order.id))}</h3>
