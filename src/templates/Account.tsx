@@ -57,7 +57,7 @@ export const AccountPage: FC<AccountPageProps> = ({ config, categories, countrie
         </div>
 
         {/* Tab Navigation — scrollable on mobile */}
-        <div class="tabs tabs-border mb-6 overflow-x-auto flex-nowrap">
+        <div class="tabs tabs-border mb-8 pb-2 overflow-x-auto overflow-y-hidden flex-nowrap scrollbar-none">
           <button class="account-tab tab tab-active active whitespace-nowrap" data-action="account#switchTab" data-tab="info">Account Info</button>
           <button class="account-tab tab whitespace-nowrap" data-action="account#switchTab" data-tab="addresses">Addresses</button>
           <button class="account-tab tab whitespace-nowrap" data-action="account#switchTab" data-tab="wishlist">Wishlist</button>
