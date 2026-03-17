@@ -48,10 +48,11 @@ export default class AccountController extends Controller {
 
     this.loadProfile();
 
-    // Check for tab param in URL
+    // Check for tab in URL hash (#orders) or query param (?tab=orders)
+    const hash = window.location.hash.replace('#', '');
     const params = new URLSearchParams(window.location.search);
-    const tab = params.get('tab');
-    if (tab === 'addresses' || tab === 'orders' || tab === 'wishlist' || tab === 'reviews') {
+    const tab = hash || params.get('tab');
+    if (tab && ['addresses', 'orders', 'wishlist', 'reviews', 'info'].includes(tab)) {
       this._activateTab(tab);
     }
 
@@ -679,6 +680,8 @@ export default class AccountController extends Controller {
   switchTab(event) {
     const tab = event.currentTarget.dataset.tab;
     this._activateTab(tab);
+    // Update URL hash for direct linking
+    history.replaceState(null, '', `#${tab}`);
   }
 
   _activateTab(tab) {
