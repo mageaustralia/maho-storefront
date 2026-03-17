@@ -119,7 +119,7 @@ export const AccountPage: FC<AccountPageProps> = ({ config, categories, countrie
         {/* Tab: Addresses */}
         <div data-account-target="addressesPanel" style="display:none">
           <div class="card bg-base-100 shadow-sm">
-            <div class="card-body max-sm:p-3">
+            <div class="card-body max-sm:p-0">
               <div class="flex items-center justify-between">
                 <h2 class="card-title text-lg">Your Addresses</h2>
                 <button class="btn btn-primary btn-sm" data-action="account#showAddressForm">Add Address</button>
@@ -211,7 +211,7 @@ export const AccountPage: FC<AccountPageProps> = ({ config, categories, countrie
         {/* Tab: Wishlist */}
         <div data-account-target="wishlistPanel" style="display:none">
           <div class="card bg-base-100 shadow-sm">
-            <div class="card-body max-sm:p-3">
+            <div class="card-body max-sm:p-0">
               <h2 class="card-title text-lg">My Wishlist</h2>
               <div data-account-target="wishlistGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 [&_.text-center]:mx-auto [&_.text-center]:col-span-full">
                 <p class="text-base-content/60 text-sm">Loading wishlist...</p>
@@ -223,7 +223,7 @@ export const AccountPage: FC<AccountPageProps> = ({ config, categories, countrie
         {/* Tab: Reviews */}
         <div data-account-target="reviewsPanel" style="display:none">
           <div class="card bg-base-100 shadow-sm">
-            <div class="card-body max-sm:p-3">
+            <div class="card-body max-sm:p-0">
               <h2 class="card-title text-lg">My Reviews</h2>
               <div data-account-target="reviewsGrid" class="mt-4">
                 <p class="text-base-content/60 text-sm">Loading reviews...</p>
@@ -235,7 +235,7 @@ export const AccountPage: FC<AccountPageProps> = ({ config, categories, countrie
         {/* Tab: Orders */}
         <div data-account-target="ordersPanel" style="display:none">
           <div class="card bg-base-100 shadow-sm">
-            <div class="card-body max-sm:p-3">
+            <div class="card-body max-sm:p-0">
               <h2 class="card-title text-lg">Order History</h2>
 
               {/* Orders list */}
