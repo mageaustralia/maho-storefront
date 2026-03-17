@@ -2324,8 +2324,20 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
   const prefix = currentStoreCode ? `${currentStoreCode}:` : '';
-  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
   const slug = c.req.param('slug');
+
+  // Fetch store data AND all possible entity types in ONE parallel batch.
+  // This reduces 3 sequential KV round trips to 1.
+  const [storeData, kvCategory, kvProduct, kvCms, kvCmsUnprefixed, kvBlog] = await Promise.all([
+    getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
+    store.get<Category>(`${prefix}category:${slug}`),
+    store.get<Product>(`${prefix}product:${slug}`),
+    store.get<CmsPage>(`${prefix}cms:${slug}`),
+    prefix ? store.get<CmsPage>(`cms:${slug}`) : Promise.resolve(null),
+    store.get<CmsPage>(`${prefix}blog:${slug}`),
+  ]);
+
+  const { config, categories } = storeData;
   const apiClient = createApiClient(c.env, stores, currentStoreCode);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
 
@@ -2385,27 +2397,21 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
   };
 
   // ---- PHASE 1: Try KV cache first (fast path) ----
+  // All lookups were fetched in parallel above alongside getStoreData().
 
-  // Try category from KV
-  const category = await store.get<Category>(`${prefix}category:${slug}`);
-  if (category) return renderCategory(category);
+  if (kvCategory) return renderCategory(kvCategory);
 
-  // Try product from KV
-  const product = await store.get<Product>(`${prefix}product:${slug}`);
-  if (product && product.urlKey === slug) return renderProduct(product);
+  if (kvProduct && kvProduct.urlKey === slug) return renderProduct(kvProduct);
 
-  // Try CMS page from KV
-  const cmsPage = await store.get<CmsPage>(`${prefix}cms:${slug}`) ?? await store.get<CmsPage>(`cms:${slug}`);
-  if (cmsPage) {
-    const needsSidebars = cmsPage.pageLayout && !['one_column', 'empty', 'minimal'].includes(cmsPage.pageLayout);
+  const resolvedCmsPage = kvCms ?? kvCmsUnprefixed;
+  if (resolvedCmsPage) {
+    const needsSidebars = resolvedCmsPage.pageLayout && !['one_column', 'empty', 'minimal'].includes(resolvedCmsPage.pageLayout);
     const cmsSidebars = needsSidebars ? await getSidebarBlocks(store, 'cms', currentStoreCode) : { left: null, right: null };
-    return c.html(<CmsPageTemplate config={config} categories={categories} page={cmsPage} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={cmsSidebars.left} sidebarRight={cmsSidebars.right} devData={devData} />);
+    return c.html(<CmsPageTemplate config={config} categories={categories} page={resolvedCmsPage} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={cmsSidebars.left} sidebarRight={cmsSidebars.right} devData={devData} />);
   }
 
-  // Try blog post from KV
-  const blogPost = await store.get<CmsPage>(`${prefix}blog:${slug}`);
-  if (blogPost) {
-    return c.html(<BlogPostPage config={config} categories={categories} post={blogPost} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={null} sidebarRight={null} devData={devData} />);
+  if (kvBlog) {
+    return c.html(<BlogPostPage config={config} categories={categories} post={kvBlog} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={null} sidebarRight={null} devData={devData} />);
   }
 
   // ---- PHASE 2: KV miss — use URL resolver API to determine type ----
