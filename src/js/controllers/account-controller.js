@@ -373,8 +373,8 @@ export default class AccountController extends Controller {
           <thead><tr>
             <th>Order #</th>
             <th>Date</th>
-            <th>Ship To</th>
-            <th>Total</th>
+            <th class="max-sm:hidden">Ship To</th>
+            <th class="max-sm:hidden">Total</th>
             <th>Status</th>
             <th></th>
           </tr></thead>
@@ -385,8 +385,8 @@ export default class AccountController extends Controller {
               return `<tr class="hover">
                 <td><strong>${escapeHtml(o.incrementId || String(o.id))}</strong></td>
                 <td>${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : ''}</td>
-                <td>${escapeHtml(o.shippingAddress?.firstName || '')} ${escapeHtml(o.shippingAddress?.lastName || '')}</td>
-                <td>${formatPrice(o.grandTotal, this.currencyValue)}</td>
+                <td class="max-sm:hidden">${escapeHtml(o.shippingAddress?.firstName || '')} ${escapeHtml(o.shippingAddress?.lastName || '')}</td>
+                <td class="max-sm:hidden">${formatPrice(o.grandTotal, this.currencyValue)}</td>
                 <td><span class="badge badge-sm ${badgeColor}">${escapeHtml(o.status || '')}</span></td>
                 <td><button class="btn btn-xs btn-ghost btn-primary" data-action="account#viewOrder" data-order-id="${o.id}" data-increment-id="${escapeHtml(o.incrementId || '')}">View</button></td>
               </tr>`;
@@ -696,7 +696,7 @@ export default class AccountController extends Controller {
       const items = data.member || data || [];
 
       if (!items.length) {
-        this.wishlistGridTarget.innerHTML = '<div class="no-wishlist"><p>Your wishlist is empty.</p><a href="/" class="btn btn-primary btn-sm">Start Shopping</a></div>';
+        this.wishlistGridTarget.innerHTML = '<div class="col-span-full text-center py-8 text-base-content/60"><p>Your wishlist is empty.</p><a href="/" class="btn btn-primary btn-sm mt-3">Start Shopping</a></div>';
         return;
       }
 
@@ -740,7 +740,7 @@ export default class AccountController extends Controller {
 
     // Check if grid is now empty
     if (this.hasWishlistGridTarget && !this.wishlistGridTarget.querySelector('.wishlist-item')) {
-      this.wishlistGridTarget.innerHTML = '<div class="no-wishlist"><p>Your wishlist is empty.</p><a href="/" class="btn btn-primary btn-sm">Start Shopping</a></div>';
+      this.wishlistGridTarget.innerHTML = '<div class="col-span-full text-center py-8 text-base-content/60"><p>Your wishlist is empty.</p><a href="/" class="btn btn-primary btn-sm mt-3">Start Shopping</a></div>';
     }
 
     // Fire the API call (don't block on response)
@@ -820,6 +820,9 @@ export default class AccountController extends Controller {
   logout() {
     localStorage.removeItem('maho_token');
     localStorage.removeItem('maho_customer');
+    localStorage.removeItem('maho_cart_id');
+    localStorage.removeItem('maho_cart_qty');
+    updateCartBadge();
     document.dispatchEvent(new CustomEvent('auth:changed'));
     window.Turbo?.visit('/');
   }
