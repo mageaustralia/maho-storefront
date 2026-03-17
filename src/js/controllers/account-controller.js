@@ -387,7 +387,7 @@ export default class AccountController extends Controller {
                 <td><strong>${escapeHtml(o.incrementId || String(o.id))}</strong></td>
                 <td>${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : ''}</td>
                 <td class="max-sm:hidden">${escapeHtml(o.shippingAddress?.firstName || '')} ${escapeHtml(o.shippingAddress?.lastName || '')}</td>
-                <td class="max-sm:hidden">${formatPrice(o.grandTotal, this.currencyValue)}</td>
+                <td class="max-sm:hidden">${formatPrice(o.prices?.grandTotal || o.grandTotal || 0, this.currencyValue)}</td>
                 <td><span class="badge badge-sm ${badgeColor}">${escapeHtml(o.status || '')}</span></td>
                 <td><button class="btn btn-xs btn-ghost btn-primary" data-action="account#viewOrder" data-order-id="${o.id}" data-increment-id="${escapeHtml(o.incrementId || '')}">View</button></td>
               </tr>`;
@@ -520,11 +520,11 @@ export default class AccountController extends Controller {
             </div>
 
             <div class="border-t border-base-200 mt-4 pt-4 space-y-1.5 text-sm">
-              ${order.subtotal ? `<div class="flex justify-between"><span class="text-base-content/60">Subtotal</span><span>${formatPrice(order.subtotal, this.currencyValue)}</span></div>` : ''}
-              ${order.shippingAmount ? `<div class="flex justify-between"><span class="text-base-content/60">Shipping</span><span>${formatPrice(order.shippingAmount, this.currencyValue)}</span></div>` : ''}
-              ${order.discountAmount ? `<div class="flex justify-between"><span class="text-base-content/60">Discount</span><span class="text-success">${formatPrice(order.discountAmount, this.currencyValue)}</span></div>` : ''}
-              ${order.taxAmount ? `<div class="flex justify-between"><span class="text-base-content/60">Tax</span><span>${formatPrice(order.taxAmount, this.currencyValue)}</span></div>` : ''}
-              <div class="flex justify-between font-bold text-base pt-2 border-t border-base-200"><span>Total</span><span>${formatPrice(order.grandTotal || 0, this.currencyValue)}</span></div>
+              ${order.prices?.subtotal ? `<div class="flex justify-between"><span class="text-base-content/60">Subtotal</span><span>${formatPrice(order.prices.subtotal, this.currencyValue)}</span></div>` : ''}
+              ${order.prices?.shippingAmount ? `<div class="flex justify-between"><span class="text-base-content/60">Shipping</span><span>${formatPrice(order.prices.shippingAmount, this.currencyValue)}</span></div>` : ''}
+              ${order.prices?.discountAmount ? `<div class="flex justify-between"><span class="text-base-content/60">Discount</span><span class="text-success">${formatPrice(order.prices.discountAmount, this.currencyValue)}</span></div>` : ''}
+              ${order.prices?.taxAmount ? `<div class="flex justify-between"><span class="text-base-content/60">Tax</span><span>${formatPrice(order.prices.taxAmount, this.currencyValue)}</span></div>` : ''}
+              <div class="flex justify-between font-bold text-base pt-2 border-t border-base-200"><span>Total</span><span>${formatPrice(order.prices?.grandTotal || order.grandTotal || 0, this.currencyValue)}</span></div>
             </div>
           </div>
         </div>

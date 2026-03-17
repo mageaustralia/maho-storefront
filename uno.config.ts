@@ -397,7 +397,7 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
 .catblocks li img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
 .catblocks li span { padding: 0.75rem; text-align: center; font-size: 0.875rem; font-weight: 500; }
 @media (max-width: 768px) { .catblocks li { flex: 0 0 calc(50% - 0.5rem); } }
-.search-overlay { position: fixed; inset: 0; z-index: 1100; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; display: flex; justify-content: center; padding-top: 10vh; }
+.search-overlay { position: fixed; inset: 0; z-index: 1100; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; display: flex; justify-content: center; align-items: flex-start; padding-top: 3vh; }
 .search-overlay.open { opacity: 1; visibility: visible; }
 
 /* Filter details (category sidebar + drawer) — plain <details> instead of DaisyUI collapse */
