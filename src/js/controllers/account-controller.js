@@ -374,8 +374,7 @@ export default class AccountController extends Controller {
           <thead><tr>
             <th>Order #</th>
             <th>Date</th>
-            <th class="max-sm:hidden">Ship To</th>
-            <th class="max-sm:hidden">Total</th>
+            <th>Total</th>
             <th>Status</th>
             <th></th>
           </tr></thead>
@@ -386,8 +385,7 @@ export default class AccountController extends Controller {
               return `<tr class="hover">
                 <td><strong>${escapeHtml(o.incrementId || String(o.id))}</strong></td>
                 <td>${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : ''}</td>
-                <td class="max-sm:hidden">${escapeHtml(o.shippingAddress?.firstName || '')} ${escapeHtml(o.shippingAddress?.lastName || '')}</td>
-                <td class="max-sm:hidden">${formatPrice(o.prices?.grandTotal || o.grandTotal || 0, this.currencyValue)}</td>
+                <td>${formatPrice(o.prices?.grandTotal || o.grandTotal || 0, this.currencyValue)}</td>
                 <td><span class="badge badge-sm ${badgeColor}">${escapeHtml(o.status || '')}</span></td>
                 <td><button class="btn btn-xs btn-ghost btn-primary" data-action="account#viewOrder" data-order-id="${o.id}" data-increment-id="${escapeHtml(o.incrementId || '')}">View</button></td>
               </tr>`;
