@@ -94,40 +94,29 @@ export default class SearchController extends Controller {
         }
       }
 
-      // Render product results
+      // Render product results as grid
       const products = data.products || [];
       if (this.hasProductResultsTarget) {
         if (products.length > 0) {
           hasResults = true;
-          this.productResultsTarget.innerHTML = '';
-
-          const heading = document.createElement('h4');
-          heading.className = 'text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2';
-          heading.textContent = 'Products';
-          this.productResultsTarget.appendChild(heading);
-
-          const grid = document.createElement('div');
-          grid.className = 'flex flex-col gap-1';
-          products.forEach(p => {
-            const el = hydrateTemplate('tpl-search-result', {
-              link: `/${p.urlKey}`,
-              image: p.thumbnailUrl,
-              name: p.name,
-              price: formatPrice(p.finalPrice ?? p.price),
-            });
-            if (p.thumbnailUrl) {
-              const img = el.querySelector('[data-slot="image"]');
-              if (img) img.alt = p.name;
-            }
-            grid.appendChild(el);
-          });
-          this.productResultsTarget.appendChild(grid);
-
-          const viewAll = document.createElement('a');
-          viewAll.href = `/search?q=${encodeURIComponent(query)}`;
-          viewAll.className = 'block text-center text-sm font-medium text-primary mt-3 hover:underline';
-          viewAll.textContent = 'View all results';
-          this.productResultsTarget.appendChild(viewAll);
+          const totalItems = data.totalItems || products.length;
+          this.productResultsTarget.innerHTML = `
+            <h4 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">Products</h4>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              ${products.map(p => `<a href="/${escapeHtml(p.urlKey)}" class="group text-center" data-turbo-prefetch="true">
+                <div class="aspect-square bg-base-200/50 rounded-lg overflow-hidden mb-2 flex items-center justify-center">
+                  ${p.thumbnailUrl
+                    ? `<img src="${escapeHtml(p.thumbnailUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform" loading="lazy" />`
+                    : `<svg class="w-10 h-10 text-base-content/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 4-6 5 7"/></svg>`
+                  }
+                </div>
+                <p class="text-xs leading-tight line-clamp-2 group-hover:text-primary transition-colors">${escapeHtml(p.name)}</p>
+                <p class="text-sm font-semibold text-primary mt-0.5">${formatPrice(p.finalPrice ?? p.price)}</p>
+              </a>`).join('')}
+            </div>
+            ${totalItems > products.length ? `<div class="text-center mt-4">
+              <a href="/search?q=${encodeURIComponent(query)}" class="btn btn-sm btn-outline">See all products (${totalItems})</a>
+            </div>` : ''}`;
         } else {
           this.productResultsTarget.innerHTML = '';
         }

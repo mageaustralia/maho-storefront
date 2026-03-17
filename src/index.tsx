@@ -1164,6 +1164,7 @@ app.get('/api/search/suggest', async (c) => {
 
   return c.json({
     products: (productsRes as any).products || productsRes.member || [],
+    totalItems: (productsRes as any).totalItems || 0,
     categories: matchedCategories,
     blogPosts: matchedBlog,
     cmsPages: matchedCms,
