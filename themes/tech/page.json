@@ -29,7 +29,11 @@
         "sort": "standard",
         "pagination": "standard"
       },
-      "gridColumns": { "mobile": 2, "tablet": 3, "desktop": 3 },
+      "gridColumns": {
+        "mobile": 2,
+        "tablet": 3,
+        "desktop": 3
+      },
       "filterPosition": "sidebar-left",
       "showSubcategories": true,
       "cmsInsertion": "row",
@@ -68,6 +72,11 @@
         "dashboard": "standard",
         "orders": "standard",
         "address-book": "standard"
+      }
+    },
+    "checkout": {
+      "components": {
+        "layout": "single-page"
       }
     }
   }
