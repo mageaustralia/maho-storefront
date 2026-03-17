@@ -638,9 +638,15 @@ export default class AccountController extends Controller {
     try {
       const maskedId = await ensureCart();
 
+      const skippedItems = [];
       for (const item of order.items) {
         // Skip parent configurable products (only add children)
         if (item.productType === 'configurable') continue;
+        // Skip downloadable/bundle — require option selection
+        if (item.productType === 'downloadable' || item.productType === 'bundle') {
+          skippedItems.push(item.name);
+          continue;
+        }
         const qty = (item.qtyOrdered || item.qty || 1) - (item.qtyCanceled || 0);
         if (qty <= 0) continue;
 
@@ -651,12 +657,14 @@ export default class AccountController extends Controller {
       }
 
       if (addedCount > 0) {
-        // Refresh cart badge
         const cart = await api.get(`/api/guest-carts/${maskedId}`);
         localStorage.setItem('maho_cart_qty', String(cart.itemsQty || 0));
         updateCartBadge();
         document.dispatchEvent(new CustomEvent('cart:open'));
-        btn.textContent = `${addedCount} item${addedCount > 1 ? 's' : ''} added!`;
+        const skippedMsg = skippedItems.length ? ` (${skippedItems.join(', ')} must be added from product page)` : '';
+        btn.textContent = `${addedCount} item${addedCount > 1 ? 's' : ''} added!${skippedMsg}`;
+      } else if (skippedItems.length) {
+        btn.textContent = 'Items require options — visit product page';
       } else {
         btn.textContent = 'No items could be added';
       }
