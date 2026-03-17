@@ -855,10 +855,20 @@ app.get('/media/*', async (c) => {
   }
 });
 
-// Helper to get store essentials from KV
+// Helper to get store essentials from KV — with in-memory cache (30s TTL)
+// Avoids cold-PoP KV latency (~300ms) on every request.
 interface FooterPage { identifier: string; title: string; }
+type StoreDataCache = { config: StoreConfig; categories: Category[]; footerPages: FooterPage[]; ts: number };
+const _storeDataCache: Record<string, StoreDataCache> = {};
+const STORE_DATA_TTL = 30_000; // 30 seconds
 
 async function getStoreData(store: ContentStore, storeCode?: string, siteOrigin?: string): Promise<{ config: StoreConfig; categories: Category[]; footerPages: FooterPage[] }> {
+  const cacheKey = storeCode || '_default';
+  const cached = _storeDataCache[cacheKey];
+  if (cached && Date.now() - cached.ts < STORE_DATA_TTL) {
+    return { config: cached.config, categories: cached.categories, footerPages: cached.footerPages };
+  }
+
   // Use store-prefixed keys if a store code is provided
   const prefix = storeCode ? `${storeCode}:` : '';
   const [config, categories, footerPages] = await Promise.all([
@@ -878,11 +888,13 @@ async function getStoreData(store: ContentStore, storeCode?: string, siteOrigin?
   if (siteOrigin) {
     resolved.baseUrl = siteOrigin.replace(/\/$/, '');
   }
-  return {
+  const result = {
     config: resolved,
     categories: categories ?? [],
     footerPages: footerPages ?? [],
   };
+  _storeDataCache[cacheKey] = { ...result, ts: Date.now() };
+  return result;
 }
 
 // Helper to fetch sidebar CMS blocks from KV for layout templates.
