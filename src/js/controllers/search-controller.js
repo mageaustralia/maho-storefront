@@ -53,21 +53,56 @@ export default class SearchController extends Controller {
 
   async performSearch(query) {
     try {
-      const [productsRes] = await Promise.all([
-        api.get(`/api/products?search=${encodeURIComponent(query)}&itemsPerPage=8`),
-      ]);
-
-      const products = productsRes.member || [];
+      const data = await api.get(`/api/search/suggest?q=${encodeURIComponent(query)}`);
       let hasResults = false;
 
+      // Render category results
+      if (this.hasCategoryResultsTarget) {
+        if (data.categories?.length) {
+          hasResults = true;
+          this.categoryResultsTarget.innerHTML = `
+            <h4 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">Categories</h4>
+            <div class="flex flex-col gap-0.5">
+              ${data.categories.map(c => `<a href="/${escapeHtml(c.urlKey)}" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 text-sm" data-turbo-prefetch="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0 text-base-content/40"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+                ${escapeHtml(c.name)}
+              </a>`).join('')}
+            </div>`;
+        } else {
+          this.categoryResultsTarget.innerHTML = '';
+        }
+      }
+
+      // Render blog results
+      if (this.hasPageResultsTarget) {
+        const blogAndCms = [
+          ...(data.blogPosts || []).map(p => ({ title: p.title, url: `/blog/${p.urlKey}`, type: 'blog' })),
+          ...(data.cmsPages || []).map(p => ({ title: p.title, url: `/page/${p.identifier}`, type: 'page' })),
+        ];
+        if (blogAndCms.length) {
+          hasResults = true;
+          this.pageResultsTarget.innerHTML = `
+            <h4 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">Pages</h4>
+            <div class="flex flex-col gap-0.5">
+              ${blogAndCms.map(p => `<a href="${escapeHtml(p.url)}" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 text-sm" data-turbo-prefetch="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" class="shrink-0 text-base-content/40"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
+                ${escapeHtml(p.title)}
+              </a>`).join('')}
+            </div>`;
+        } else {
+          this.pageResultsTarget.innerHTML = '';
+        }
+      }
+
       // Render product results
+      const products = data.products || [];
       if (this.hasProductResultsTarget) {
         if (products.length > 0) {
           hasResults = true;
           this.productResultsTarget.innerHTML = '';
 
           const heading = document.createElement('h4');
-          heading.className = 'text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-2';
+          heading.className = 'text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2';
           heading.textContent = 'Products';
           this.productResultsTarget.appendChild(heading);
 
