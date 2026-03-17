@@ -30,6 +30,8 @@ export default class SearchController extends Controller {
     document.body.style.overflow = 'hidden';
     if (this.hasInputTarget) {
       this.inputTarget.focus();
+      // Delayed focus for mobile browsers that need the overlay to be visible first
+      setTimeout(() => this.inputTarget.focus(), 50);
       if (this.inputTarget.value.length >= 2) this.performSearch(this.inputTarget.value);
     }
   }
