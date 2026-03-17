@@ -1123,6 +1123,53 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
   );
 });
 
+// Search suggest — products (via Maho API / Meilisearch) + categories + blog + CMS (from KV)
+app.get('/api/search/suggest', async (c) => {
+  const query = (c.req.query('q') || '').trim().toLowerCase();
+  if (query.length < 2) return c.json({ products: [], categories: [], blogPosts: [], cmsPages: [] });
+
+  const store = createStore(c.env);
+  const { stores, currentStoreCode } = await getStoreContext(c);
+  const prefix = currentStoreCode ? `${currentStoreCode}:` : '';
+  const apiClient = createApiClient(c.env, stores, currentStoreCode);
+
+  const [productsRes, categories, blogPosts, cmsPages] = await Promise.all([
+    apiClient.searchProducts(query, 1, 6).catch(() => ({ products: [], totalItems: 0 })),
+    store.get<Category[]>(`${prefix}categories`),
+    store.get<any>(`${prefix}blog-posts`),
+    store.get<FooterPage[]>(`${prefix}footer-pages`),
+  ]);
+
+  const allCats: Category[] = [];
+  for (const cat of (categories || [])) {
+    allCats.push(cat);
+    if (cat.children) allCats.push(...cat.children);
+  }
+  const matchedCategories = allCats
+    .filter(cat => cat.isActive && cat.includeInMenu && cat.name.toLowerCase().includes(query))
+    .slice(0, 5)
+    .map(cat => ({ name: cat.name, urlKey: cat.urlPath || cat.urlKey }));
+
+  const posts = Array.isArray(blogPosts) ? blogPosts : [];
+  const matchedBlog = posts
+    .filter((p: any) => (p.title || '').toLowerCase().includes(query))
+    .slice(0, 3)
+    .map((p: any) => ({ title: p.title, urlKey: p.urlKey || p.identifier, excerpt: p.excerpt || p.shortContent || null, imageUrl: p.imageUrl || null }));
+
+  const pages = Array.isArray(cmsPages) ? cmsPages : [];
+  const matchedCms = pages
+    .filter((p: FooterPage) => (p.title || '').toLowerCase().includes(query) && p.identifier !== 'home' && p.identifier !== 'no-route')
+    .slice(0, 3)
+    .map((p: FooterPage) => ({ title: p.title, identifier: p.identifier }));
+
+  return c.json({
+    products: (productsRes as any).products || productsRes.member || [],
+    categories: matchedCategories,
+    blogPosts: matchedBlog,
+    cmsPages: matchedCms,
+  }, 200, { 'Access-Control-Allow-Origin': '*' });
+});
+
 // API proxy — forwards client-side API calls to the backend
 // This is essential when the backend requires basic auth (e.g. dev sites)
 // or when CORS prevents direct browser→backend requests.
@@ -1221,58 +1268,6 @@ app.all('/api/*', async (c) => {
   });
 });
 
-
-// Search
-// Search suggest — searches products (via API) + categories + blog + CMS (from KV) in parallel
-app.get('/api/search/suggest', async (c) => {
-  const query = (c.req.query('q') || '').trim().toLowerCase();
-  if (query.length < 2) return c.json({ products: [], categories: [], blogPosts: [], cmsPages: [] });
-
-  const store = createStore(c.env);
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const prefix = currentStoreCode ? `${currentStoreCode}:` : '';
-  const apiClient = createApiClient(c.env, stores, currentStoreCode);
-
-  // Search all content types in parallel
-  const [productsRes, categories, blogPosts, cmsPages] = await Promise.all([
-    apiClient.searchProducts(query, 1, 6).catch(() => ({ products: [], totalItems: 0 })),
-    store.get<Category[]>(`${prefix}categories`),
-    store.get<any>(`${prefix}blog-posts`),
-    store.get<FooterPage[]>(`${prefix}footer-pages`),  // CMS pages list (footer pages are the only indexed list)
-  ]);
-
-  // Filter categories by name match (including children)
-  const allCats: Category[] = [];
-  for (const cat of (categories || [])) {
-    allCats.push(cat);
-    if (cat.children) allCats.push(...cat.children);
-  }
-  const matchedCategories = allCats
-    .filter(cat => cat.isActive && cat.includeInMenu && cat.name.toLowerCase().includes(query))
-    .slice(0, 5)
-    .map(cat => ({ name: cat.name, urlKey: cat.urlPath || cat.urlKey }));
-
-  // Filter blog posts by title match
-  const posts = Array.isArray(blogPosts) ? blogPosts : [];
-  const matchedBlog = posts
-    .filter((p: any) => (p.title || '').toLowerCase().includes(query))
-    .slice(0, 3)
-    .map((p: any) => ({ title: p.title, urlKey: p.urlKey || p.identifier, excerpt: p.excerpt || p.shortContent || null, imageUrl: p.imageUrl || null }));
-
-  // Filter CMS/footer pages by title match
-  const pages = Array.isArray(cmsPages) ? cmsPages : [];
-  const matchedCms = pages
-    .filter((p: FooterPage) => (p.title || '').toLowerCase().includes(query) && p.identifier !== 'home' && p.identifier !== 'no-route')
-    .slice(0, 3)
-    .map((p: FooterPage) => ({ title: p.title, identifier: p.identifier }));
-
-  return c.json({
-    products: (productsRes as any).products || productsRes.member || [],
-    categories: matchedCategories,
-    blogPosts: matchedBlog,
-    cmsPages: matchedCms,
-  }, 200, { 'Access-Control-Allow-Origin': '*' });
-});
 
 app.get('/search', async (c) => {
   const devSession = c.get('devSession') as DevSession | undefined;
