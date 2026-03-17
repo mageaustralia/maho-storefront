@@ -439,66 +439,93 @@ export default class AccountController extends Controller {
       const badgeColor = statusClass === 'complete' ? 'badge-success' : statusClass === 'processing' ? 'badge-info' : statusClass === 'pending' ? 'badge-warning' : 'badge-ghost';
       const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
 
-      this.orderDetailTarget.innerHTML = `
-        <button class="btn btn-sm btn-outline gap-1 mb-5" data-action="account#backToOrders">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3L5 8l5 5"/></svg>
-          Back to Orders
-        </button>
+      const formatAddr = (addr) => {
+        if (!addr) return '';
+        const region = addr.region ? (typeof addr.region === 'object' ? addr.region.name || '' : addr.region) : '';
+        return `${escapeHtml(addr.firstName || '')} ${escapeHtml(addr.lastName || '')}<br>
+          ${escapeHtml(addr.street || '')}<br>
+          ${escapeHtml(addr.city || '')}${region ? ' ' + escapeHtml(region) : ''} ${escapeHtml(addr.postcode || '')}<br>
+          ${escapeHtml(addr.countryId || '')}
+          ${addr.telephone ? '<br>' + escapeHtml(addr.telephone) : ''}`;
+      };
 
-        <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
-          <div>
+      const shippingMethod = order.shippingDescription || order.shippingMethod || '';
+
+      this.orderDetailTarget.innerHTML = `
+        <div class="flex items-center gap-2 mb-5">
+          <button class="btn btn-sm btn-ghost btn-circle" data-action="account#backToOrders">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 4L7 10l6 6"/></svg>
+          </button>
+          <div class="flex-1">
             <h3 class="text-xl font-bold">Order #${escapeHtml(incrementId || String(order.id))}</h3>
-            ${orderDate ? `<p class="text-sm text-base-content/50 mt-0.5">Placed on ${orderDate}</p>` : ''}
+            ${orderDate ? `<p class="text-sm text-base-content/50">${escapeHtml(order.status || '')} &middot; ${orderDate}</p>` : ''}
           </div>
-          <div class="flex items-center gap-2">
-            <span class="badge ${badgeColor}">${escapeHtml(order.status || '')}</span>
-            <button class="btn btn-sm btn-outline" data-action="account#reorder" data-order-id="${order.id}">Reorder</button>
-          </div>
+          <button class="btn btn-sm btn-outline" data-action="account#reorder" data-order-id="${order.id}">Buy again</button>
         </div>
 
-        <div class="flex flex-col gap-5">
-          ${order.shippingAddress || order.billingAddress ? `
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            ${order.billingAddress ? `<div class="border border-base-200 rounded-lg p-4">
-              <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2">Billing Address</h5>
-              <p class="text-sm leading-relaxed">${escapeHtml(order.billingAddress.firstName || '')} ${escapeHtml(order.billingAddress.lastName || '')}<br>
-              ${escapeHtml(order.billingAddress.street || '')}<br>
-              ${escapeHtml(order.billingAddress.city || '')}${order.billingAddress.region ? ', ' + escapeHtml(typeof order.billingAddress.region === 'object' ? order.billingAddress.region.name || '' : order.billingAddress.region) : ''} ${escapeHtml(order.billingAddress.postcode || '')}<br>
-              ${escapeHtml(order.billingAddress.countryId || '')}</p>
-            </div>` : ''}
-            ${order.shippingAddress ? `<div class="border border-base-200 rounded-lg p-4">
-              <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2">Shipping Address</h5>
-              <p class="text-sm leading-relaxed">${escapeHtml(order.shippingAddress.firstName || '')} ${escapeHtml(order.shippingAddress.lastName || '')}<br>
-              ${escapeHtml(order.shippingAddress.street || '')}<br>
-              ${escapeHtml(order.shippingAddress.city || '')}${order.shippingAddress.region ? ', ' + escapeHtml(typeof order.shippingAddress.region === 'object' ? order.shippingAddress.region.name || '' : order.shippingAddress.region) : ''} ${escapeHtml(order.shippingAddress.postcode || '')}<br>
-              ${escapeHtml(order.shippingAddress.countryId || '')}</p>
-            </div>` : ''}
-          </div>` : ''}
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+          {/* Left column — addresses + details */}
+          <div class="flex flex-col gap-4">
+            {/* Status card */}
+            <div class="border border-base-200 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-1">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" class="text-success"><path d="M6 10l3 3 5-5"/><circle cx="10" cy="10" r="8"/></svg>
+                <span class="font-semibold text-sm">${escapeHtml(order.status || 'Processing')}</span>
+              </div>
+              <p class="text-xs text-base-content/50 ml-6.5">${orderDate}</p>
+            </div>
 
-          <div class="border border-base-200 rounded-lg overflow-hidden">
-            <div class="overflow-x-auto"><table class="table table-sm">
-              <thead class="bg-base-200/50"><tr><th>Product</th><th>SKU</th><th class="text-center">Qty</th><th class="text-right">Price</th></tr></thead>
-              <tbody>
-                ${items.map(item => `<tr>
-                  <td class="font-medium">${escapeHtml(item.name || '')}</td>
-                  <td class="text-base-content/50 text-xs font-mono">${escapeHtml(item.sku || '')}</td>
-                  <td class="text-center">${item.qtyOrdered || item.qty || 0}</td>
-                  <td class="text-right">${formatPrice(item.rowTotalInclTax || item.rowTotal || 0, this.currencyValue)}</td>
-                </tr>`).join('')}
-              </tbody>
-              <tfoot class="bg-base-200/30">
-                ${order.subtotal ? `<tr><td colspan="3" class="text-right text-sm">Subtotal</td><td class="text-right text-sm">${formatPrice(order.subtotal, this.currencyValue)}</td></tr>` : ''}
-                ${order.shippingAmount ? `<tr><td colspan="3" class="text-right text-sm">Shipping</td><td class="text-right text-sm">${formatPrice(order.shippingAmount, this.currencyValue)}</td></tr>` : ''}
-                ${order.taxAmount ? `<tr><td colspan="3" class="text-right text-sm">Tax</td><td class="text-right text-sm">${formatPrice(order.taxAmount, this.currencyValue)}</td></tr>` : ''}
-                ${order.discountAmount ? `<tr><td colspan="3" class="text-right text-sm">Discount</td><td class="text-right text-sm text-success">${formatPrice(order.discountAmount, this.currencyValue)}</td></tr>` : ''}
-                <tr class="font-bold"><td colspan="3" class="text-right">Grand Total</td><td class="text-right">${formatPrice(order.grandTotal || 0, this.currencyValue)}</td></tr>
-              </tfoot>
-            </table></div>
+            {/* Addresses */}
+            <div class="border border-base-200 rounded-lg p-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                ${order.shippingAddress ? `<div>
+                  <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2">Shipping address</h5>
+                  <p class="text-sm leading-relaxed">${formatAddr(order.shippingAddress)}</p>
+                </div>` : ''}
+                ${order.billingAddress ? `<div>
+                  <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2">Billing address</h5>
+                  <p class="text-sm leading-relaxed">${formatAddr(order.billingAddress)}</p>
+                </div>` : ''}
+              </div>
+              ${shippingMethod ? `<div class="mt-4 pt-4 border-t border-base-200">
+                <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-1">Shipping method</h5>
+                <p class="text-sm">${escapeHtml(shippingMethod)}</p>
+              </div>` : ''}
+              ${order.paymentMethod ? `<div class="mt-3 pt-3 border-t border-base-200">
+                <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-1">Payment</h5>
+                <p class="text-sm">${escapeHtml(order.paymentMethod || '')}</p>
+              </div>` : ''}
+            </div>
+
+            {/* Invoices */}
+            <div class="order-invoices-section border border-base-200 rounded-lg p-4" data-order-id="${order.id}">
+              <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2">Invoices</h5>
+              <p class="text-sm text-base-content/50 order-invoices-loading">Loading...</p>
+            </div>
           </div>
 
-          <div class="order-invoices-section" data-order-id="${order.id}">
-            <h4 class="font-semibold mb-2 text-sm">Invoices</h4>
-            <p class="text-sm text-base-content/50 order-invoices-loading">Loading...</p>
+          {/* Right column — items + totals */}
+          <div class="border border-base-200 rounded-lg p-4">
+            <div class="flex flex-col gap-4">
+              ${items.map(item => `<div class="flex gap-3 items-start">
+                ${item.thumbnailUrl ? `<div class="w-14 h-14 rounded-md overflow-hidden bg-base-200 shrink-0">
+                  <img src="${escapeHtml(item.thumbnailUrl)}" alt="${escapeHtml(item.name || '')}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-base-content/30 text-xs\\'>No img</div>'" />
+                </div>` : `<div class="w-14 h-14 rounded-md bg-base-200 shrink-0 flex items-center justify-center text-base-content/20 text-xs">No img</div>`}
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium leading-tight">${escapeHtml(item.name || '')}</p>
+                  <p class="text-xs text-base-content/50 mt-0.5">Qty: ${item.qtyOrdered || item.qty || 0}</p>
+                </div>
+                <span class="text-sm font-medium shrink-0">${formatPrice(item.rowTotalInclTax || item.rowTotal || 0, this.currencyValue)}</span>
+              </div>`).join('')}
+            </div>
+
+            <div class="border-t border-base-200 mt-4 pt-4 space-y-1.5 text-sm">
+              ${order.subtotal ? `<div class="flex justify-between"><span class="text-base-content/60">Subtotal</span><span>${formatPrice(order.subtotal, this.currencyValue)}</span></div>` : ''}
+              ${order.shippingAmount ? `<div class="flex justify-between"><span class="text-base-content/60">Shipping</span><span>${formatPrice(order.shippingAmount, this.currencyValue)}</span></div>` : ''}
+              ${order.discountAmount ? `<div class="flex justify-between"><span class="text-base-content/60">Discount</span><span class="text-success">${formatPrice(order.discountAmount, this.currencyValue)}</span></div>` : ''}
+              ${order.taxAmount ? `<div class="flex justify-between"><span class="text-base-content/60">Tax</span><span>${formatPrice(order.taxAmount, this.currencyValue)}</span></div>` : ''}
+              <div class="flex justify-between font-bold text-base pt-2 border-t border-base-200"><span>Total</span><span>${formatPrice(order.grandTotal || 0, this.currencyValue)}</span></div>
+            </div>
           </div>
         </div>
       `;
