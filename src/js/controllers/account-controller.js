@@ -464,9 +464,8 @@ export default class AccountController extends Controller {
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-          {/* Left column — addresses + details */}
           <div class="flex flex-col gap-4">
-            {/* Status card */}
+            
             <div class="border border-base-200 rounded-lg p-4">
               <div class="flex items-center gap-2 mb-1">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" class="text-success"><path d="M6 10l3 3 5-5"/><circle cx="10" cy="10" r="8"/></svg>
@@ -475,7 +474,7 @@ export default class AccountController extends Controller {
               <p class="text-xs text-base-content/50 ml-6.5">${orderDate}</p>
             </div>
 
-            {/* Addresses */}
+            
             <div class="border border-base-200 rounded-lg p-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 ${order.shippingAddress ? `<div>
@@ -497,14 +496,14 @@ export default class AccountController extends Controller {
               </div>` : ''}
             </div>
 
-            {/* Invoices */}
+            
             <div class="order-invoices-section border border-base-200 rounded-lg p-4" data-order-id="${order.id}">
               <h5 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2">Invoices</h5>
               <p class="text-sm text-base-content/50 order-invoices-loading">Loading...</p>
             </div>
           </div>
 
-          {/* Right column — items + totals */}
+          
           <div class="border border-base-200 rounded-lg p-4">
             <div class="flex flex-col gap-4">
               ${items.map(item => `<div class="flex gap-3 items-start">
