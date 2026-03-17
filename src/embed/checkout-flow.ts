@@ -743,8 +743,8 @@ export class CheckoutFlow {
     if (this.selectedPayment === 'stripe_card' && this.stripe && this.cardElement) {
       if (!this.cardComplete) throw new Error('Please complete your card details.');
 
-      // Create PaymentIntent
-      const pi = await this.api.createPaymentIntent(cartId);
+      // Create PaymentIntent (pass shipping info so backend can calculate correct total)
+      const pi = await this.api.createPaymentIntent(cartId, this.selectedShipping, this.buildAddress());
 
       // Confirm card payment (handles 3DS)
       const result = await this.stripe.confirmCardPayment(pi.clientSecret, {

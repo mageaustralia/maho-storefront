@@ -189,11 +189,15 @@ export default class AuthController extends Controller {
     if (data.customer) {
       localStorage.setItem('maho_customer', JSON.stringify(data.customer));
     }
-    // Clear guest cart id — the server merged it into the customer cart
-    if (data.cartMerged) {
+    // Restore customer cart from login response
+    if (data.cartMaskedId) {
+      localStorage.setItem('maho_cart_id', data.cartMaskedId);
+      localStorage.setItem('maho_cart_qty', String(data.cartItemsQty || 0));
+    } else {
       localStorage.removeItem('maho_cart_id');
       localStorage.removeItem('maho_cart_qty');
     }
+    updateCartBadge();
     document.dispatchEvent(new CustomEvent('auth:changed'));
     document.dispatchEvent(new CustomEvent('wishlist:sync'));
     window.Turbo?.visit('/account');

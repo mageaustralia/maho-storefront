@@ -200,8 +200,11 @@ export class EmbedApi {
   }
 
   /** Create a Stripe PaymentIntent */
-  async createPaymentIntent(cartId: string): Promise<{ clientSecret: string; paymentIntentId: string }> {
-    const res = await this.post('/api/payments/stripe/payment-intents', { cartId });
+  async createPaymentIntent(cartId: string, shippingMethod?: string, shippingAddress?: any): Promise<{ clientSecret: string; paymentIntentId: string }> {
+    const body: any = { cartId };
+    if (shippingMethod) body.shippingMethod = shippingMethod;
+    if (shippingAddress) body.shippingAddress = shippingAddress;
+    const res = await this.post('/api/payments/stripe/payment-intents', body);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Could not create payment');
