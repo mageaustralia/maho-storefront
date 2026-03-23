@@ -10,18 +10,24 @@
  * The checkout controller imports getAdapter() from here and never deals
  * with gateway-specific logic. To add a new payment gateway:
  *
- *   1. Create a new adapter file (see braintree-adapter.js as example)
- *   2. Import it below and add to the adapters array
+ *   1. Create a standalone plugin file (see public/plugins/stripe-payment.js.txt as example)
+ *   2. Register it via window.MahoStorefront.registerPaymentAdapter(adapterInstance)
  *
  * The checkout controller does NOT need any changes.
  */
 
 import { BasePaymentAdapter } from './base-adapter.js';
-import { BraintreeAdapter } from './braintree-adapter.js';
 
-const adapters = [
-  new BraintreeAdapter(),
-];
+/**
+ * Adapters array — populated via registerAdapter().
+ * No payment adapters are hardcoded here. Each adapter self-registers
+ * as a standalone plugin (see public/plugins/ directory).
+ *
+ * Available plugins:
+ *   - stripe-payment.js  (Stripe Elements + Google Pay + Apple Pay)
+ *   - braintree-payment.js (Braintree Hosted Fields)
+ */
+const adapters = [];
 
 /**
  * Register an external payment adapter (for standalone plugins).
