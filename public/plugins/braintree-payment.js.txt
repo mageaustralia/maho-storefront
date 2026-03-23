@@ -1,0 +1,188 @@
+/**
+ * Braintree Hosted Fields Payment Adapter (standalone plugin)
+ *
+ * Load this script AFTER the main storefront bundle:
+ *   <script src="/plugins/braintree-payment.js" defer></script>
+ *
+ * Requires:
+ *   - Gene_Braintree module enabled on the Maho backend
+ *   - Backend endpoint: GET /api/payments/braintree/client-token
+ *     (returns { success, clientToken } via API Platform)
+ *
+ * Handles Maho payment method code: gene_braintree_creditcard
+ */
+(function () {
+  'use strict';
+
+  var SDK_VERSION = '3.48.0';
+  var SDK_BASE = 'https://js.braintreegateway.com/web/' + SDK_VERSION + '/js';
+
+  function BraintreeAdapter() {
+    this._client = null;
+    this._hostedFields = null;
+    this._deviceData = null;
+    this._container = null;
+    this._api = null;
+  }
+
+  BraintreeAdapter.prototype.match = function (methodCode) {
+    return methodCode === 'gene_braintree_creditcard';
+  };
+
+  BraintreeAdapter.prototype.init = async function (container, context) {
+    this._container = container;
+    this._api = context.api || window.MahoStorefront?.api;
+
+    container.innerHTML = '<p class="text-sm text-base-content/60">Loading card fields...</p>';
+
+    try {
+      // 1. Get client token
+      var tokenData = await this._apiGet('/api/payments/braintree/client-token');
+      if (!tokenData.success || !tokenData.clientToken) {
+        container.innerHTML = '<p class="text-sm text-error">Could not initialize payment. Please try again.</p>';
+        return;
+      }
+
+      // 2. Load SDK scripts
+      await this._loadSDK();
+
+      // 3. Render field containers
+      container.innerHTML =
+        '<div class="space-y-3">' +
+        '  <fieldset class="fieldset">' +
+        '    <legend class="fieldset-legend">Card Number <span class="text-error">*</span></legend>' +
+        '    <div id="bt-card-number" class="input w-full h-10"></div>' +
+        '  </fieldset>' +
+        '  <div class="grid grid-cols-3 gap-3">' +
+        '    <fieldset class="fieldset">' +
+        '      <legend class="fieldset-legend">Month <span class="text-error">*</span></legend>' +
+        '      <div id="bt-expiry-month" class="input w-full h-10"></div>' +
+        '    </fieldset>' +
+        '    <fieldset class="fieldset">' +
+        '      <legend class="fieldset-legend">Year <span class="text-error">*</span></legend>' +
+        '      <div id="bt-expiry-year" class="input w-full h-10"></div>' +
+        '    </fieldset>' +
+        '    <fieldset class="fieldset">' +
+        '      <legend class="fieldset-legend">CVV <span class="text-error">*</span></legend>' +
+        '      <div id="bt-cvv" class="input w-full h-10"></div>' +
+        '    </fieldset>' +
+        '  </div>' +
+        '</div>';
+
+      // 4. Initialize Braintree client
+      this._client = await window.braintree.client.create({
+        authorization: tokenData.clientToken,
+      });
+
+      // 5. Create hosted fields
+      this._hostedFields = await window.braintree.hostedFields.create({
+        client: this._client,
+        styles: {
+          input: {
+            'font-size': '14px',
+            'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+            'color': '#1f2937',
+            'line-height': '1.5',
+          },
+          ':focus': { color: '#1f2937' },
+          '::placeholder': { color: '#9ca3af' },
+          '.invalid': { color: '#dc2626' },
+        },
+        fields: {
+          number: { selector: '#bt-card-number', placeholder: '4111 1111 1111 1111' },
+          expirationMonth: { selector: '#bt-expiry-month', placeholder: 'MM' },
+          expirationYear: { selector: '#bt-expiry-year', placeholder: 'YY' },
+          cvv: { selector: '#bt-cvv', placeholder: '123' },
+        },
+      });
+
+      // 6. Data collector for fraud detection (non-fatal if it fails)
+      try {
+        var dc = await window.braintree.dataCollector.create({ client: this._client });
+        this._deviceData = dc.deviceData;
+      } catch (e) {
+        console.warn('[braintree] Data collector failed (non-fatal):', e);
+      }
+
+    } catch (e) {
+      console.error('[braintree] Init failed:', e);
+      container.innerHTML = '<p class="text-sm text-error">Failed to load card fields. Please refresh and try again.</p>';
+    }
+  };
+
+  BraintreeAdapter.prototype.tokenize = async function () {
+    if (!this._hostedFields) {
+      throw new Error('Card fields are not ready. Please wait and try again.');
+    }
+    var result = await this._hostedFields.tokenize();
+    return {
+      payment_method_nonce: result.nonce,
+      device_data: this._deviceData || '',
+    };
+  };
+
+  BraintreeAdapter.prototype.destroy = function () {
+    if (this._hostedFields) {
+      this._hostedFields.teardown().catch(function () {});
+      this._hostedFields = null;
+    }
+    this._client = null;
+    this._deviceData = null;
+    if (this._container) {
+      this._container.innerHTML = '';
+      this._container = null;
+    }
+  };
+
+  BraintreeAdapter.prototype._loadSDK = function () {
+    if (window.braintree && window.braintree.client && window.braintree.hostedFields) {
+      return Promise.resolve();
+    }
+    var modules = ['client', 'hosted-fields', 'data-collector'];
+    return modules.reduce(function (chain, mod) {
+      return chain.then(function () {
+        if (document.querySelector('script[src*="' + mod + '.min.js"]')) return;
+        return new Promise(function (resolve, reject) {
+          var s = document.createElement('script');
+          s.src = SDK_BASE + '/' + mod + '.min.js';
+          s.onload = resolve;
+          s.onerror = function () { reject(new Error('Failed to load Braintree ' + mod)); };
+          document.head.appendChild(s);
+        });
+      });
+    }, Promise.resolve());
+  };
+
+  BraintreeAdapter.prototype._apiGet = async function (path) {
+    if (this._api && this._api.get) {
+      return this._api.get(path);
+    }
+    var url = (window.MAHO_API_URL || '') + path;
+    var storeCode = window.MAHO_STORE_CODE;
+    if (storeCode) url += (url.includes('?') ? '&' : '?') + 'store=' + storeCode;
+    var response = await fetch(url, {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store',
+    });
+    return response.json();
+  };
+
+  // Register with the storefront's payment adapter system
+  function register() {
+    if (window.MahoStorefront && window.MahoStorefront.registerPaymentAdapter) {
+      window.MahoStorefront.registerPaymentAdapter(new BraintreeAdapter());
+      return true;
+    }
+    return false;
+  }
+
+  // The core bundle may load after this plugin, so retry briefly
+  if (!register()) {
+    var attempts = 0;
+    var interval = setInterval(function () {
+      if (register() || ++attempts > 40) {
+        clearInterval(interval);
+      }
+    }, 100);
+  }
+})();
