@@ -134,7 +134,7 @@ export class EmbedApi {
     const storeParam = this.storeCode ? `&store=${this.storeCode}` : '';
     const res = await fetch(`${this.origin}/embed/products?${params}${storeParam}`);
     if (!res.ok) throw new Error(`Failed to fetch products: ${res.status}`);
-    const data = await res.json();
+    const data = await res.json() as Record<string, any>;
     // Store config from response
     if (data.config?.stripePublishableKey) {
       this.stripePublishableKey = data.config.stripePublishableKey;
@@ -152,7 +152,7 @@ export class EmbedApi {
   async createCart(): Promise<string> {
     const res = await this.post('/api/guest-carts', {});
     if (!res.ok) throw new Error(`Failed to create cart: ${res.status}`);
-    const data = await res.json();
+    const data = await res.json() as { maskedId: string };
     return data.maskedId;
   }
 
@@ -164,7 +164,7 @@ export class EmbedApi {
     }
     const res = await this.post(`/api/guest-carts/${cartId}/items`, body);
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await res.json().catch(() => ({})) as Record<string, string>;
       throw new Error(err.detail || err.message || `Failed to add to cart: ${res.status}`);
     }
     return res.json();
@@ -179,7 +179,7 @@ export class EmbedApi {
   async getShippingMethods(cartId: string, address: any): Promise<ShippingMethod[]> {
     const res = await this.post(`/api/guest-carts/${cartId}/shipping-methods`, { address });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await res.json().catch(() => ({})) as Record<string, string>;
       throw new Error(err['hydra:description'] || err.detail || 'Could not load shipping methods');
     }
     return res.json();
@@ -206,7 +206,7 @@ export class EmbedApi {
     if (shippingAddress) body.shippingAddress = shippingAddress;
     const res = await this.post('/api/payments/stripe/payment-intents', body);
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await res.json().catch(() => ({})) as Record<string, string>;
       throw new Error(err.message || 'Could not create payment');
     }
     return res.json();
@@ -224,7 +224,7 @@ export class EmbedApi {
   }): Promise<OrderResult> {
     const res = await this.post(`/api/guest-carts/${cartId}/place-order`, data);
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await res.json().catch(() => ({})) as Record<string, string>;
       throw new Error(err['hydra:description'] || err.detail || err.message || 'Failed to place order');
     }
     return res.json();
