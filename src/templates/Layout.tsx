@@ -5,7 +5,7 @@
  */
 
 import { jsx, Fragment } from 'hono/jsx';
-import type { FC } from 'hono/jsx';
+import type { FC, PropsWithChildren } from 'hono/jsx';
 import type { Category, StoreConfig, StorefrontStore } from '../types';
 import type { DevData } from '../dev-auth';
 import { ASSET_HASH } from '../asset-version';
@@ -33,10 +33,9 @@ interface LayoutProps {
   currentStoreCode?: string;
   storeApiUrl?: string;
   devData?: DevData | null;
-  children: any;
 }
 
-export const Layout: FC<LayoutProps> = ({ config, categories, footerPages, stores, currentStoreCode, storeApiUrl, devData, children }) => {
+export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ config, categories, footerPages, stores, currentStoreCode, storeApiUrl, devData, children }) => {
   // Use empty string to proxy all API calls through the Worker (handles basic auth, CORS)
   const apiUrl = '';
   const v = `?v=${ASSET_HASH}`;
