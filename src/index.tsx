@@ -2405,6 +2405,59 @@ app.get('/:parent/:child', withEdgeCache(CACHE_CATEGORY), async (c) => {
 });
 
 // Clean URLs: /women → category, /geometric-candle-holders → product, /about → CMS page
+// Nested category URLs (e.g., /pickleballs-court-gear/pickleball-balls.html)
+app.get('/:parent/:child', withEdgeCache(CACHE_PRODUCT), async (c) => {
+  const parentSlug = c.req.param('parent');
+  const childSlug = c.req.param('child');
+  const fullPath = `${parentSlug}/${childSlug}`;
+
+  const store = createStore(c.env);
+  const { stores, currentStoreCode } = await getStoreContext(c);
+  const prefix = currentStoreCode ? `${currentStoreCode}:` : '';
+  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
+  const devData = (c.get('devSession') as DevSession | undefined)?.preview ? null : null;
+
+  // Find the child category by matching urlPath
+  let childCategory: Category | undefined;
+  for (const cat of categories) {
+    if (cat.children) {
+      childCategory = cat.children.find(ch => ch.urlPath === fullPath || ch.urlPath === fullPath + '.html');
+      if (childCategory) break;
+    }
+  }
+
+  // Also try KV lookup with the full path as key
+  if (!childCategory) {
+    childCategory = await store.get<Category>(`${prefix}category:${fullPath}`) ?? undefined;
+  }
+
+  if (childCategory) {
+    const page = parseInt(c.req.query('page') ?? '1', 10);
+    const itemsPerPage = 12;
+    let productsData = await store.get<{ products: Product[]; totalItems: number }>(`${prefix}products:category:${childCategory.id}:page:${page}`);
+    if (!productsData) {
+      const apiClient = createApiClient(c.env, stores, currentStoreCode);
+      productsData = await apiClient.fetchCategoryProducts(childCategory.id, page, itemsPerPage);
+      if (productsData.products.length > 0) {
+        c.executionCtx.waitUntil(store.put(`${prefix}products:category:${childCategory.id}:page:${page}`, productsData, 86400));
+      }
+    }
+    const products = productsData?.products?.slice(0, itemsPerPage) ?? [];
+    const totalItems = productsData?.totalItems ?? 0;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const parentCategory = categories.find(cat => cat.children?.some(ch => ch.id === childCategory!.id)) ?? null;
+
+    return c.html(
+      <CategoryPage config={config} categories={categories} category={childCategory} products={products}
+        currentPage={page} totalPages={totalPages} totalItems={totalItems}
+        parentCategory={parentCategory}
+        stores={stores} currentStoreCode={currentStoreCode} devData={devData} />
+    );
+  }
+
+  return c.text('Not Found', 404);
+});
+
 // Edge cached 4 hours (product TTL — most common hit; categories/CMS also benefit)
 // Uses URL resolver API as fallback when KV is empty
 app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
