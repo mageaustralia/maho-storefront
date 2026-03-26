@@ -7,6 +7,7 @@
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Category, StoreConfig, StorefrontStore } from '../../../../types';
+import { cleanUrlPath } from '../../../../utils/format';
 
 interface HeaderProps {
   categories: Category[];
@@ -78,7 +79,7 @@ export const Header: FC<HeaderProps> = ({ categories, config, stores, currentSto
                               {children.map((child) => (
                                 <a
                                   key={child.id}
-                                  href={`/${child.urlPath ?? child.urlKey}`}
+                                  href={`/${cleanUrlPath(child.urlPath) || child.urlKey}`}
                                   data-turbo-prefetch="true"
                                   class="block px-2 py-1.5 text-sm text-base-content/70 rounded-md no-underline transition-colors hover:text-base-content hover:bg-base-content/10"
                                 >

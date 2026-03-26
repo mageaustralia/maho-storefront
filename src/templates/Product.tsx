@@ -18,7 +18,7 @@ import { ContentTabs } from './components/product-display/tabs/index';
 import { SizeGuideDrawer } from './components/product-display/size-guide/SizeGuideDrawer';
 import { getVariant, getSection } from '../page-config';
 import { djb2 } from '../utils/hash';
-import { formatPrice } from '../utils/format';
+import { formatPrice, cleanUrlPath } from '../utils/format';
 
 interface ProductPageProps {
   config: StoreConfig;
@@ -75,7 +75,7 @@ export const ProductPage: FC<ProductPageProps> = ({ config, categories, product,
 
   const breadcrumbItems: { name: string; url?: string }[] = [{ name: 'Home', url: config.baseUrl }];
   if (productCategory) {
-    breadcrumbItems.push({ name: productCategory.name, url: `${config.baseUrl}/${productCategory.urlPath ?? productCategory.urlKey}` });
+    breadcrumbItems.push({ name: productCategory.name, url: `${config.baseUrl}/${cleanUrlPath(productCategory.urlPath) || productCategory.urlKey}` });
   }
   breadcrumbItems.push({ name: product.name });
 
@@ -383,6 +383,11 @@ export const ProductPage: FC<ProductPageProps> = ({ config, categories, product,
                               {option.values.map((val) => (
                                 <label key={val.id} class="custom-option-radio"><input type="radio" name={`custom_option_${option.id}`} value={String(val.id)} data-custom-option-id={String(option.id)} /><span>{val.title}</span>{val.price > 0 && <span class="option-price-add">+{formatPrice(val.price, currency)}</span>}</label>
                               ))}
+                            </div>
+                          ) : (option.type === 'file') ? (
+                            <div class="custom-option-file">
+                              <input type="file" class="file-input file-input-bordered w-full" data-custom-option-file-id={String(option.id)} accept="image/*,.pdf" />
+                              <p class="text-xs opacity-60 mt-1">Upload an image or PDF</p>
                             </div>
                           ) : (option.type === 'area' || option.type === 'textarea') ? (
                             <textarea class="option-input" rows={4} data-custom-option-id={String(option.id)} placeholder={option.title} />

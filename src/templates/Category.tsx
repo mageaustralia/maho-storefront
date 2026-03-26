@@ -15,6 +15,7 @@ import { SubcategoryTiles } from './components/SubcategoryTiles';
 import { getSection } from '../page-config';
 import { rewriteContentUrls } from '../content-rewriter';
 import { djb2 } from '../utils/hash';
+import { cleanUrlPath } from '../utils/format';
 
 interface CategoryPageProps {
   config: StoreConfig;
@@ -44,11 +45,11 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
   const sidebarParent = parentCategory ?? (isParentCategory ? category : null);
   const sidebarChildren = sidebarParent?.children?.filter(c => c.includeInMenu) ?? [];
 
-  const canonicalUrl = `${config.baseUrl}/${category.urlPath ?? category.urlKey}`;
+  const canonicalUrl = `${config.baseUrl}/${cleanUrlPath(category.urlPath) || category.urlKey}`;
 
   const breadcrumbItems: { name: string; url?: string }[] = [{ name: 'Home', url: config.baseUrl }];
   if (parentCategory) {
-    breadcrumbItems.push({ name: parentCategory.name, url: `${config.baseUrl}/${parentCategory.urlPath ?? parentCategory.urlKey}` });
+    breadcrumbItems.push({ name: parentCategory.name, url: `${config.baseUrl}/${cleanUrlPath(parentCategory.urlPath) || parentCategory.urlKey}` });
   }
   breadcrumbItems.push({ name: category.name });
 
@@ -98,7 +99,7 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
       {/* Freshness metadata — client JS checks both category AND products */}
       <div hidden
         data-freshness-type="category"
-        data-freshness-key={`category:${category.urlPath ?? category.urlKey}`}
+        data-freshness-key={`category:${cleanUrlPath(category.urlPath) || category.urlKey}`}
         data-freshness-api={`/api/categories/${category.id}`}
         data-freshness-category-id={String(category.id)}
         data-freshness-checked={(category as any)._lastChecked ?? '0'}
@@ -129,7 +130,7 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
         <div
           data-controller={showProducts ? 'category-filter' : undefined}
           data-category-filter-category-id-value={showProducts ? String(category.id) : undefined}
-          data-category-filter-category-url-value={showProducts ? (category.urlPath ?? category.urlKey) : undefined}
+          data-category-filter-category-url-value={showProducts ? (cleanUrlPath(category.urlPath) || category.urlKey) : undefined}
           data-category-filter-category-name-value={showProducts ? category.name : undefined}
           data-category-filter-currency-value={showProducts ? currency : undefined}
           data-category-filter-total-items-value={showProducts ? String(totalItems) : undefined}
@@ -187,7 +188,7 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
                     {sidebarChildren.map((child) => (
                       <li key={child.id}>
                         <a
-                          href={`/${child.urlPath ?? child.urlKey}`}
+                          href={`/${cleanUrlPath(child.urlPath) || child.urlKey}`}
                           data-turbo-prefetch="true"
                           class={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-colors ${child.id === category.id ? 'bg-primary/10 text-primary font-semibold' : 'text-base-content/80 hover:bg-base-content/10 hover:text-base-content'}`}
                         >

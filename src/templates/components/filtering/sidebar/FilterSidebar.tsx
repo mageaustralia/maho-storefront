@@ -7,6 +7,7 @@
 import { jsx } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Category } from '../../../../types';
+import { cleanUrlPath } from '../../../../utils/format';
 
 export interface FilterSidebarProps {
   category: Category;
@@ -28,7 +29,7 @@ export const FilterSidebar: FC<FilterSidebarProps> = ({ category, sidebarParent,
           {sidebarChildren.map((child) => (
             <li key={child.id}>
               <a
-                href={`/${child.urlPath ?? child.urlKey}`}
+                href={`/${cleanUrlPath(child.urlPath) || child.urlKey}`}
                 data-turbo-prefetch="true"
                 class={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-colors ${child.id === category.id ? 'bg-primary/10 text-primary font-semibold' : 'text-base-content/70 hover:bg-base-200'}`}
               >

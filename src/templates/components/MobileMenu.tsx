@@ -7,6 +7,7 @@
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Category, StoreConfig, StorefrontStore } from '../../types';
+import { cleanUrlPath } from '../../utils/format';
 
 interface MobileMenuProps {
   categories: Category[];
@@ -79,7 +80,7 @@ export const MobileMenu: FC<MobileMenuProps> = ({ categories, config, stores, cu
                     <ul class="bg-base-200/30" style="display:none">
                       {children.map((child) => (
                         <li key={child.id}>
-                          <a href={`/${child.urlPath ?? child.urlKey}`} class="block py-2.5 pl-6 pr-4 text-sm text-base-content/70 hover:text-base-content" data-action="click->mobile-menu#close" data-turbo-prefetch="true">
+                          <a href={`/${cleanUrlPath(child.urlPath) || child.urlKey}`} class="block py-2.5 pl-6 pr-4 text-sm text-base-content/70 hover:text-base-content" data-action="click->mobile-menu#close" data-turbo-prefetch="true">
                             {child.name}
                           </a>
                         </li>
