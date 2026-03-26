@@ -149,7 +149,7 @@ const app = new Hono<AppEnv>();
 // These patterns are never valid storefront URLs.
 
 // File extensions that are never served by the storefront
-const BLOCKED_EXTENSIONS = /\.(html|php|jsp|asp|aspx|cgi|env|git|sql|bak|old|orig|swp|log|ini|yml|yaml|toml|xml|json\.bak)(\?|$|\.js$)/i;
+const BLOCKED_EXTENSIONS = /\.(php|jsp|asp|aspx|cgi|env|git|sql|bak|old|orig|swp|log|ini|yml|yaml|toml|xml|json\.bak)(\?|$|\.js$)/i;
 
 // Magento/OpenMage frontend paths that the headless storefront doesn't serve
 const BLOCKED_PATH_PREFIXES = [
@@ -2407,9 +2407,10 @@ app.get('/:parent/:child', withEdgeCache(CACHE_CATEGORY), async (c) => {
 // Clean URLs: /women → category, /geometric-candle-holders → product, /about → CMS page
 // Nested category URLs (e.g., /pickleballs-court-gear/pickleball-balls.html)
 app.get('/:parent/:child', withEdgeCache(CACHE_PRODUCT), async (c) => {
-  const parentSlug = c.req.param('parent');
-  const childSlug = c.req.param('child');
+  const parentSlug = c.req.param('parent').replace(/\.html$/, '');
+  const childSlug = c.req.param('child').replace(/\.html$/, '');
   const fullPath = `${parentSlug}/${childSlug}`;
+  const fullPathHtml = `${fullPath}.html`;
 
   const store = createStore(c.env);
   const { stores, currentStoreCode } = await getStoreContext(c);
@@ -2421,7 +2422,7 @@ app.get('/:parent/:child', withEdgeCache(CACHE_PRODUCT), async (c) => {
   let childCategory: Category | undefined;
   for (const cat of categories) {
     if (cat.children) {
-      childCategory = cat.children.find(ch => ch.urlPath === fullPath || ch.urlPath === fullPath + '.html');
+      childCategory = cat.children.find(ch => ch.urlPath === fullPath || ch.urlPath === fullPathHtml || ch.urlKey === childSlug);
       if (childCategory) break;
     }
   }
@@ -2473,7 +2474,7 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
   const prefix = currentStoreCode ? `${currentStoreCode}:` : '';
-  const slug = c.req.param('slug');
+  const slug = c.req.param('slug').replace(/\.html$/, '');
 
   // Fetch store data AND all possible entity types in ONE parallel batch.
   // This reduces 3 sequential KV round trips to 1.
