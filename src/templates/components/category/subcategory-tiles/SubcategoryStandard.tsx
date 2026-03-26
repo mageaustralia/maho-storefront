@@ -7,6 +7,7 @@
 import { jsx } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Category } from '../../../../types';
+import { cleanUrlPath } from '../../../../utils/format';
 
 export interface SubcategoryTilesProps {
   categories: Category[];
@@ -23,7 +24,7 @@ export const SubcategoryStandard: FC<SubcategoryTilesProps> = ({ categories }) =
   const useGrid = categories.length % 4 === 0;
 
   const card = (cat: Category) => (
-    <a key={cat.id} href={`/${cat.urlPath ?? cat.urlKey}`} data-turbo-prefetch="true"
+    <a key={cat.id} href={`/${cleanUrlPath(cat.urlPath) || cat.urlKey}`} data-turbo-prefetch="true"
       class="card bg-base-100 border border-border hover:shadow-md transition-shadow overflow-hidden">
       {cat.image ? (
         <figure class="aspect-[4/3] bg-base-200">

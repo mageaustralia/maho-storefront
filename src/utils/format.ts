@@ -8,6 +8,12 @@
  * Shared formatting utilities for server-side templates.
  */
 
+/** Strip .html suffix from Maho URL paths */
+export function cleanUrlPath(path: string | undefined | null): string {
+  if (!path) return '';
+  return path.replace(/\.html$/, '');
+}
+
 export function formatPrice(amount: number | null, currency: string = 'USD'): string {
   if (amount === null) return '';
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(amount);

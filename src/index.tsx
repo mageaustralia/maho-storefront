@@ -1942,7 +1942,7 @@ app.post('/sync', async (c) => {
               await store.put(`${prefix}category:${child.urlKey}`, child);
             }
             if (child.urlPath) {
-              await store.put(`${prefix}category:${child.urlPath}`, child);
+              await store.put(`${prefix}category:${child.urlPath?.replace(/\.html$/, '')}`, child);
             }
           }
         }
@@ -2185,7 +2185,7 @@ app.post('/sync/:type', async (c) => {
           if (cat.children) {
             for (const child of cat.children) {
               if (child.urlKey) await store.put(`${prefix}category:${child.urlKey}`, child);
-              if (child.urlPath) await store.put(`${prefix}category:${child.urlPath}`, child);
+              if (child.urlPath) await store.put(`${prefix}category:${child.urlPath?.replace(/\.html$/, '')}`, child);
             }
           }
         }
@@ -2314,7 +2314,7 @@ app.post('/sync/:type', async (c) => {
               catCount++;
             }
             if ((cat as any).urlPath) {
-              await store.put(`${prefix}category:${(cat as any).urlPath}`, cat);
+              await store.put(`${prefix}category:${((cat as any).urlPath || '').replace(/\.html$/, '')}`, cat);
             }
           } catch {}
         }
@@ -2332,7 +2332,7 @@ app.post('/sync/:type', async (c) => {
           if (ac.children) {
             for (const child of ac.children) {
               if (child.urlKey) await store.put(`${prefix}category:${child.urlKey}`, child);
-              if (child.urlPath) await store.put(`${prefix}category:${child.urlPath}`, child);
+              if (child.urlPath) await store.put(`${prefix}category:${child.urlPath?.replace(/\.html$/, '')}`, child);
             }
           }
         }

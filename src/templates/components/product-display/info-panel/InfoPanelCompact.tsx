@@ -251,6 +251,11 @@ export const InfoPanelCompact: FC<InfoPanelCompactProps> = ({ product, currency,
                     <option key={val.id} value={String(val.id)}>{val.title} {val.price > 0 ? `(+${formatPrice(val.price, currency)})` : ''}</option>
                   ))}
                 </select>
+              ) : (option.type === 'file') ? (
+                <div>
+                  <input type="file" class="file-input file-input-sm file-input-bordered w-full" data-custom-option-file-id={String(option.id)} accept="image/*,.pdf" />
+                  <p class="text-xs opacity-60 mt-1">Upload an image or PDF</p>
+                </div>
               ) : (option.type === 'area' || option.type === 'textarea') ? (
                 <textarea class="textarea textarea-sm w-full" rows={3} data-custom-option-id={String(option.id)} placeholder={option.title} />
               ) : (
