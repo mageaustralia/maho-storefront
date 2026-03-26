@@ -42,6 +42,8 @@ theme-output/
 # Sync/deploy scripts (contain credentials)
 sync.sh
 sync-local.sh
+deploy-*.sh
+!deploy.sh
 
 # Temporary files
 *.tmp
