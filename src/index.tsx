@@ -243,7 +243,7 @@ const GATE_EXCLUDED = new Set([
 ]);
 
 function isGateExcluded(path: string): boolean {
-  return GATE_EXCLUDED.has(path) || path.startsWith('/public/') || path.startsWith('/dev/tokens/') || path.startsWith('/api/') || path.startsWith('/media/') || path.startsWith('/sync/') || path.startsWith('/sitemap') || path.startsWith('/plugins/') || path.startsWith('/embed');
+  return GATE_EXCLUDED.has(path) || path.startsWith('/public/') || path.startsWith('/dev/tokens/') || path.startsWith('/api/') || path.startsWith('/media/') || path.startsWith('/core/index/resize/') || path.startsWith('/skin/') || path.startsWith('/sync/') || path.startsWith('/sitemap') || path.startsWith('/plugins/') || path.startsWith('/embed');
 }
 
 // Password gate page HTML (standalone, no Layout dependency)
@@ -854,6 +854,30 @@ app.get('/media/*', async (c) => {
     return c.text('Not found', 404);
   }
 });
+
+// Proxy /core/index/resize/* and /skin/* to Maho backend (dynamic image resizing, theme assets)
+for (const proxyPath of ['/core/index/resize/*', '/skin/*']) {
+  app.get(proxyPath, async (c) => {
+    const { stores, currentStoreCode } = await getStoreContext(c);
+    const backendUrl = `${getApiUrl(c.env, stores, currentStoreCode)}${c.req.path}${c.req.url.includes('?') ? '?' + c.req.url.split('?')[1] : ''}`;
+    try {
+      const headers: Record<string, string> = {};
+      if (c.env.MAHO_API_BASIC_AUTH) {
+        headers['Authorization'] = `Basic ${btoa(c.env.MAHO_API_BASIC_AUTH)}`;
+      }
+      const res = await fetch(backendUrl, { headers });
+      if (!res.ok) return c.text('Not found', 404);
+      const contentType = res.headers.get('Content-Type') || 'application/octet-stream';
+      const body = await res.arrayBuffer();
+      return c.body(body, 200, {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      });
+    } catch {
+      return c.text('Not found', 404);
+    }
+  });
+}
 
 // Helper to get store essentials from KV — with in-memory cache (30s TTL)
 // Avoids cold-PoP KV latency (~300ms) on every request.
