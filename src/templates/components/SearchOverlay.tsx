@@ -6,8 +6,8 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
-import type { StoreConfig } from '../../../types';
-import { getVariant, getSection } from '../../../page-config';
+import type { StoreConfig } from '../../types';
+import { getVariant, getSection } from '../../page-config';
 
 /**
  * Search overlay — renders the correct controller based on search backend config.
