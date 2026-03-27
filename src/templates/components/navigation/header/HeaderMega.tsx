@@ -53,10 +53,14 @@ export const Header: FC<HeaderProps> = ({ categories, config, stores, currentSto
           <ul class="flex items-center gap-1">
             {navCats.map((cat, idx) => {
               const children = (cat.children || []).filter(c => c.includeInMenu);
-              const hasMega = children.length > 0;
+              const menuData = cat.menuData;
+              const hasColumns = menuData && menuData.columns && menuData.columns.length > 0;
+              const hasMega = children.length > 0 || hasColumns;
               const isFirst = idx <= 1;
               const isLast = idx >= navCats.length - 2;
               const alignClass = isFirst ? 'left-0' : isLast ? 'right-0' : 'left-1/2 -translate-x-1/2';
+              // Wider panel when we have attribute columns + subcategories
+              const panelWidth = hasColumns && children.length > 0 ? 'min-w-[640px] max-w-[900px]' : 'min-w-[480px] max-w-[720px]';
               return (
                 <li key={cat.id} class="relative group/mega">
                   <a
@@ -68,31 +72,75 @@ export const Header: FC<HeaderProps> = ({ categories, config, stores, currentSto
                   </a>
                   {hasMega && (
                     <div class={`invisible opacity-0 group-hover/mega:visible group-hover/mega:opacity-100 transition-all duration-200 absolute top-full ${alignClass} pt-2 z-50`}>
-                      <div class="bg-base-100 border border-base-300 rounded-xl shadow-xl p-6 min-w-[480px] max-w-[720px] before:content-[''] before:absolute before:left-0 before:right-0 before:bottom-full before:h-3">
+                      <div class={`bg-base-100 border border-base-300 rounded-xl shadow-xl p-6 ${panelWidth} before:content-[''] before:absolute before:left-0 before:right-0 before:bottom-full before:h-3`}>
                         <div class="flex gap-6">
-                          {/* Subcategory columns */}
-                          <div class="flex-1">
-                            <a href={`/${cat.urlKey}`} class="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-3 block no-underline hover:text-primary transition-colors">
-                              All {cat.menuTitle || cat.name}
-                            </a>
-                            <div class={`grid gap-x-6 gap-y-0.5 ${children.length > 8 ? 'grid-cols-3' : children.length > 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                              {children.map((child) => (
-                                <a
-                                  key={child.id}
-                                  href={`/${cleanUrlPath(child.urlPath) || child.urlKey}`}
-                                  data-turbo-prefetch="true"
-                                  class="block px-2 py-1.5 text-sm text-base-content/70 rounded-md no-underline transition-colors hover:text-base-content hover:bg-base-content/10"
-                                >
-                                  {child.name}
-                                  {child.productCount > 0 && (
-                                    <span class="text-base-content/30 text-xs ml-1">({child.productCount})</span>
-                                  )}
-                                </a>
-                              ))}
+                          {/* Subcategories column */}
+                          {children.length > 0 && (
+                            <div class={hasColumns ? 'w-[180px] shrink-0' : 'flex-1'}>
+                              <a href={`/${cat.urlKey}`} class="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-3 block no-underline hover:text-primary transition-colors">
+                                All {cat.menuTitle || cat.name}
+                              </a>
+                              <div class={`flex flex-col gap-0.5 ${!hasColumns && children.length > 8 ? 'columns-3' : !hasColumns && children.length > 4 ? 'columns-2' : ''}`}>
+                                {children.map((child) => (
+                                  <a
+                                    key={child.id}
+                                    href={`/${cleanUrlPath(child.urlPath) || child.urlKey}`}
+                                    data-turbo-prefetch="true"
+                                    class="block px-2 py-1.5 text-sm text-base-content/70 rounded-md no-underline transition-colors hover:text-base-content hover:bg-base-content/10"
+                                  >
+                                    {child.name}
+                                    {child.productCount > 0 && (
+                                      <span class="text-base-content/30 text-xs ml-1">({child.productCount})</span>
+                                    )}
+                                  </a>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                          {/* Featured image (if category has one) */}
-                          {cat.image && (
+                          )}
+                          {/* Attribute columns from menu data (brands, etc.) */}
+                          {hasColumns && menuData!.columns.map((column) => (
+                            <div key={column.attributeCode} class="flex-1 min-w-0">
+                              <div class="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-3">
+                                {column.title}
+                              </div>
+                              <div class="flex flex-col gap-0.5">
+                                {column.items.map((item) => (
+                                  <a
+                                    key={item.optionId}
+                                    href={`/${cat.urlKey}/${item.urlKey}`}
+                                    data-turbo-prefetch="true"
+                                    class="block px-2 py-1.5 text-sm text-base-content/70 rounded-md no-underline transition-colors hover:text-base-content hover:bg-base-content/10"
+                                  >
+                                    {item.label}
+                                    <span class="text-base-content/30 text-xs ml-1">({item.count})</span>
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                          {/* Featured product from menu data */}
+                          {menuData?.featuredProduct && (
+                            <a
+                              href={menuData.featuredProduct.url}
+                              class="shrink-0 w-[180px] rounded-lg overflow-hidden bg-base-200 no-underline group/feat flex flex-col"
+                              data-turbo-prefetch="true"
+                            >
+                              {menuData.featuredProduct.imageUrl && (
+                                <div class="aspect-square overflow-hidden bg-base-200">
+                                  <img src={menuData.featuredProduct.imageUrl} alt={menuData.featuredProduct.name} class="w-full h-full object-contain group-hover/feat:scale-105 transition-transform duration-300" loading="lazy" />
+                                </div>
+                              )}
+                              <div class="p-3">
+                                <div class="text-xs font-bold uppercase tracking-wider text-primary mb-1">Featured</div>
+                                <div class="text-sm font-medium text-base-content line-clamp-2">{menuData.featuredProduct.name}</div>
+                                {menuData.featuredProduct.price > 0 && (
+                                  <div class="text-sm font-semibold text-base-content mt-1">${menuData.featuredProduct.price.toFixed(2)}</div>
+                                )}
+                              </div>
+                            </a>
+                          )}
+                          {/* Fallback: category image if no menu data featured product */}
+                          {!menuData?.featuredProduct && cat.image && (
                             <a href={`/${cat.urlKey}`} class="shrink-0 w-[180px] rounded-lg overflow-hidden bg-base-200 no-underline group/img" data-turbo-prefetch="true">
                               <img src={cat.image} alt={cat.name} class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300" loading="lazy" />
                             </a>
