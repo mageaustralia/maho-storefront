@@ -68,7 +68,8 @@
     "search": {
       "components": {
         "bar": "overlay",
-        "results": "standard"
+        "results": "standard",
+        "backend": "lucene"
       }
     },
     "account": {

@@ -6,6 +6,23 @@
 
 import type { Product, Category, StoreConfig, CmsPage, Country, BlogPost, BlogCategory } from './types';
 
+export interface SearchSuggestResponse {
+  products: Array<{
+    id: number;
+    sku: string;
+    name: string;
+    urlKey: string;
+    price: number;
+    finalPrice: number;
+    thumbnailUrl: string | null;
+    score?: number;
+  }>;
+  totalItems: number;
+  categories: Array<{ id?: number; name: string; urlKey: string }>;
+  blogPosts: Array<{ title: string; urlKey: string }>;
+  cmsPages: Array<{ id?: number; title: string; identifier: string }>;
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   totalItems: number;
@@ -194,6 +211,23 @@ export class MahoApiClient {
     return {
       products: data.member ?? [],
       totalItems: data.totalItems ?? 0,
+    };
+  }
+
+  /**
+   * Search via Lucene backend — returns products, categories, and CMS pages in one call.
+   * Requires the mageaustralia/maho-search module installed on the backend.
+   */
+  async searchSuggestLucene(query: string, limit: number = 10): Promise<SearchSuggestResponse> {
+    const data = await this.fetch<SearchSuggestResponse>(
+      `/api/search/suggest?q=${encodeURIComponent(query)}&limit=${limit}`
+    );
+    return {
+      products: data.products ?? [],
+      totalItems: data.totalItems ?? 0,
+      categories: data.categories ?? [],
+      blogPosts: data.blogPosts ?? [],
+      cmsPages: data.cmsPages ?? [],
     };
   }
 

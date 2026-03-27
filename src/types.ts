@@ -57,6 +57,8 @@ export interface Product {
     price: number | null;
     priceType: string | null;
     values: Array<{ id: number; title: string; price: number; priceType: string | null; sortOrder: number }>;
+    fileExtensions?: string;
+    maxCharacters?: number;
   }>;
   groupedProducts: Array<{
     id: number;
@@ -135,6 +137,8 @@ export interface Category {
   pageLayout: string | null;
   createdAt: string | null;
   updatedAt: string | null;
+  /** Megamenu data — brand/attribute columns + featured product (populated by FilterablePages plugin) */
+  menuData?: import('./plugins/filterable-pages/types').MenuData | null;
 }
 
 export interface StoreConfig {
