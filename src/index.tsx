@@ -46,6 +46,14 @@ import {
   type DevData,
 } from './dev-auth';
 import { rewriteContentUrls } from './content-rewriter';
+import {
+  registerFilterablePagesRoutes,
+  FilterablePagesApi,
+  syncFilterablePages,
+  resolveFilterPage,
+  getMenuData,
+  FilterPage,
+} from './plugins/filterable-pages';
 
 // In-memory cache for store registry from KV
 let _storeCache: { stores: StorefrontStore[]; ts: number } | null = null;
@@ -1195,6 +1203,15 @@ app.get('/api/search/suggest', async (c) => {
   }, 200, { 'Access-Control-Allow-Origin': '*' });
 });
 
+// ====== FILTERABLE PAGES PLUGIN ======
+// Must be before /api/* proxy so KV-served routes take priority
+registerFilterablePagesRoutes(app, {
+  getStoreRegistry,
+  getStoreContext,
+  getApiUrl,
+  checkSyncAuth,
+});
+
 // API proxy — forwards client-side API calls to the backend
 // This is essential when the backend requires basic auth (e.g. dev sites)
 // or when CORS prevents direct browser→backend requests.
@@ -2101,6 +2118,18 @@ app.post('/sync', async (c) => {
         results[`${storeCode || 'default'}:featuredBlocks`] = `error: ${(e as Error).message}`;
       }
 
+      // 8. Sync filterable pages (megamenu data + brand pages)
+      try {
+        const filterApi = new FilterablePagesApi(
+          getApiUrl(c.env, stores, storeCode),
+          storeCode,
+          c.env.MAHO_API_BASIC_AUTH,
+        );
+        const filterResult = await syncFilterablePages(filterApi, store, prefix, allCategories);
+        results[`${storeCode || 'default'}:filterablePages`] =
+          `${filterResult.menuData} menus, ${filterResult.filterPages} pages`;
+      } catch { /* FilterablePages module not available — skip */ }
+
     } catch (e) {
       results[`${storeCode || 'default'}:error`] = (e as Error).message;
     }
@@ -2338,6 +2367,24 @@ app.post('/sync/:type', async (c) => {
         }
         return c.json({ status: 'ok', type: 'categories-by-id', count: catCount });
       }
+      case 'filterable-pages': {
+        const fpCategories = await partialApiClient.fetchCategories();
+        for (let i = 0; i < fpCategories.length; i++) {
+          const cat = fpCategories[i];
+          if (cat.id && cat.childrenIds && cat.childrenIds.length > 0) {
+            try { fpCategories[i] = await partialApiClient.fetchCategoryById(cat.id); } catch {}
+          }
+        }
+        const fpAllCats = [...fpCategories];
+        for (const cat of fpCategories) { if (cat.children) fpAllCats.push(...cat.children); }
+        const filterApi = new FilterablePagesApi(
+          getApiUrl(c.env, registeredStores, requestedStore || undefined),
+          requestedStore || undefined,
+          c.env.MAHO_API_BASIC_AUTH,
+        );
+        const fpResult = await syncFilterablePages(filterApi, store, prefix, fpAllCats);
+        return c.json({ status: 'ok', type: 'filterable-pages', ...fpResult });
+      }
       default:
         return c.json({ error: `Unknown sync type: ${type}` }, 400);
     }
@@ -2359,6 +2406,44 @@ app.get('/:parent/:child', withEdgeCache(CACHE_CATEGORY), async (c) => {
   const parentSlug = c.req.param('parent');
   const childSlug = c.req.param('child');
   const urlPath = `${parentSlug}/${childSlug}`;
+
+  // Check if this is a filter page (e.g. /racquets/wilson → brand page)
+  const filterPage = await resolveFilterPage(store, prefix, parentSlug, childSlug);
+  if (filterPage) {
+    // Find category by URL key (parentSlug) — more reliable than categoryId which may differ across store views
+    const filterCategory = categories.find(cat => cat.urlKey === parentSlug)
+      ?? categories.flatMap(cat => cat.children || []).find(cat => cat.urlKey === parentSlug);
+    if (filterCategory) {
+      const fpCategoryId = filterCategory.id!;
+      const fpPage = parseInt(c.req.query('page') ?? '1', 10);
+      const fpItemsPerPage = 12;
+      const fpProductsData = await store.get<{ products: Product[]; totalItems: number }>(`${prefix}products:category:${fpCategoryId}:page:${fpPage}`);
+      const fpProducts = fpProductsData?.products?.slice(0, fpItemsPerPage) ?? [];
+      const fpTotalItems = fpProductsData?.totalItems ?? 0;
+      const fpTotalPages = Math.ceil(fpTotalItems / fpItemsPerPage);
+      const fpParentCategory = categories.find(cat => cat.children?.some(ch => ch.id === fpCategoryId)) ?? null;
+      const fpDevData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
+      const fpMenuData = await getMenuData(store, prefix, fpCategoryId);
+
+      return c.html(
+        <FilterPage
+          config={config}
+          categories={categories}
+          category={filterCategory}
+          filterPage={filterPage}
+          products={fpProducts}
+          currentPage={fpPage}
+          totalPages={fpTotalPages}
+          totalItems={fpTotalItems}
+          parentCategory={fpParentCategory}
+          menuData={fpMenuData}
+          stores={stores}
+          currentStoreCode={currentStoreCode}
+          devData={fpDevData}
+        />
+      );
+    }
+  }
 
   const category = await store.get<Category>(`${prefix}category:${urlPath}`) ?? await store.get<Category>(`${prefix}category:${childSlug}`);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
@@ -2386,6 +2471,9 @@ app.get('/:parent/:child', withEdgeCache(CACHE_CATEGORY), async (c) => {
   const featuredBlockId = `${category.urlKey}-featured`;
   const featuredBlock = await store.get<{ content: string }>(`${prefix}block:${featuredBlockId}`);
 
+  // Menu data for filter page navigation (brand clicks → SEO URLs)
+  const catMenuData = category.id ? await getMenuData(store, prefix, category.id) : null;
+
   return c.html(
     <CategoryPage
       config={config}
@@ -2399,6 +2487,7 @@ app.get('/:parent/:child', withEdgeCache(CACHE_CATEGORY), async (c) => {
       stores={stores}
       currentStoreCode={currentStoreCode}
       featuredBlockHtml={featuredBlock?.content ?? null}
+      menuData={catMenuData}
       devData={devData}
     />
   );
@@ -2448,10 +2537,11 @@ app.get('/:parent/:child', withEdgeCache(CACHE_PRODUCT), async (c) => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const parentCategory = categories.find(cat => cat.children?.some(ch => ch.id === childCategory!.id)) ?? null;
 
+    const childMenuData = childCategory.id ? await getMenuData(store, prefix, childCategory.id) : null;
     return c.html(
       <CategoryPage config={config} categories={categories} category={childCategory} products={products}
         currentPage={page} totalPages={totalPages} totalItems={totalItems}
-        parentCategory={parentCategory}
+        parentCategory={parentCategory} menuData={childMenuData}
         stores={stores} currentStoreCode={currentStoreCode} devData={devData} />
     );
   }
@@ -2517,6 +2607,7 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
     // Convention-based CMS block: {category-urlKey}-featured
     const featuredBlockId = `${category.urlKey}-featured`;
     const featuredBlock = await store.get<{ content: string }>(`${prefix}block:${featuredBlockId}`);
+    const slugMenuData = category.id ? await getMenuData(store, prefix, category.id) : null;
 
     return c.html(
       <CategoryPage
@@ -2524,6 +2615,7 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
         currentPage={page} totalPages={totalPages} totalItems={totalItems}
         parentCategory={parentCategory} stores={stores} currentStoreCode={currentStoreCode}
         featuredBlockHtml={featuredBlock?.content ?? null}
+        menuData={slugMenuData}
         devData={devData}
       />
     );

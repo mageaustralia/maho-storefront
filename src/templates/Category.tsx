@@ -7,6 +7,7 @@
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Category as CategoryType, Product, StoreConfig, StorefrontStore } from '../types';
+import type { MenuData } from '../plugins/filterable-pages/types';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
@@ -29,11 +30,12 @@ interface CategoryPageProps {
   stores?: StorefrontStore[];
   currentStoreCode?: string;
   featuredBlockHtml?: string | null;
+  menuData?: MenuData | null;
   devData?: DevData | null;
 }
 
 
-export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, category, products, currentPage, totalPages, totalItems, parentCategory, stores, currentStoreCode, featuredBlockHtml, devData }) => {
+export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, category, products, currentPage, totalPages, totalItems, parentCategory, stores, currentStoreCode, featuredBlockHtml, menuData, devData }) => {
   const currency = config.baseCurrencyCode;
   const displayMode = category.displayMode ?? 'PRODUCTS';
   const showProducts = displayMode !== 'PAGE';
@@ -87,6 +89,22 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
     ? rewriteContentUrls(category.cmsBlock)
     : null;
 
+  // Build filter page URL map from menu data (if available)
+  const categoryBaseUrl = `/${cleanUrlPath(category.urlPath) || category.urlKey}`;
+  const filterPageUrls: Record<string, Record<string, string>> = {};
+  if (menuData?.columns) {
+    for (const column of menuData.columns) {
+      const urlMap: Record<string, string> = {};
+      for (const item of column.items) {
+        urlMap[String(item.optionId)] = `${categoryBaseUrl}/${item.urlKey}`;
+      }
+      if (Object.keys(urlMap).length > 0) {
+        filterPageUrls[column.attributeCode] = urlMap;
+      }
+    }
+  }
+  const hasFilterPages = Object.keys(filterPageUrls).length > 0;
+
   return (
     <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
       <Seo
@@ -137,6 +155,8 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
           data-category-filter-current-page-value={showProducts ? String(currentPage) : undefined}
           data-category-filter-total-pages-value={showProducts ? String(totalPages) : undefined}
           data-category-filter-swatch-labels-value={showProducts ? String(getSection<boolean>('category', 'swatchLabels', true)) : undefined}
+          data-category-filter-filter-page-urls-value={showProducts && hasFilterPages ? JSON.stringify(filterPageUrls) : undefined}
+          data-category-filter-category-base-url-value={showProducts && hasFilterPages ? categoryBaseUrl : undefined}
         >
           {/* Toolbar — only when showing products */}
           {showProducts && (

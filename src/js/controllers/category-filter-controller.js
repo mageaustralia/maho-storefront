@@ -15,11 +15,12 @@ export default class CategoryFilterController extends Controller {
     'topPagination', 'topPageInfo', 'bottomPagination', 'bottomPageInfo',
     'priceMin', 'priceMax', 'priceMinLabel', 'priceMaxLabel', 'priceClear', 'priceFilter', 'productsData',
     'filtersContainer', 'activeFilters', 'filterDrawer', 'filterDrawerBody', 'drawerClearBtn'];
-  static values = { categoryId: Number, categoryUrl: { type: String, default: '' }, categoryName: { type: String, default: '' }, currency: { type: String, default: 'USD' }, totalItems: Number, currentPage: Number, totalPages: Number, swatchLabels: { type: Boolean, default: true } };
+  static values = { categoryId: Number, categoryUrl: { type: String, default: '' }, categoryName: { type: String, default: '' }, currency: { type: String, default: 'USD' }, totalItems: Number, currentPage: Number, totalPages: Number, swatchLabels: { type: Boolean, default: true }, initialFilters: { type: String, default: '' }, filterPageUrls: { type: String, default: '' }, categoryBaseUrl: { type: String, default: '' } };
 
   connect() {
     this._products = [];
     this._loading = false;
+    this._categoryDisplayName = this.categoryNameValue || '';
     this._page = this.currentPageValue || 1;
     this._totalPages = this.totalPagesValue || 1;
     // Parse initial products data from embedded JSON
@@ -34,8 +35,23 @@ export default class CategoryFilterController extends Controller {
     if (this.categoryUrlValue) {
       try { sessionStorage.setItem('maho_cat', JSON.stringify({ url: this.categoryUrlValue, name: this.categoryNameValue })); } catch {}
     }
-    // Layered filter state
+    // Layered filter state — seed from pre-applied filters (e.g. brand pages)
     this._activeFilters = {};
+    if (this.initialFiltersValue) {
+      try {
+        const initial = JSON.parse(this.initialFiltersValue);
+        for (const [k, v] of Object.entries(initial)) {
+          this._activeFilters[k] = String(v);
+        }
+      } catch {}
+    }
+    // Per-attribute option snapshots (frozen when a filter is first applied)
+    this._filterSnapshots = {};
+    // Filter page URL map: { "brand_id": { "10": "/pickleball-shoes/head", ... } }
+    this._filterPageUrls = {};
+    if (this.filterPageUrlsValue) {
+      try { this._filterPageUrls = JSON.parse(this.filterPageUrlsValue); } catch {}
+    }
 
     // Restore sort from URL params
     const urlParams = new URLSearchParams(window.location.search);
@@ -121,11 +137,52 @@ export default class CategoryFilterController extends Controller {
 
   // ---- Layered Navigation Filters ----
 
-  async _loadFilters() {
+  async _loadFilters(includeActiveFilters = false) {
     try {
-      const data = await api.get(`/api/layered-filters?categoryId=${this.categoryIdValue}`);
-      this._filtersData = data.member || data['hydra:member'] || [];
+      let url = `/api/layered-filters?categoryId=${this.categoryIdValue}`;
+      if (includeActiveFilters) {
+        for (const [code, value] of Object.entries(this._activeFilters || {})) {
+          url += `&attr_${encodeURIComponent(code)}=${encodeURIComponent(value)}`;
+        }
+      }
+      const data = await api.get(url);
+      const freshFilters = data.member || data['hydra:member'] || [];
+
+      if (includeActiveFilters) {
+        // For each actively-filtered attribute, preserve the options snapshot from
+        // BEFORE that filter was applied (so users can switch between options).
+        // For non-active attributes, use the fresh narrowed response.
+        const freshMap = new Map(freshFilters.map(f => [f.code, f]));
+        const sourceFilters = this._baseFiltersData || this._filtersData;
+        this._filtersData = sourceFilters.map(baseFilter => {
+          if (this._activeFilters[baseFilter.code]) {
+            // This attribute is actively filtered — use its frozen snapshot
+            const snapshot = this._filterSnapshots?.[baseFilter.code];
+            return snapshot || baseFilter;
+          }
+          // Not actively filtered — use narrowed options from API
+          return freshMap.get(baseFilter.code) || null;
+        }).filter(Boolean);
+      } else {
+        this._filtersData = freshFilters;
+        this._baseFiltersData = [...freshFilters];
+        this._filterSnapshots = {};
+        // Snapshot pre-applied filters (e.g. brand page loads with brand_id active)
+        for (const code of Object.keys(this._activeFilters)) {
+          const f = freshFilters.find(f => f.code === code);
+          if (f) this._filterSnapshots[code] = { ...f };
+        }
+      }
+
       this._renderFilters();
+      // On initial load with pre-applied filters: render chips and fetch filtered products
+      // Skip on refreshes (includeActiveFilters=true) to avoid infinite loop
+      if (!includeActiveFilters && Object.keys(this._activeFilters).length > 0) {
+        this._renderActiveFilters();
+        const sort = this.hasSortTarget ? this.sortTarget.value : '';
+        const perPage = this.hasPerPageTarget ? parseInt(this.perPageTarget.value, 10) : 12;
+        this._fetchProducts(sort, 1, perPage);
+      }
     } catch (e) {
       console.error('Failed to load filters:', e);
     }
@@ -358,10 +415,64 @@ export default class CategoryFilterController extends Controller {
     const code = btn.dataset.filterCode;
     const value = btn.dataset.filterValue;
 
-    if (this._activeFilters[code] === value) {
+    const isDeselecting = this._activeFilters[code] === value;
+
+    // Snapshot this attribute's current options before changing the filter,
+    // so the user can still see all options to switch (e.g. all Head series)
+    if (!isDeselecting && !this._filterSnapshots?.[code]) {
+      if (!this._filterSnapshots) this._filterSnapshots = {};
+      const current = this._filtersData.find(f => f.code === code);
+      if (current) this._filterSnapshots[code] = { ...current };
+    }
+    if (isDeselecting) {
+      delete this._filterSnapshots?.[code];
+    }
+
+    if (isDeselecting) {
       delete this._activeFilters[code];
     } else {
+      // Switching a filter-page attribute (e.g. brand) — clear dependent filters
+      // because selections like series/size are brand-specific
+      if (this._filterPageUrls[code] && this._activeFilters[code] && this._activeFilters[code] !== value) {
+        const removedLabels = [];
+        const otherCodes = Object.keys(this._activeFilters).filter(c => c !== code);
+        for (const c of otherCodes) {
+          const filter = this._filtersData.find(f => f.code === c);
+          const option = filter?.options?.find(o => String(o.value) === this._activeFilters[c]);
+          if (filter && option) {
+            removedLabels.push(`${filter.label}: ${option.label}`);
+          }
+          delete this._activeFilters[c];
+          delete this._filterSnapshots?.[c];
+        }
+        if (removedLabels.length > 0) {
+          this._showFilterToast(removedLabels);
+        }
+      }
       this._activeFilters[code] = value;
+    }
+
+    // Update URL + page content if this filter has dedicated page URLs
+    const codeUrls = this._filterPageUrls[code];
+    if (codeUrls) {
+      const targetUrl = isDeselecting
+        ? (this.categoryBaseUrlValue || `/${this.categoryUrlValue}`)
+        : codeUrls[value];
+      if (targetUrl) {
+        const isOnFilterPage = !!document.querySelector('.filter-page-description');
+        if (!isOnFilterPage && !isDeselecting) {
+          // First filter selection from a plain category page — Turbo visit
+          // to get the full filter page layout (brand image, description, etc.)
+          if (window.Turbo) {
+            window.Turbo.visit(targetUrl);
+          } else {
+            window.location.href = targetUrl;
+          }
+          return;
+        }
+        history.pushState(null, '', targetUrl);
+        this._updateFilterPageContent(targetUrl, isDeselecting);
+      }
     }
 
     this._page = 1;
@@ -406,7 +517,20 @@ export default class CategoryFilterController extends Controller {
   }
 
   removeFilter(e) {
-    delete this._activeFilters[e.currentTarget.dataset.filterCode];
+    const code = e.currentTarget.dataset.filterCode;
+    delete this._activeFilters[code];
+    // If this filter has page URLs, navigate back to category page
+    const codeUrls = this._filterPageUrls[code];
+    if (codeUrls) {
+      const baseUrl = this.categoryBaseUrlValue || `/${this.categoryUrlValue}`;
+      const isOnFilterPage = !!document.querySelector('.filter-page-description');
+      if (isOnFilterPage) {
+        // On filter page → Turbo visit back to category (different layout)
+        if (window.Turbo) { window.Turbo.visit(baseUrl); } else { window.location.href = baseUrl; }
+        return;
+      }
+      history.pushState(null, '', baseUrl);
+    }
     this._page = 1;
     this._renderFilters();
     this._renderActiveFilters();
@@ -431,6 +555,120 @@ export default class CategoryFilterController extends Controller {
     const sort = this.hasSortTarget ? this.sortTarget.value : '';
     const perPage = this.hasPerPageTarget ? parseInt(this.perPageTarget.value, 10) : 12;
     this._fetchProducts(sort, 1, perPage);
+  }
+
+  /**
+   * Fetch filter page content from KV API and update H1/description/meta in-place.
+   * No page navigation — DOM replacement only, same as Series/Size filters.
+   */
+  async _updateFilterPageContent(url, isClearing = false) {
+    // Save originals on first filter page navigation
+    if (!this._originalH1) {
+      const h1 = document.querySelector('h1');
+      this._originalH1 = h1 ? h1.textContent : '';
+      this._originalTitle = document.title;
+      const desc = document.querySelector('.filter-page-description');
+      this._originalDescription = desc ? desc.innerHTML : '';
+    }
+
+    if (isClearing) {
+      // Clearing filter → restore original category content
+      const h1 = document.querySelector('h1');
+      if (h1) h1.textContent = this._originalH1 || '';
+      const desc = document.querySelector('.filter-page-description');
+      if (desc) {
+        if (this._originalDescription) {
+          desc.innerHTML = this._originalDescription;
+          desc.style.display = '';
+        } else {
+          desc.style.display = 'none';
+        }
+      }
+      document.title = this._originalTitle || document.title;
+      return;
+    }
+
+    // Extract category/option from URL path: /pickleball-shoes/head
+    const parts = url.replace(/^\//, '').split('/');
+    if (parts.length < 2) return;
+    const [categoryKey, optionKey] = parts;
+
+    try {
+      const res = await fetch(`/api/filter-page/${categoryKey}/${optionKey}`);
+      if (!res.ok) return;
+      const page = await res.json();
+
+      // Update H1 — combine brand + category, deduplicating shared words
+      const h1 = document.querySelector('h1');
+      if (h1 && page.title) {
+        const catName = this._categoryDisplayName || this.categoryNameValue || '';
+        h1.textContent = this._deduplicateHeading(page.title, catName);
+      }
+
+      // Update last breadcrumb item
+      const breadcrumb = document.querySelector('.breadcrumbs');
+      if (breadcrumb && page.title) {
+        const items = breadcrumb.querySelectorAll('span, a');
+        const lastItem = items[items.length - 1];
+        if (lastItem) lastItem.textContent = page.title;
+      }
+
+      // Update page title
+      const headingForTitle = page.metaTitle || (h1 ? h1.textContent : page.title);
+      if (headingForTitle) {
+        const siteName = (this._originalTitle || '').split('|').pop().trim();
+        document.title = `${headingForTitle} | ${siteName}`;
+      }
+
+      // Update description in-place
+      const desc = document.querySelector('.filter-page-description');
+      if (desc) {
+        if (page.description) {
+          desc.innerHTML = page.description;
+          desc.style.display = '';
+        } else {
+          desc.style.display = 'none';
+        }
+      }
+
+      // Update meta description
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc && page.metaDescription) metaDesc.setAttribute('content', page.metaDescription);
+    } catch {
+      // Filter page content not available — that's fine, products still filter
+    }
+  }
+
+  /**
+   * Combine two names removing overlapping words at the boundary.
+   * e.g. "Acme Pro" + "Pro Widgets" → "Acme Pro Widgets"
+   */
+  _deduplicateHeading(brand, category) {
+    if (!brand) return category;
+    if (!category) return brand;
+    const bWords = brand.split(/\s+/);
+    const cWords = category.split(/\s+/);
+    let overlap = 0;
+    for (let i = 1; i <= Math.min(bWords.length, cWords.length); i++) {
+      if (bWords.slice(-i).join(' ').toLowerCase() === cWords.slice(0, i).join(' ').toLowerCase()) {
+        overlap = i;
+      }
+    }
+    return overlap > 0
+      ? [...bWords, ...cWords.slice(overlap)].join(' ')
+      : `${brand} ${category}`;
+  }
+
+  _showFilterToast(removedLabels) {
+    const text = removedLabels.length === 1
+      ? `${removedLabels[0]} filter cleared — not available for this selection`
+      : `${removedLabels.join(', ')} filters cleared — not available for this selection`;
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-neutral text-neutral-content px-6 py-4 rounded-xl shadow-2xl text-base font-medium max-w-lg text-center transition-opacity duration-300';
+    toast.textContent = text;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    setTimeout(() => { toast.remove(); }, 3300);
   }
 
   async _fetchProducts(sort = '', page = 1, perPage = 12) {
@@ -558,7 +796,15 @@ export default class CategoryFilterController extends Controller {
 
       // Scroll to top of product grid
       if (this.hasGridTarget) {
-        this.gridTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const breadcrumbs = document.querySelector('.breadcrumbs');
+        (breadcrumbs || this.gridTarget).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // Refresh dependent filter options (e.g. selecting Brand narrows Series options)
+      const hasFilters = Object.keys(this._activeFilters).length > 0;
+      if (hasFilters || this._filtersNarrowed) {
+        this._loadFilters(hasFilters);
+        this._filtersNarrowed = hasFilters;
       }
     } catch (e) {
       console.error('Category filter error:', e);
