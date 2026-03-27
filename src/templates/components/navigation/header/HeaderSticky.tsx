@@ -51,21 +51,79 @@ export const Header: FC<HeaderProps> = ({ categories, config, stores, currentSto
               >
                 {cat.menuTitle || cat.name}
               </a>
-              {cat.children && cat.children.length > 0 && (
-                <ul class="hidden group-hover:block absolute top-full left-0 pt-2 min-w-[200px] pb-1 px-1 bg-base-100 border border-base-300 rounded-lg shadow-lg z-50 before:content-[''] before:absolute before:left-0 before:right-0 before:bottom-full before:h-3">
-                  {cat.children.filter(c => c.includeInMenu).map((child) => (
-                    <li key={child.id}>
+              {(cat.children?.length > 0 || cat.menuData?.columns?.length) && (() => {
+                const children = (cat.children || []).filter(c => c.includeInMenu);
+                const columns = cat.menuData?.columns || [];
+                const hasColumns = columns.length > 0;
+                const panelClass = hasColumns
+                  ? 'hidden group-hover:flex absolute top-full left-0 pt-2 gap-6 p-5 bg-base-100 border border-base-300 rounded-xl shadow-xl z-50 before:content-[\'\'] before:absolute before:left-0 before:right-0 before:bottom-full before:h-3'
+                  : 'hidden group-hover:block absolute top-full left-0 pt-2 min-w-[200px] pb-1 px-1 bg-base-100 border border-base-300 rounded-lg shadow-lg z-50 before:content-[\'\'] before:absolute before:left-0 before:right-0 before:bottom-full before:h-3';
+                return (
+                  <div class={panelClass}>
+                    {/* Subcategories */}
+                    {children.length > 0 && (
+                      <div class={hasColumns ? 'min-w-[160px]' : ''}>
+                        {hasColumns && (
+                          <div class="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-2">Categories</div>
+                        )}
+                        <ul class="flex flex-col">
+                          {children.map((child) => (
+                            <li key={child.id}>
+                              <a
+                                href={`/${cleanUrlPath(child.urlPath) || child.urlKey}`}
+                                data-turbo-prefetch="true"
+                                class="block px-3 py-1.5 text-sm text-base-content/70 rounded-md no-underline transition-colors hover:text-base-content hover:bg-base-content/10"
+                              >
+                                {child.name}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {/* Attribute columns (brands, etc.) */}
+                    {columns.map((column) => (
+                      <div key={column.attributeCode} class="min-w-[140px]">
+                        <div class="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-2">
+                          {column.title}
+                        </div>
+                        <ul class="flex flex-col">
+                          {column.items.map((item) => (
+                            <li key={item.optionId}>
+                              <a
+                                href={`/${cat.urlKey}/${item.urlKey}`}
+                                data-turbo-prefetch="true"
+                                class="block px-3 py-1.5 text-sm text-base-content/70 rounded-md no-underline transition-colors hover:text-base-content hover:bg-base-content/10"
+                              >
+                                {item.label}
+                                <span class="text-base-content/30 text-xs ml-1">({item.count})</span>
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                    {/* Featured product */}
+                    {cat.menuData?.featuredProduct && (
                       <a
-                        href={`/${cleanUrlPath(child.urlPath) || child.urlKey}`}
+                        href={cat.menuData.featuredProduct.url}
+                        class="shrink-0 w-[160px] rounded-lg overflow-hidden bg-base-200 no-underline group/feat flex flex-col"
                         data-turbo-prefetch="true"
-                        class="block px-3 py-1.5 text-sm text-base-content/70 rounded-md no-underline transition-colors hover:text-base-content hover:bg-base-content/10"
                       >
-                        {child.name}
+                        {cat.menuData.featuredProduct.imageUrl && (
+                          <div class="aspect-square overflow-hidden bg-base-200">
+                            <img src={cat.menuData.featuredProduct.imageUrl} alt={cat.menuData.featuredProduct.name} class="w-full h-full object-contain group-hover/feat:scale-105 transition-transform duration-300" loading="lazy" />
+                          </div>
+                        )}
+                        <div class="p-2">
+                          <div class="text-[10px] font-bold uppercase tracking-wider text-primary mb-0.5">Featured</div>
+                          <div class="text-xs font-medium text-base-content line-clamp-2">{cat.menuData.featuredProduct.name}</div>
+                        </div>
                       </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                    )}
+                  </div>
+                );
+              })()}
             </li>
           ))}
         </ul>
