@@ -5,19 +5,29 @@
  */
 
 import { Controller } from '../stimulus.js';
-import { api } from '../api.js';
-import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
-import { hydrateTemplate } from '../template-helpers.js';
+import { escapeHtml, formatPrice } from '../utils.js';
 import { analytics } from '../analytics.js';
 
 /**
- * Default search controller — fetches results from the Worker /api/search/suggest endpoint.
- * Works with both Lucene and standard MySQL fulltext (backend handles the search engine).
+ * Meilisearch search controller — queries Meilisearch indexes directly from the browser.
  *
- * For Meilisearch (direct browser queries), use search-meilisearch-controller instead.
+ * Sends parallel requests to separate indexes (products, categories, pages)
+ * for fastest possible search-as-you-type experience.
+ *
+ * Configure via data attributes on the controller element:
+ *   data-search-meilisearch-host-value="https://ms.example.com"
+ *   data-search-meilisearch-api-key-value="public-search-key"
+ *   data-search-meilisearch-index-prefix-value="store_code"
+ *   data-search-meilisearch-currency-value="AUD"
  */
-export default class SearchController extends Controller {
+export default class SearchMeilisearchController extends Controller {
   static targets = ['input', 'results', 'empty', 'productResults', 'categoryResults', 'pageResults'];
+  static values = {
+    host: String,             // Meilisearch host URL
+    apiKey: { type: String, default: '' },  // Public search API key
+    indexPrefix: String,      // Index name prefix (e.g. 'dev_picklewarehouse')
+    currency: { type: String, default: 'AUD' },
+  };
 
   connect() {
     this._debounceTimer = null;
@@ -36,7 +46,6 @@ export default class SearchController extends Controller {
     document.body.style.overflow = 'hidden';
     if (this.hasInputTarget) {
       this.inputTarget.focus();
-      // Delayed focus for mobile browsers that need the overlay to be visible first
       setTimeout(() => this.inputTarget.focus(), 50);
       if (this.inputTarget.value.length >= 2) this.performSearch(this.inputTarget.value);
     }
@@ -60,13 +69,89 @@ export default class SearchController extends Controller {
   }
 
   async performSearch(query) {
+    const host = this.hostValue;
+    const prefix = this.indexPrefixValue;
+
+    if (!host || !prefix) {
+      console.warn('Meilisearch search controller: missing host or indexPrefix');
+      return;
+    }
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (this.apiKeyValue) headers['Authorization'] = `Bearer ${this.apiKeyValue}`;
+
     try {
-      const data = await api.get(`/api/search/suggest?q=${encodeURIComponent(query)}`);
+      const [productsRes, categoriesRes, pagesRes] = await Promise.all([
+        this._searchIndex(host, headers, `${prefix}_products`, query, {
+          limit: 10,
+          attributesToHighlight: ['name'],
+          attributesToCrop: ['description'],
+          cropLength: 80,
+        }),
+        this._searchIndex(host, headers, `${prefix}_categories`, query, {
+          limit: 5,
+        }),
+        this._searchIndex(host, headers, `${prefix}_pages`, query, {
+          limit: 5,
+        }),
+      ]);
+
+      const data = {
+        products: this._normalizeProducts(productsRes.hits || []),
+        totalItems: productsRes.estimatedTotalHits || productsRes.totalHits || (productsRes.hits || []).length,
+        categories: this._normalizeCategories(categoriesRes.hits || []),
+        blogPosts: [],
+        cmsPages: this._normalizePages(pagesRes.hits || []),
+      };
+
       this._renderResults(query, data);
     } catch {
       if (this.hasResultsTarget) this.resultsTarget.style.display = 'none';
       if (this.hasEmptyTarget) this.emptyTarget.style.display = '';
     }
+  }
+
+  async _searchIndex(host, headers, index, query, params = {}) {
+    try {
+      const res = await fetch(`${host}/indexes/${index}/search`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ q: query, ...params }),
+      });
+      return await res.json();
+    } catch {
+      return { hits: [] };
+    }
+  }
+
+  _normalizeProducts(hits) {
+    const currency = this.currencyValue;
+    return hits.map(hit => {
+      const priceData = hit.price?.[currency] || hit.price?.[Object.keys(hit.price || {})[0]] || {};
+      return {
+        id: hit.objectID || hit.id,
+        sku: hit.sku || '',
+        name: hit._formatted?.name || hit.name || '',
+        urlKey: (hit.url || '').replace(/^https?:\/\/[^/]+\//, '').replace(/\.html$/, ''),
+        price: priceData.default || hit.sort_price || 0,
+        finalPrice: priceData.default || hit.sort_price || 0,
+        thumbnailUrl: hit.image_url || hit.thumbnail_url || hit.small_image_url || null,
+      };
+    });
+  }
+
+  _normalizeCategories(hits) {
+    return hits.map(hit => ({
+      name: hit._formatted?.name || hit.name || '',
+      urlKey: (hit.url || '').replace(/^https?:\/\/[^/]+\//, '').replace(/\.html$/, ''),
+    }));
+  }
+
+  _normalizePages(hits) {
+    return hits.map(hit => ({
+      title: hit._formatted?.name || hit.name || hit.title || '',
+      identifier: hit.slug || hit.identifier || (hit.url || '').replace(/^https?:\/\/[^/]+\//, ''),
+    }));
   }
 
   _renderResults(query, data) {
