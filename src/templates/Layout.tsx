@@ -76,7 +76,7 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ config, categories,
         </main>
         <Footer config={config} footerPages={footerPages ?? []} />
         <CartDrawer />
-        <SearchOverlay />
+        <SearchOverlay config={config} />
         <MobileMenu categories={categories} config={config} stores={stores} currentStoreCode={currentStoreCode} />
         <StimulusTemplates />
         {(() => {

@@ -6,9 +6,42 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
+import type { StoreConfig } from '../../../types';
+import { getVariant, getSection } from '../../../page-config';
 
-export const SearchOverlay: FC = () => (
-  <div class="search-overlay" data-controller="search" data-action="keydown.esc@document->search#close">
+/**
+ * Search overlay with configurable backend.
+ *
+ * Backend is resolved in priority order:
+ *   1. StoreConfig.extensions.search (from Maho API, set by installed search modules)
+ *   2. page.json search.components.backend (static theme config)
+ *   3. "default" (Worker-side proxy)
+ *
+ * This means if you install the Lucene or Meilisearch module, the storefront
+ * automatically picks up the right backend without page.json changes.
+ */
+export const SearchOverlay: FC<{ config?: StoreConfig }> = ({ config }) => {
+  // Resolve search config: API extensions > page.json > defaults
+  const apiSearch = (config?.extensions as Record<string, any>)?.search;
+  const backend = apiSearch?.backend || getVariant('search', 'backend', 'default');
+  const ms = apiSearch?.meilisearch || getSection<Record<string, string>>('search', 'meilisearch', {});
+  const currency = config?.baseCurrencyCode || 'AUD';
+
+  const dataAttrs: Record<string, string> = {
+    'data-controller': 'search',
+    'data-action': 'keydown.esc@document->search#close',
+    'data-search-backend-value': backend,
+    'data-search-currency-value': currency,
+  };
+
+  if (backend === 'meilisearch' && ms) {
+    if (ms.host) dataAttrs['data-search-meilisearch-host-value'] = ms.host;
+    if (ms.apiKey) dataAttrs['data-search-meilisearch-api-key-value'] = ms.apiKey;
+    if (ms.indexPrefix) dataAttrs['data-search-meilisearch-index-prefix-value'] = ms.indexPrefix;
+  }
+
+  return (
+  <div class="search-overlay" {...dataAttrs}>
     <div class="w-full max-w-5xl max-h-[85vh] bg-base-100 rounded-2xl shadow-xl flex flex-col overflow-hidden mx-4">
       <div class="p-4 px-5 border-b border-base-300">
         <div class="flex items-center gap-3">
@@ -44,4 +77,5 @@ export const SearchOverlay: FC = () => (
       </div>
     </div>
   </div>
-);
+  );
+};

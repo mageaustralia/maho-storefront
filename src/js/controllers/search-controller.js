@@ -12,6 +12,13 @@ import { analytics } from '../analytics.js';
 
 export default class SearchController extends Controller {
   static targets = ['input', 'results', 'empty', 'productResults', 'categoryResults', 'pageResults'];
+  static values = {
+    backend: { type: String, default: 'default' },       // 'default' | 'lucene' | 'meilisearch'
+    meilisearchHost: { type: String, default: '' },       // e.g. 'https://ms.example.com'
+    meilisearchApiKey: { type: String, default: '' },     // public search API key
+    meilisearchIndexPrefix: { type: String, default: '' }, // e.g. 'dev_picklewarehouse'
+    currency: { type: String, default: 'AUD' },
+  };
 
   connect() {
     this._debounceTimer = null;
@@ -55,7 +62,7 @@ export default class SearchController extends Controller {
 
   async performSearch(query) {
     try {
-      const data = await api.get(`/api/search/suggest?q=${encodeURIComponent(query)}`);
+      const data = await this._fetchResults(query);
       let hasResults = false;
 
       // Render category results
@@ -75,7 +82,7 @@ export default class SearchController extends Controller {
         }
       }
 
-      // Render blog results
+      // Render blog/CMS results
       if (this.hasPageResultsTarget) {
         const blogAndCms = [
           ...(data.blogPosts || []).map(p => ({ title: p.title, url: `/blog/${p.urlKey}`, type: 'blog' })),
@@ -135,6 +142,109 @@ export default class SearchController extends Controller {
       if (this.hasResultsTarget) this.resultsTarget.style.display = 'none';
       if (this.hasEmptyTarget) this.emptyTarget.style.display = '';
     }
+  }
+
+  // --- Search backend strategies ---
+
+  async _fetchResults(query) {
+    switch (this.backendValue) {
+      case 'meilisearch':
+        return this._fetchMeilisearch(query);
+      case 'lucene':
+        return this._fetchLucene(query);
+      default:
+        return this._fetchDefault(query);
+    }
+  }
+
+  /** Default: calls the Worker-side /api/search/suggest proxy */
+  async _fetchDefault(query) {
+    return api.get(`/api/search/suggest?q=${encodeURIComponent(query)}`);
+  }
+
+  /** Lucene: calls the Maho API /api/search/suggest endpoint directly (single request) */
+  async _fetchLucene(query) {
+    const data = await api.get(`/api/search/suggest?q=${encodeURIComponent(query)}`);
+    // Lucene response is already in the expected format
+    return {
+      products: (data.products || []).map(p => ({
+        ...p,
+        urlKey: p.urlKey || '',
+        thumbnailUrl: p.thumbnailUrl || null,
+        finalPrice: p.finalPrice ?? p.price,
+      })),
+      totalItems: data.totalItems || 0,
+      categories: (data.categories || []).map(c => ({
+        name: c.name,
+        urlKey: c.urlKey || '',
+      })),
+      blogPosts: data.blogPosts || [],
+      cmsPages: (data.cmsPages || []).map(p => ({
+        title: p.title,
+        identifier: p.identifier,
+      })),
+    };
+  }
+
+  /** Meilisearch: calls Meilisearch HTTP API directly (3 parallel index queries) */
+  async _fetchMeilisearch(query) {
+    const host = this.meilisearchHostValue;
+    const apiKey = this.meilisearchApiKeyValue;
+    const prefix = this.meilisearchIndexPrefixValue;
+    const currency = this.currencyValue;
+
+    if (!host || !prefix) {
+      return this._fetchDefault(query);
+    }
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const searchBody = JSON.stringify({
+      q: query,
+      limit: 10,
+      attributesToHighlight: ['name'],
+      attributesToCrop: ['description'],
+      cropLength: 80,
+    });
+
+    const [productsRes, categoriesRes, pagesRes] = await Promise.all([
+      fetch(`${host}/indexes/${prefix}_products/search`, { method: 'POST', headers, body: searchBody }).then(r => r.json()).catch(() => ({ hits: [] })),
+      fetch(`${host}/indexes/${prefix}_categories/search`, { method: 'POST', headers, body: JSON.stringify({ q: query, limit: 5 }) }).then(r => r.json()).catch(() => ({ hits: [] })),
+      fetch(`${host}/indexes/${prefix}_pages/search`, { method: 'POST', headers, body: JSON.stringify({ q: query, limit: 5 }) }).then(r => r.json()).catch(() => ({ hits: [] })),
+    ]);
+
+    // Normalize Meilisearch response to common format
+    const products = (productsRes.hits || []).map(hit => {
+      const priceData = hit.price?.[currency] || hit.price?.[Object.keys(hit.price || {})[0]] || {};
+      return {
+        id: hit.objectID || hit.id,
+        sku: hit.sku || '',
+        name: hit._formatted?.name || hit.name || '',
+        urlKey: (hit.url || '').replace(/^https?:\/\/[^/]+\//, '').replace(/\.html$/, ''),
+        price: priceData.default || hit.sort_price || 0,
+        finalPrice: priceData.default || hit.sort_price || 0,
+        thumbnailUrl: hit.image_url || hit.thumbnail_url || hit.small_image_url || null,
+      };
+    });
+
+    const categories = (categoriesRes.hits || []).map(hit => ({
+      name: hit._formatted?.name || hit.name || '',
+      urlKey: (hit.url || '').replace(/^https?:\/\/[^/]+\//, '').replace(/\.html$/, ''),
+    }));
+
+    const cmsPages = (pagesRes.hits || []).map(hit => ({
+      title: hit._formatted?.name || hit.name || hit.title || '',
+      identifier: hit.slug || hit.identifier || (hit.url || '').replace(/^https?:\/\/[^/]+\//, ''),
+    }));
+
+    return {
+      products,
+      totalItems: productsRes.estimatedTotalHits || productsRes.totalHits || products.length,
+      categories,
+      blogPosts: [],
+      cmsPages,
+    };
   }
 
   submitSearch() {
