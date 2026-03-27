@@ -10,34 +10,35 @@ import type { StoreConfig } from '../../../types';
 import { getVariant, getSection } from '../../../page-config';
 
 /**
- * Search overlay with configurable backend.
+ * Search overlay — renders the correct controller based on search backend config.
  *
- * Backend is resolved in priority order:
- *   1. StoreConfig.extensions.search (from Maho API, set by installed search modules)
- *   2. page.json search.components.backend (static theme config)
- *   3. "default" (Worker-side proxy)
+ * Backend resolved from:
+ *   1. StoreConfig.extensions.search.backend (API, set by installed modules)
+ *   2. page.json search.components.backend
+ *   3. "default"
  *
- * This means if you install the Lucene or Meilisearch module, the storefront
- * automatically picks up the right backend without page.json changes.
+ * "default" / "lucene" → search controller (single API call via Worker)
+ * "meilisearch" → search-meilisearch controller (parallel direct browser queries)
  */
 export const SearchOverlay: FC<{ config?: StoreConfig }> = ({ config }) => {
-  // Resolve search config: API extensions > page.json > defaults
   const apiSearch = (config?.extensions as Record<string, any>)?.search;
   const backend = apiSearch?.backend || getVariant('search', 'backend', 'default');
+  const isMeilisearch = backend === 'meilisearch';
+  const ctrl = isMeilisearch ? 'search-meilisearch' : 'search';
+
   const ms = apiSearch?.meilisearch || getSection<Record<string, string>>('search', 'meilisearch', {});
   const currency = config?.baseCurrencyCode || 'AUD';
 
   const dataAttrs: Record<string, string> = {
-    'data-controller': 'search',
-    'data-action': 'keydown.esc@document->search#close',
-    'data-search-backend-value': backend,
-    'data-search-currency-value': currency,
+    'data-controller': ctrl,
+    'data-action': `keydown.esc@document->${ctrl}#close`,
   };
 
-  if (backend === 'meilisearch' && ms) {
+  if (isMeilisearch) {
     if (ms.host) dataAttrs['data-search-meilisearch-host-value'] = ms.host;
     if (ms.apiKey) dataAttrs['data-search-meilisearch-api-key-value'] = ms.apiKey;
     if (ms.indexPrefix) dataAttrs['data-search-meilisearch-index-prefix-value'] = ms.indexPrefix;
+    dataAttrs['data-search-meilisearch-currency-value'] = currency;
   }
 
   return (
@@ -52,27 +53,26 @@ export const SearchOverlay: FC<{ config?: StoreConfig }> = ({ config }) => {
             type="text"
             placeholder="Search products, categories, pages..."
             class="flex-1 border-none outline-none text-base py-1 text-base-content bg-transparent placeholder:text-base-content/40"
-            data-search-target="input"
-            data-action="input->search#onInput keydown.enter->search#submitSearch"
+            {...{[`data-${ctrl}-target`]: 'input'}}
+            data-action={`input->${ctrl}#onInput keydown.enter->${ctrl}#submitSearch`}
             autocomplete="off"
           />
-          <button class="text-2xl text-base-content/40 hover:text-base-content transition-colors p-1 leading-none" data-action="search#close">&times;</button>
+          <button class="text-2xl text-base-content/40 hover:text-base-content transition-colors p-1 leading-none"
+            data-action={`${ctrl}#close`}>&times;</button>
         </div>
       </div>
-      <div class="flex-1 overflow-y-auto" data-search-target="results" style="display:none">
+      <div class="flex-1 overflow-y-auto" {...{[`data-${ctrl}-target`]: 'results'}} style="display:none">
         <div class="flex max-md:flex-col">
-          {/* Left sidebar — categories, pages, suggestions */}
           <div class="w-72 max-md:w-full shrink-0 border-r max-md:border-r-0 max-md:border-b border-base-200 p-4 space-y-4">
-            <div data-search-target="categoryResults"></div>
-            <div data-search-target="pageResults"></div>
+            <div {...{[`data-${ctrl}-target`]: 'categoryResults'}}></div>
+            <div {...{[`data-${ctrl}-target`]: 'pageResults'}}></div>
           </div>
-          {/* Right — product grid */}
           <div class="flex-1 p-4">
-            <div data-search-target="productResults"></div>
+            <div {...{[`data-${ctrl}-target`]: 'productResults'}}></div>
           </div>
         </div>
       </div>
-      <div class="py-8 px-5 text-center text-base-content/50" data-search-target="empty" style="display:none">
+      <div class="py-8 px-5 text-center text-base-content/50" {...{[`data-${ctrl}-target`]: 'empty'}} style="display:none">
         <p>No results found</p>
       </div>
     </div>

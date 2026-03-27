@@ -12,6 +12,7 @@ import ProductController from './controllers/product-controller.js';
 import CategoryFilterController from './controllers/category-filter-controller.js';
 import CartDrawerController from './controllers/cart-drawer-controller.js';
 import SearchController from './controllers/search-controller.js';
+import SearchMeilisearchController from './controllers/search-meilisearch-controller.js';
 import MobileMenuController from './controllers/mobile-menu-controller.js';
 import CheckoutController from './controllers/checkout-controller.js';
 import OrderSuccessController from './controllers/order-success-controller.js';
@@ -44,6 +45,7 @@ if (!window.__stimulusApp) {
   application.register('category-filter', CategoryFilterController);
   application.register('cart-drawer', CartDrawerController);
   application.register('search', SearchController);
+  application.register('search-meilisearch', SearchMeilisearchController);
   application.register('mobile-menu', MobileMenuController);
   application.register('checkout', CheckoutController);
   application.register('order-success', OrderSuccessController);
