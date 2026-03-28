@@ -84,9 +84,6 @@ export default class SearchMeilisearchController extends Controller {
       const [productsRes, categoriesRes, pagesRes] = await Promise.all([
         this._searchIndex(host, headers, `${prefix}_products`, query, {
           limit: 10,
-          attributesToHighlight: ['name'],
-          attributesToCrop: ['description'],
-          cropLength: 80,
         }),
         this._searchIndex(host, headers, `${prefix}_categories`, query, {
           limit: 5,
@@ -131,7 +128,7 @@ export default class SearchMeilisearchController extends Controller {
       return {
         id: hit.objectID || hit.id,
         sku: hit.sku || '',
-        name: hit._formatted?.name || hit.name || '',
+        name: hit.name || '',
         urlKey: (hit.url || '').replace(/^https?:\/\/[^/]+\//, '').replace(/\.html$/, ''),
         price: priceData.default || hit.sort_price || 0,
         finalPrice: priceData.default || hit.sort_price || 0,
@@ -142,7 +139,7 @@ export default class SearchMeilisearchController extends Controller {
 
   _normalizeCategories(hits) {
     return hits.map(hit => ({
-      name: hit._formatted?.name || hit.name || '',
+      name: hit.name || '',
       urlKey: (hit.url || '').replace(/^https?:\/\/[^/]+\//, '').replace(/\.html$/, ''),
     }));
   }
