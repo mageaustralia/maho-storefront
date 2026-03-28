@@ -10,15 +10,12 @@ import type { StoreConfig } from '../../types';
 import { getVariant, getSection } from '../../page-config';
 
 /**
- * Search overlay — renders the correct controller based on search backend config.
+ * Search overlay — full-width search bar at top with results panel below.
  *
  * Backend resolved from:
  *   1. StoreConfig.extensions.search.backend (API, set by installed modules)
  *   2. page.json search.components.backend
  *   3. "default"
- *
- * "default" / "lucene" → search controller (single API call via Worker)
- * "meilisearch" → search-meilisearch controller (parallel direct browser queries)
  */
 export const SearchOverlay: FC<{ config?: StoreConfig }> = ({ config }) => {
   const apiSearch = (config?.extensions as Record<string, any>)?.search;
@@ -43,36 +40,48 @@ export const SearchOverlay: FC<{ config?: StoreConfig }> = ({ config }) => {
 
   return (
   <div class="search-overlay" {...dataAttrs}>
-    <div class="w-full max-w-5xl max-h-[85vh] bg-base-100 rounded-2xl shadow-xl flex flex-col overflow-hidden mx-4">
-      <div class="p-4 px-5 border-b border-base-300">
+    {/* Full-width search bar pinned to top */}
+    <div class="w-full bg-base-100 border-b border-base-300 shadow-sm">
+      <div class="max-w-screen-xl mx-auto px-4 py-3">
         <div class="flex items-center gap-3">
-          <svg class="w-5 h-5 shrink-0 text-base-content/40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
           <input
             type="text"
             placeholder="Search products, categories, pages..."
-            class="flex-1 border-none outline-none text-base py-1 text-base-content bg-transparent placeholder:text-base-content/40"
+            class="flex-1 border-none outline-none text-lg py-1 text-base-content bg-transparent placeholder:text-base-content/40"
             {...{[`data-${ctrl}-target`]: 'input'}}
             data-action={`input->${ctrl}#onInput keydown.enter->${ctrl}#submitSearch`}
             autocomplete="off"
           />
-          <button class="text-2xl text-base-content/40 hover:text-base-content transition-colors p-1 leading-none"
-            data-action={`${ctrl}#close`}>&times;</button>
+          <button class="btn btn-ghost btn-sm btn-circle text-base-content/40 hover:text-base-content"
+            data-action={`${ctrl}#close`}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
       </div>
-      <div class="flex-1 overflow-y-auto" {...{[`data-${ctrl}-target`]: 'results'}} style="display:none">
-        <div class="flex max-md:flex-col">
-          <div class="w-72 max-md:w-full shrink-0 border-r max-md:border-r-0 max-md:border-b border-base-200 p-4 space-y-4">
-            <div {...{[`data-${ctrl}-target`]: 'categoryResults'}}></div>
-            <div {...{[`data-${ctrl}-target`]: 'pageResults'}}></div>
-          </div>
-          <div class="flex-1 p-4">
-            <div {...{[`data-${ctrl}-target`]: 'productResults'}}></div>
-          </div>
+    </div>
+
+    {/* Results panel */}
+    <div class="w-full max-w-screen-xl mx-auto bg-base-100 shadow-xl overflow-y-auto"
+      style="max-height: calc(100vh - 60px)"
+      {...{[`data-${ctrl}-target`]: 'results'}} >
+      <div class="flex max-md:flex-col">
+        {/* Left sidebar */}
+        <div class="w-80 max-md:w-full shrink-0 border-r max-md:border-r-0 max-md:border-b border-base-200 p-5 space-y-5">
+          <div {...{[`data-${ctrl}-target`]: 'categoryResults'}}></div>
+          <div {...{[`data-${ctrl}-target`]: 'pageResults'}}></div>
+        </div>
+        {/* Product grid */}
+        <div class="flex-1 p-5">
+          <div {...{[`data-${ctrl}-target`]: 'productResults'}}></div>
         </div>
       </div>
-      <div class="py-8 px-5 text-center text-base-content/50" {...{[`data-${ctrl}-target`]: 'empty'}} style="display:none">
+    </div>
+
+    {/* Empty state */}
+    <div class="w-full max-w-screen-xl mx-auto bg-base-100 shadow-xl" {...{[`data-${ctrl}-target`]: 'empty'}} style="display:none">
+      <div class="py-12 px-5 text-center text-base-content/50">
         <p>No results found</p>
       </div>
     </div>

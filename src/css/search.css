@@ -19,8 +19,8 @@
   visibility: hidden;
   transition: opacity 0.2s, visibility 0.2s;
   display: flex;
-  justify-content: center;
-  padding-top: 10vh;
+  flex-direction: column;
+  align-items: center;
 }
 
 .search-overlay.open {
