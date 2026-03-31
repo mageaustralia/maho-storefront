@@ -53,6 +53,7 @@ import {
   resolveFilterPage,
   getMenuData,
   FilterPage,
+  type MenuData,
 } from './plugins/filterable-pages';
 
 // In-memory cache for store registry from KV
@@ -920,9 +921,23 @@ async function getStoreData(store: ContentStore, storeCode?: string, siteOrigin?
   if (siteOrigin) {
     resolved.baseUrl = siteOrigin.replace(/\/$/, '');
   }
+  // Enrich categories with menu data (brand columns for megamenu dropdowns)
+  const resolvedCategories = categories ?? [];
+  if (resolvedCategories.length > 0) {
+    const menuDataPromises = resolvedCategories
+      .filter(cat => cat.id)
+      .map(cat => store.get<MenuData>(`${prefix}menu:${cat.id}`).then(md => [cat.id!, md] as const));
+    const menuResults = await Promise.all(menuDataPromises);
+    for (const [catId, menuData] of menuResults) {
+      if (menuData) {
+        const cat = resolvedCategories.find(c => c.id === catId);
+        if (cat) cat.menuData = menuData;
+      }
+    }
+  }
   const result = {
     config: resolved,
-    categories: categories ?? [],
+    categories: resolvedCategories,
     footerPages: footerPages ?? [],
   };
   _storeDataCache[cacheKey] = { ...result, ts: Date.now() };
@@ -2643,7 +2658,21 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
 
   if (kvCategory) return renderCategory(kvCategory);
 
-  if (kvProduct && kvProduct.urlKey === slug) return renderProduct(kvProduct);
+  if (kvProduct && kvProduct.urlKey === slug) {
+    // Check if this is a listing stub (missing configurable options) — fetch full product from API
+    const isListingStub = kvProduct.type === 'configurable'
+      && (!kvProduct.configurableOptions || kvProduct.configurableOptions.length === 0);
+    if (isListingStub && kvProduct.id) {
+      try {
+        const fullProduct = await apiClient.fetchProductById(kvProduct.id);
+        if (fullProduct) {
+          c.executionCtx.waitUntil(store.put(`${prefix}product:${slug}`, fullProduct, 86400));
+          return renderProduct(fullProduct);
+        }
+      } catch { /* fall through to render listing version */ }
+    }
+    return renderProduct(kvProduct);
+  }
 
   const resolvedCmsPage = kvCms ?? kvCmsUnprefixed;
   if (resolvedCmsPage) {
