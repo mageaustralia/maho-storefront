@@ -85,7 +85,8 @@ export default class SearchMeilisearchController extends Controller {
       object_name: link.dataset.trackName || '',
       position: parseInt(link.dataset.trackPosition || '0', 10),
     });
-    navigator.sendBeacon(`${trackUrl}/msearchtrack/ajax/trackclick`, new Blob([payload], { type: 'application/json' }));
+    // Use text/plain to avoid CORS preflight (simple request). PHP reads getRawBody() regardless.
+    navigator.sendBeacon(`${trackUrl}/msearchtrack/ajax/trackclick`, new Blob([payload], { type: 'text/plain' }));
   }
 
   async performSearch(query) {
