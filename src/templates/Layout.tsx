@@ -49,6 +49,9 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ config, categories,
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
         <link rel="stylesheet" href={googleFontsUrl} />
         <link rel="stylesheet" href={`/styles.css${v}`} data-turbo-track="reload" />
+        {/* Hide dismissed announcement bar before first paint — prevents layout shift on Turbo navigation */}
+        <style dangerouslySetInnerHTML={{ __html: `html.ab-dismissed #announcement-bar{display:none}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `try{if(sessionStorage.getItem('announcement-bar-dismissed'))document.documentElement.classList.add('ab-dismissed')}catch(e){}` }} />
         <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];window.MAHO_API_URL=${JSON.stringify(apiUrl)};window.MAHO_STORE_CODE=${JSON.stringify(currentStoreCode || '')};window.MAHO_CURRENCY=${JSON.stringify(config.baseCurrencyCode || 'USD')};window.MAHO_THEME=${JSON.stringify(themeName)};document.addEventListener('turbo:before-render',function(e){e.detail.newBody.querySelectorAll('script[data-cfasync]').forEach(function(s){s.remove()})});` }} />
         <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-esm.min.js" data-turbo-track="reload"></script>
         <script type="module" src={`/controllers.js${v}`} data-turbo-track="reload"></script>
