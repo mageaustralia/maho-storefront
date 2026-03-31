@@ -49,7 +49,7 @@ export const Header: FC<HeaderProps> = ({ categories, config, stores, currentSto
                 data-turbo-prefetch="true"
                 class="block px-4 py-2 font-medium text-base-content/80 rounded-md no-underline whitespace-nowrap transition-colors hover:text-base-content hover:bg-base-content/10"
               >
-                {cat.menuTitle || cat.name}
+                {(cat.extensions?.menuTitle as string | undefined) || cat.name}
               </a>
               {(cat.children?.length > 0 || cat.menuData?.columns?.length) && (() => {
                 const children = (cat.children || []).filter(c => c.includeInMenu);

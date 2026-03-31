@@ -68,7 +68,7 @@ export const Header: FC<HeaderProps> = ({ categories, config, stores, currentSto
                     data-turbo-prefetch="true"
                     class="block px-4 py-2 font-medium text-base-content/80 rounded-md no-underline whitespace-nowrap transition-colors hover:text-base-content hover:bg-base-content/10"
                   >
-                    {cat.menuTitle || cat.name}
+                    {(cat.extensions?.menuTitle as string | undefined) || cat.name}
                   </a>
                   {hasMega && (
                     <div class={`invisible opacity-0 group-hover/mega:visible group-hover/mega:opacity-100 transition-all duration-200 absolute top-full ${alignClass} pt-2 z-50`}>
@@ -78,7 +78,7 @@ export const Header: FC<HeaderProps> = ({ categories, config, stores, currentSto
                           {children.length > 0 && (
                             <div class={hasColumns ? 'w-[180px] shrink-0' : 'flex-1'}>
                               <a href={`/${cat.urlKey}`} class="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-3 block no-underline hover:text-primary transition-colors">
-                                All {cat.menuTitle || cat.name}
+                                All {(cat.extensions?.menuTitle as string | undefined) || cat.name}
                               </a>
                               <div class={`flex flex-col gap-0.5 ${!hasColumns && children.length > 8 ? 'columns-3' : !hasColumns && children.length > 4 ? 'columns-2' : ''}`}>
                                 {children.map((child) => (

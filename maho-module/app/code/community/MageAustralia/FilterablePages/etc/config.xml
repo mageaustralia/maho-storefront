@@ -33,6 +33,15 @@
             </mageaustralia_filterablepages_setup>
         </resources>
         <events>
+            <api_category_dto_build>
+                <observers>
+                    <filterablepages_enrich_category>
+                        <type>singleton</type>
+                        <class>MageAustralia_FilterablePages_Model_Observer</class>
+                        <method>enrichCategoryMenuTitle</method>
+                    </filterablepages_enrich_category>
+                </observers>
+            </api_category_dto_build>
             <api_layered_filter_dto_build>
                 <observers>
                     <filterablepages_enrich_options>
