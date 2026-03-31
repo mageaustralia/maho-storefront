@@ -139,6 +139,8 @@ export interface Category {
   updatedAt: string | null;
   /** Megamenu data — brand/attribute columns + featured product (populated by FilterablePages plugin) */
   menuData?: import('./plugins/filterable-pages/types').MenuData | null;
+  /** Module-provided extension data (from api_category_dto_build event observers) */
+  extensions?: Record<string, unknown>;
 }
 
 export interface StoreConfig {

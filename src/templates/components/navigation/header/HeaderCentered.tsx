@@ -110,7 +110,7 @@ export const HeaderCentered: FC<HeaderProps> = ({ categories, config, stores, cu
                 data-turbo-prefetch="true"
                 class="text-sm font-medium text-base-content/70 no-underline tracking-wide uppercase transition-colors hover:text-base-content"
               >
-                {cat.menuTitle || cat.name}
+                {(cat.extensions?.menuTitle as string | undefined) || cat.name}
               </a>
               {cat.children && cat.children.length > 0 && (
                 <ul class="hidden group-hover:block absolute top-full left-1/2 -translate-x-1/2 pt-2 min-w-[180px] pb-1 px-1 bg-base-100 border border-base-300 rounded-lg shadow-lg z-50 before:content-[''] before:absolute before:left-0 before:right-0 before:bottom-full before:h-3">

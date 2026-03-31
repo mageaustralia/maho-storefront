@@ -5,6 +5,28 @@ declare(strict_types=1);
 class MageAustralia_FilterablePages_Model_Observer
 {
     /**
+     * Enrich category DTOs with menu_title for storefront megamenu display.
+     *
+     * Listens to: api_category_dto_build
+     * Adds menuTitle to extensions if the category has a menu_title attribute value.
+     * Falls back gracefully when the attribute doesn't exist or has no value.
+     */
+    public function enrichCategoryMenuTitle(Varien_Event_Observer $observer): void
+    {
+        $category = $observer->getEvent()->getCategory();
+        $dto = $observer->getEvent()->getDto();
+
+        if (!$category || !$dto || !property_exists($dto, 'extensions')) {
+            return;
+        }
+
+        $menuTitle = $category->getData('menu_title');
+        if ($menuTitle) {
+            $dto->extensions['menuTitle'] = (string) $menuTitle;
+        }
+    }
+
+    /**
      * Enrich layered filter DTOs with clean SEO URLs from our filterable values.
      *
      * Listens to: api_layered_filter_dto_build

@@ -66,10 +66,10 @@ export const MobileMenu: FC<MobileMenuProps> = ({ categories, config, stores, cu
                 <li key={cat.id}>
                   <div class="flex items-center border-b border-base-200/50 last:border-b-0">
                     <a href={`/${cat.urlKey}`} class="flex-1 py-3 text-sm font-medium" data-action="click->mobile-menu#close" data-turbo-prefetch="true">
-                      {cat.menuTitle || cat.name}
+                      {(cat.extensions?.menuTitle as string | undefined) || cat.name}
                     </a>
                     {children.length > 0 && (
-                      <button class="p-3 -mr-2 text-base-content/50" data-action="click->mobile-menu#toggleCategory" aria-label={`Expand ${cat.menuTitle || cat.name}`}>
+                      <button class="p-3 -mr-2 text-base-content/50" data-action="click->mobile-menu#toggleCategory" aria-label={`Expand ${(cat.extensions?.menuTitle as string | undefined) || cat.name}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s">
                           <polyline points="6 9 12 15 18 9"/>
                         </svg>

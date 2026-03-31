@@ -63,14 +63,14 @@ export const Header: FC<HeaderProps> = ({ categories, config, stores, currentSto
                     data-turbo-prefetch="true"
                     class="block px-4 py-2 font-medium text-base-content/80 rounded-md no-underline whitespace-nowrap transition-colors hover:text-base-content hover:bg-base-content/10"
                   >
-                    {cat.menuTitle || cat.name}
+                    {(cat.extensions?.menuTitle as string | undefined) || cat.name}
                   </a>
                   {hasMega && (
                     <div class={`invisible opacity-0 group-hover/mega:visible group-hover/mega:opacity-100 transition-all duration-200 absolute top-full ${alignClass} pt-2 z-50`}>
                       <div class="bg-base-100 border border-base-300 rounded-xl shadow-xl p-5 before:content-[''] before:absolute before:left-0 before:right-0 before:bottom-full before:h-3">
                         {/* "View All" link */}
                         <a href={`/${cat.urlKey}`} class="text-xs font-semibold tracking-wide text-base-content/50 mb-3 block no-underline hover:text-primary transition-colors">
-                          Shop all {cat.menuTitle || cat.name}
+                          Shop all {(cat.extensions?.menuTitle as string | undefined) || cat.name}
                         </a>
                         {/* Image card grid */}
                         <div class={`grid gap-3 ${children.length > 4 ? 'grid-cols-4' : children.length > 2 ? 'grid-cols-3' : 'grid-cols-2'}`} style={`min-width: ${Math.min(children.length, 4) * 170}px`}>

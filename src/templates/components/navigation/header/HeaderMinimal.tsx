@@ -54,7 +54,7 @@ export const HeaderMinimal: FC<HeaderProps> = ({ categories, config, stores, cur
                 data-turbo-prefetch="true"
                 class="text-sm font-medium text-base-content/60 no-underline tracking-wide uppercase transition-colors hover:text-base-content"
               >
-                {cat.menuTitle || cat.name}
+                {(cat.extensions?.menuTitle as string | undefined) || cat.name}
               </a>
             </li>
           ))}
