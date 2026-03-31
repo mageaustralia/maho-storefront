@@ -38,9 +38,11 @@ export const AnnouncementBar: FC<AnnouncementBarProps> = ({
 
   return (
     <div
+      id="announcement-bar"
       class={`text-center text-sm font-medium py-2 px-8 relative ${defaultClasses}`}
       style={style || undefined}
       data-controller="announcement-bar"
+      data-turbo-permanent
     >
       {link ? (
         <a href={link} class="no-underline hover:underline" style={textColor ? `color:${textColor}` : undefined}>
