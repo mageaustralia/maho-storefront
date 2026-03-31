@@ -129,7 +129,7 @@ export default class SearchMeilisearchController extends Controller {
         id: hit.objectID || hit.id,
         sku: hit.sku || '',
         name: hit.name || '',
-        urlKey: (hit.url || '').replace(/^https?:\/\/[^/]+\//, '').replace(/\.html$/, ''),
+        urlKey: this._extractUrlKey(hit.url || ''),
         price: priceData.default || hit.sort_price || 0,
         finalPrice: priceData.default || hit.sort_price || 0,
         thumbnailUrl: hit.image_url || hit.thumbnail_url || hit.small_image_url || null,
@@ -140,15 +140,31 @@ export default class SearchMeilisearchController extends Controller {
   _normalizeCategories(hits) {
     return hits.map(hit => ({
       name: hit.name || '',
-      urlKey: (hit.url || '').replace(/^https?:\/\/[^/]+\//, '').replace(/\.html$/, ''),
+      urlKey: this._extractUrlKey(hit.url || ''),
     }));
   }
 
   _normalizePages(hits) {
     return hits.map(hit => ({
-      title: hit._formatted?.name || hit.name || hit.title || '',
-      identifier: hit.slug || hit.identifier || (hit.url || '').replace(/^https?:\/\/[^/]+\//, ''),
+      title: hit.name || hit.title || '',
+      identifier: hit.slug || hit.identifier || this._extractUrlKey(hit.url || ''),
     }));
+  }
+
+  /**
+   * Extract a clean URL key from various Maho URL formats:
+   *   https://host/product-slug.html → product-slug
+   *   https://host/catalog/product/view/id/123/s/product-slug/ → product-slug
+   *   https://host/catalog/category/view/id/45/s/cat-slug/ → cat-slug
+   */
+  _extractUrlKey(url) {
+    // Strip domain
+    let path = url.replace(/^https?:\/\/[^/]+\//, '');
+    // Handle catalog/product/view/id/X/s/slug/ format (missing URL rewrite)
+    const catalogMatch = path.match(/catalog\/(?:product|category)\/view\/id\/\d+\/s\/([^/]+)/);
+    if (catalogMatch) return catalogMatch[1];
+    // Normal SEO URL — strip .html
+    return path.replace(/\.html$/, '').replace(/\/$/, '');
   }
 
   _renderResults(query, data) {

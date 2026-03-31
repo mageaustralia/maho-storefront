@@ -656,6 +656,25 @@ export default class ProductController extends Controller {
       });
       if (Object.keys(options).length > 0) body.options = options;
 
+      // File option uploads — convert to base64 for options_files
+      const fileInputs = this.element.querySelectorAll('[data-custom-option-file-id]');
+      if (fileInputs.length > 0) {
+        const optionsFiles = {};
+        for (const input of fileInputs) {
+          const file = input.files?.[0];
+          if (!file) continue;
+          const optId = input.dataset.customOptionFileId;
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          optionsFiles[optId] = { name: file.name, base64_encoded_data: base64 };
+        }
+        if (Object.keys(optionsFiles).length > 0) body.options_files = optionsFiles;
+      }
+
       const response = await api.post(`/api/guest-carts/${maskedId}/items`, body);
 
       if (!response.ok) {

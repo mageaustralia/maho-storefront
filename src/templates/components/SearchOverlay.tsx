@@ -64,7 +64,7 @@ export const SearchOverlay: FC<{ config?: StoreConfig }> = ({ config }) => {
 
     {/* Results panel */}
     <div class="w-full max-w-screen-xl mx-auto bg-base-100 shadow-xl overflow-y-auto"
-      style="max-height: calc(100vh - 60px)"
+      style="max-height: calc(100vh - 60px); display: none"
       {...{[`data-${ctrl}-target`]: 'results'}} >
       <div class="flex max-md:flex-col">
         {/* Left sidebar */}
