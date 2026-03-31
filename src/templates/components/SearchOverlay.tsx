@@ -36,6 +36,7 @@ export const SearchOverlay: FC<{ config?: StoreConfig }> = ({ config }) => {
     if (ms.apiKey) dataAttrs['data-search-meilisearch-api-key-value'] = ms.apiKey;
     if (ms.indexPrefix) dataAttrs['data-search-meilisearch-index-prefix-value'] = ms.indexPrefix;
     dataAttrs['data-search-meilisearch-currency-value'] = currency;
+    if (config?.baseUrl) dataAttrs['data-search-meilisearch-track-url-value'] = config.baseUrl;
   }
 
   return (
