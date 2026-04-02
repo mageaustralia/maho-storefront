@@ -2,8 +2,7 @@
   "stores": {
     "en": { "theme": "maho" },
     "sv_2": { "theme": "tech" },
-    "store_view_3": { "theme": "brew-beyond" },
-    "picklewarehouse": { "theme": "pickle" }
+    "store_view_3": { "theme": "brew-beyond" }
   },
   "defaultTheme": "maho"
 }
