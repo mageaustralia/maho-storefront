@@ -186,6 +186,8 @@ final class MenuDataProvider implements ProviderInterface
         $productTable = $resource->getTableName('catalog/category_product');
         $eavTable = $attribute->getBackend()->getTable();
 
+        $superLinkTable = $resource->getTableName('catalog/product_super_link');
+
         $select = $read->select()
             ->from(['cp' => $productTable], [])
             ->join(
@@ -200,6 +202,10 @@ final class MenuDataProvider implements ProviderInterface
             ->where('eav.attribute_id = ?', (int) $attribute->getId())
             ->where('eav.value IS NOT NULL')
             ->where('eav.value != ?', '')
+            // Exclude child simples (children of configurable parents).
+            // catalog_product_super_link.product_id lists every simple that belongs
+            // to a configurable — we don't want to count those.
+            ->where('cp.product_id NOT IN (SELECT product_id FROM ' . $superLinkTable . ')')
             ->group('eav.value');
 
         // Filter to only enabled products

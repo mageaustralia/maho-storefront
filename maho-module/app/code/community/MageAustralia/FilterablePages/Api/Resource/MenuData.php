@@ -17,10 +17,12 @@ use MageAustralia\FilterablePages\Api\State\Provider\MenuDataProvider;
     operations: [
         new Get(
             uriTemplate: '/menu-data/{id}',
+            security: 'true',
             description: 'Get megamenu data for a single category',
         ),
         new GetCollection(
             uriTemplate: '/menu-data',
+            security: 'true',
             description: 'Get megamenu data for all top-level categories',
         ),
     ],
@@ -30,11 +32,11 @@ class MenuData
     #[ApiProperty(identifier: true)]
     public ?int $id = null;
 
-    /** @var MenuColumn[] */
+    /** @var array<int, array{title: string, attributeCode: string, items: list<array{label: string, urlKey: string, optionId: int, count: int}>}> */
     #[ApiProperty(description: 'Attribute columns for megamenu')]
     public array $columns = [];
 
-    /** @var FeaturedProduct|null */
+    /** @var array{sku: string, name: string, price: float, imageUrl: string, url: string}|null */
     #[ApiProperty(description: 'Featured product for this category')]
     public ?array $featuredProduct = null;
 }

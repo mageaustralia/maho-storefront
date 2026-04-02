@@ -16,6 +16,7 @@ use MageAustralia\FilterablePages\Api\State\Provider\FilterablePageProvider;
     operations: [
         new GetCollection(
             uriTemplate: '/filterable-pages',
+            security: 'true',
             description: 'Lookup brand/filter page content by category and option URL keys',
         ),
     ],

@@ -16,6 +16,7 @@ use MageAustralia\FilterablePages\Api\State\Provider\FilterOptionProvider;
     operations: [
         new GetCollection(
             uriTemplate: '/enriched-filters',
+            security: 'true',
             description: 'Get layered nav filters with clean URLs for options that have filterable pages',
         ),
     ],
@@ -29,6 +30,6 @@ class FilterOption
     public string $type = 'select';
     public int $position = 0;
 
-    /** @var EnrichedFilterOption[] */
+    /** @var list<array{value: string, label: string, count: int, url: string}> */
     public array $options = [];
 }
