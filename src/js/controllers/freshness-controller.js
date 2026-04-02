@@ -93,8 +93,9 @@ export default class FreshnessController extends Controller {
         const catId = meta.dataset.freshnessCategoryId;
         _log('[freshness] category check, catId:', catId);
         if (catId) {
+          const storeParam = window.MAHO_STORE_CODE ? `&store=${window.MAHO_STORE_CODE}` : '';
           const productsResp = await api.get(
-            `/api/products?categoryId=${catId}&order[position]=asc&page=1&itemsPerPage=24`
+            `/api/products?categoryId=${catId}&order[position]=asc&page=1&itemsPerPage=24${storeParam}`
           );
           freshProducts = {
             products: productsResp.member ?? [],
@@ -140,7 +141,8 @@ export default class FreshnessController extends Controller {
 
         // Also refresh the global category tree (nav menu, sidebar)
         // so structural changes (renames, moves, new categories) are picked up
-        api.get('/api/categories?itemsPerPage=200').then(resp => {
+        const catStoreParam = window.MAHO_STORE_CODE ? `&store=${window.MAHO_STORE_CODE}` : '';
+        api.get(`/api/categories?itemsPerPage=200${catStoreParam}`).then(resp => {
           const cats = resp.member ?? resp;
           if (Array.isArray(cats) && cats.length > 0) {
             fetch('/cache/update', {

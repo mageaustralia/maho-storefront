@@ -1635,19 +1635,14 @@ app.post('/freshness', async (c) => {
     const store = new CloudflareKVStore(c.env.CONTENT);
     await store.put(body.kvKey, body.data, 86400);
 
-    // Purge edge cache so the reload gets fresh HTML
-    const baseUrl = new URL(c.req.url).origin;
-    // blog-posts key maps to /blog page URL
-    const strippedKey = body.kvKey.replace(/^[^:]+:/, '');
-    if (strippedKey === 'blog-posts' || body.kvKey === 'blog-posts') {
-      await caches.default.delete(new Request(`${baseUrl}/blog`));
-    } else {
-      // Strip store prefix + type prefix to get the URL slug (e.g. "sv_2:category:audio" → "audio")
-      const slug = body.kvKey.replace(/^(?:[^:]+:)?(product|category|cms|blog):/, '');
-      // Homepage special case: cms:home maps to / not /home
-      const urlPath = slug === 'home' ? '/' : `/${slug}`;
-      await caches.default.delete(new Request(`${baseUrl}${urlPath}`));
-    }
+    // Bust edge cache by updating the pulse hash — this changes versionTag so old cached
+    // pages (keyed as ?_v=oldTag) are orphaned and next requests get fresh KV data.
+    // caches.default.delete() can't target versioned keys without knowing the tag.
+    const pulseData = new TextEncoder().encode(JSON.stringify({ ts: Date.now() }));
+    const hashBuffer = await crypto.subtle.digest('SHA-256', pulseData);
+    const newHash = [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
+    await store.put('pulse', { hash: newHash, updatedAt: new Date().toISOString() });
+    _pulseCache = null; // Invalidate in-memory cache for this isolate
 
     return c.json({ status: 'updated' });
   } catch (e) {
@@ -1657,7 +1652,7 @@ app.post('/freshness', async (c) => {
 
 
 // ====== CACHE UPDATE (browser-initiated KV refresh) ======
-const ALLOWED_CACHE_TYPES = ['product:', 'products:', 'category:', 'cms:', 'blog:', 'blog-posts'];
+const ALLOWED_CACHE_TYPES = ['product:', 'products:', 'category:', 'categories', 'cms:', 'blog:', 'blog-posts'];
 
 app.post('/cache/update', async (c) => {
   try {

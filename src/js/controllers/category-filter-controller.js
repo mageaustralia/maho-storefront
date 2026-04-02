@@ -181,7 +181,7 @@ export default class CategoryFilterController extends Controller {
         this._renderActiveFilters();
         const sort = this.hasSortTarget ? this.sortTarget.value : '';
         const perPage = this.hasPerPageTarget ? parseInt(this.perPageTarget.value, 10) : 12;
-        this._fetchProducts(sort, 1, perPage);
+        this._fetchProducts(sort, 1, perPage, false);
       }
     } catch (e) {
       console.error('Failed to load filters:', e);
@@ -671,7 +671,7 @@ export default class CategoryFilterController extends Controller {
     setTimeout(() => { toast.remove(); }, 3300);
   }
 
-  async _fetchProducts(sort = '', page = 1, perPage = 12) {
+  async _fetchProducts(sort = '', page = 1, perPage = 12, scroll = true) {
     if (this._loading) return;
     this._loading = true;
     if (this.hasGridTarget) this.gridTarget.style.opacity = '0.5';
@@ -794,8 +794,8 @@ export default class CategoryFilterController extends Controller {
       this._page = page;
       this._updatePagination();
 
-      // Scroll to top of product grid
-      if (this.hasGridTarget) {
+      // Scroll to top of product grid (skip on initial page load)
+      if (scroll && this.hasGridTarget) {
         const breadcrumbs = document.querySelector('.breadcrumbs');
         (breadcrumbs || this.gridTarget).scrollIntoView({ behavior: 'smooth', block: 'start' });
       }

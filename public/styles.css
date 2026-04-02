@@ -7732,6 +7732,7 @@ body[data-store="sv_2"] {
 .line-clamp-1{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1;line-clamp:1;}
 .line-clamp-2{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;}
 .line-clamp-3{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;}
+.isolate{isolation:isolate;}
 .z-\[60\]{z-index:60;}
 .z-\[9999\]{z-index:9999;}
 .z-10{z-index:10;}
