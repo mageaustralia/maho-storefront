@@ -225,6 +225,9 @@ class Mageaustralia_Storefront_Model_Observer
     /**
      * Release PHP session lock early for read-only requests.
      * Prevents 503s on browser prefetch requests caused by concurrent session file locking.
+     *
+     * Skips checkout/cart/customer routes because those pages consume and clear
+     * session flash messages during rendering — session must stay writable.
      */
     public function releaseSessionForReadRequest(Maho\Event\Observer $observer): void
     {
@@ -232,6 +235,12 @@ class Mageaustralia_Storefront_Model_Observer
 
         // Only for GET/HEAD (read-only) requests
         if (!in_array($request->getMethod(), ['GET', 'HEAD'], true)) {
+            return;
+        }
+
+        // Don't release session on pages that clear flash messages or modify session
+        $module = $request->getModuleName();
+        if (in_array($module, ['checkout', 'customer', 'onestepcheckout', 'firecheckout', 'admin', 'adminhtml'], true)) {
             return;
         }
 
