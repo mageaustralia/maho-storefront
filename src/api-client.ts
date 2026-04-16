@@ -6,6 +6,23 @@
 
 import type { Product, Category, StoreConfig, CmsPage, Country, BlogPost, BlogCategory } from './types';
 
+/**
+ * Normalize object-keyed collection fields (e.g. mediaGallery) into arrays.
+ * Safe to call on already-normalized products.
+ */
+export function normalizeProduct(product: Product): Product {
+  if (!product) return product;
+  const mg: any = (product as any).mediaGallery;
+  if (mg && typeof mg === 'object' && !Array.isArray(mg)) {
+    const arr = Object.values(mg) as Array<{ url: string; label: string | null; position: number }>;
+    arr.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    (product as any).mediaGallery = arr;
+  } else if (mg == null) {
+    (product as any).mediaGallery = [];
+  }
+  return product;
+}
+
 export interface SearchSuggestResponse {
   products: Array<{
     id: number;
@@ -147,11 +164,13 @@ export class MahoApiClient {
     // Prefer configurable over simple when multiple products share a url_key
     const best = matches.find(p => p.type === 'configurable') ?? matches[0];
     // Fetch full detail (collection doesn't include variants, options, etc.)
-    return this.fetch<Product>(`/api/products/${best.id}`);
+    const full = await this.fetch<Product>(`/api/products/${best.id}`);
+    return this.normalizeProduct(full);
   }
 
   async fetchProductById(id: number): Promise<Product> {
-    return this.fetch<Product>(`/api/products/${id}`);
+    const full = await this.fetch<Product>(`/api/products/${id}`);
+    return this.normalizeProduct(full);
   }
 
   async fetchProductBySku(sku: string): Promise<Product | null> {
@@ -160,7 +179,12 @@ export class MahoApiClient {
     const product = data.member?.find(p => p.sku === sku);
     if (!product) return null;
     // Fetch full detail with variants/options
-    return this.fetch<Product>(`/api/products/${product.id}`);
+    const full = await this.fetch<Product>(`/api/products/${product.id}`);
+    return this.normalizeProduct(full);
+  }
+
+  private normalizeProduct(product: Product): Product {
+    return normalizeProduct(product);
   }
 
   async fetchAllProductsFull(page: number = 1, itemsPerPage: number = 50): Promise<{ products: Product[]; totalItems: number }> {
