@@ -9,7 +9,7 @@ import { Hono } from 'hono';
 import type { Env, Category, Product, StoreConfig, PulseData, CmsPage, Country, BlogPost, BlogCategory, StorefrontStore } from './types';
 import { CloudflareKVStore, TrackedKVStore, type ContentStore } from './content-store';
 import { ASSET_HASH } from './asset-version';
-import { MahoApiClient } from './api-client';
+import { MahoApiClient, normalizeProduct } from './api-client';
 import { setRenderStore, setRenderApiUrl, setRenderPageConfigOverride, getAvailablePageConfigs } from './page-config';
 import { Home } from './templates/Home';
 import { CategoryPage } from './templates/Category';
@@ -2633,6 +2633,7 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
 
   // Helper to render product page
   const renderProduct = (product: Product) => {
+    product = normalizeProduct(product);
     let productCategory: Category | null = null;
     const productCatId = product.categoryIds?.[0];
     if (productCatId) {

@@ -211,6 +211,13 @@ export default class FreshnessController extends Controller {
 
   _patchProduct(data) {
     _log('[freshness] patching product DOM with:', data.name, data.finalPrice, data.imageUrl);
+    // Normalize mediaGallery: API may return object-keyed dict instead of array
+    let mg = data.mediaGallery;
+    if (mg && typeof mg === 'object' && !Array.isArray(mg)) {
+      mg = Object.values(mg);
+      mg.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      data.mediaGallery = mg;
+    }
     _log('[freshness] mediaGallery:', data.mediaGallery);
 
     // Update product images - handle both gallery and single-image layouts
@@ -483,7 +490,9 @@ export default class FreshnessController extends Controller {
     if (type === 'product') {
       const opts = (d.configurableOptions || []).map(o => `${o.code}:${(o.values||[]).map(v=>v.label).join(',')}`).join(';');
       const variants = (d.variants || []).map(v => `${v.sku}:${v.finalPrice ?? v.price}:${v.stockStatus}`).join(';');
-      const gallery = (d.mediaGallery || []).map(m => m.url).join(',');
+      let mgArr = d.mediaGallery || [];
+      if (mgArr && typeof mgArr === 'object' && !Array.isArray(mgArr)) mgArr = Object.values(mgArr);
+      const gallery = mgArr.map(m => m.url).join(',');
       return this._hash(`${d.updatedAt}|${d.name}|${d.finalPrice}|${d.specialPrice ?? ''}|${d.stockStatus}|${d.description ?? ''}|${d.imageUrl ?? ''}|${opts}|${variants}|${gallery}|${(d.groupedProducts||[]).length}|${(d.bundleOptions||[]).length}|${(d.downloadableLinks||[]).length}|${(d.relatedProducts||[]).length}|${(d.crossSellProducts||[]).length}|${(d.upsellProducts||[]).length}`);
     }
     if (type === 'blog-list') {
