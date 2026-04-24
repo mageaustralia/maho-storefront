@@ -29,6 +29,13 @@ import { AccountPage } from './templates/Account';
 import { ContactPage } from './templates/Contact';
 import { Layout } from './templates/Layout';
 import { Seo } from './templates/components/Seo';
+import { MarketplacePage } from './templates/Marketplace';
+import { MarketplaceExtensionPage } from './templates/MarketplaceExtension';
+import {
+  fetchMarketplaceExtensions,
+  findMarketplaceExtensionByUrlKey,
+  fetchMarketplaceExtension,
+} from './marketplace-api';
 import {
   DEV_COOKIE,
   SESSION_TTL,
@@ -569,6 +576,7 @@ const CACHE_CATEGORY = 604800;  // 7 days
 const CACHE_PRODUCT  = 604800;  // 7 days
 const CACHE_CMS      = 604800;  // 7 days
 const CACHE_BLOG     = 604800;  // 7 days
+const CACHE_MARKETPLACE = 300;  // 5 minutes — matches the upstream API's public, max-age=300
 
 // ====== RATE LIMITING FOR 404s ======
 // Block IPs that repeatedly hit non-existent URLs (bot protection)
@@ -1325,6 +1333,69 @@ app.all('/api/*', async (c) => {
   });
 });
 
+
+// Marketplace — public catalog of Mageaustralia extensions
+app.get('/marketplace', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
+  const devSession = c.get('devSession') as DevSession | undefined;
+  const timer = devSession ? createDevTimer() : null;
+  const store = createStore(c.env, timer);
+  const { stores, currentStoreCode } = await getStoreContext(c);
+  const [{ config, categories }, extensions] = await Promise.all([
+    getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
+    fetchMarketplaceExtensions(),
+  ]);
+  const devData = timer
+    ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '')
+    : null;
+  return c.html(
+    <MarketplacePage
+      config={config}
+      categories={categories}
+      extensions={extensions}
+      stores={stores}
+      currentStoreCode={currentStoreCode}
+      devData={devData}
+    />
+  );
+});
+
+app.get('/marketplace/:slug', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
+  const slug = c.req.param('slug');
+  const devSession = c.get('devSession') as DevSession | undefined;
+  const timer = devSession ? createDevTimer() : null;
+  const store = createStore(c.env, timer);
+  const { stores, currentStoreCode } = await getStoreContext(c);
+  const { config, categories } = await getStoreData(
+    store,
+    currentStoreCode,
+    new URL(c.req.url).origin
+  );
+
+  // url_key → SKU lookup, then fetch full detail (which includes description
+  // + additional_images which the list endpoint omits).
+  const listItem = await findMarketplaceExtensionByUrlKey(slug);
+  if (!listItem) {
+    return c.notFound();
+  }
+  const extension = await fetchMarketplaceExtension(listItem.sku);
+  if (!extension) {
+    return c.notFound();
+  }
+
+  const devData = timer
+    ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '')
+    : null;
+  return c.html(
+    <MarketplaceExtensionPage
+      config={config}
+      categories={categories}
+      extension={extension}
+      stores={stores}
+      currentStoreCode={currentStoreCode}
+      devData={devData}
+    />
+  );
+});
 
 app.get('/search', async (c) => {
   const devSession = c.get('devSession') as DevSession | undefined;
