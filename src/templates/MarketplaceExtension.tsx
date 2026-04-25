@@ -71,34 +71,48 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
         jsonLd={[productLd]}
       />
 
-      <section class="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <nav class="mb-8 text-sm text-base-content/60">
-          <a href="/marketplace" class="hover:underline">
-            ← All extensions
-          </a>
-        </nav>
+      {/* Editorial header band */}
+      <section class="border-b border-base-300/60 bg-gradient-to-b from-base-200/40 to-transparent">
+        <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+          <nav class="text-xs font-medium uppercase tracking-[0.18em] text-base-content/50">
+            <a href="/marketplace" class="transition-colors hover:text-base-content">
+              ← All extensions
+            </a>
+          </nav>
 
-        <header class="mb-10">
-          <h1 class="text-3xl font-semibold tracking-tight md:text-4xl">
+          <div class="mt-8 flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900">
+              {single ? 'Pro' : 'Open source'}
+            </span>
+            {(extension as any).storefront_ready && (
+              <span class="inline-flex items-center rounded-full bg-base-200 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-base-content/70">
+                Maho Storefront ready
+              </span>
+            )}
+          </div>
+
+          <h1 class="mt-5 font-serif text-4xl leading-[1.05] tracking-tight md:text-6xl">
             {extension.name}
           </h1>
           {extension.tagline && (
-            <p class="mt-3 max-w-3xl text-lg text-base-content/70 md:text-xl">
+            <p class="mt-5 max-w-3xl font-serif text-lg italic text-base-content/65 md:text-2xl">
               {extension.tagline}
             </p>
           )}
-        </header>
+        </div>
+      </section>
 
-        <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
-          <article class="prose prose-sm max-w-none md:prose-base">
+      <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+        <div class="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_340px]">
+          <article class="prose prose-base max-w-none text-base-content/85 prose-headings:font-serif prose-headings:tracking-tight prose-h2:text-3xl prose-h3:text-xl prose-a:text-accent prose-code:font-mono prose-code:text-sm">
             {extension.short_description && (
-              <p class="text-base-content/80">{extension.short_description}</p>
+              <p class="text-lg leading-relaxed text-base-content/85">
+                {extension.short_description}
+              </p>
             )}
             {extension.description && (
-              /* The API emits HTML; safe to render because admins author this
-                 content and it already goes through Maho's admin XSS filters. */
               <div
-                class="mt-6 text-base-content/90"
+                class="mt-6"
                 dangerouslySetInnerHTML={{ __html: extension.description }}
               />
             )}
@@ -110,42 +124,41 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
           </article>
 
           <aside
-            class="space-y-6"
+            class="space-y-5 lg:sticky lg:top-24 lg:self-start"
             data-controller="marketplace-cart"
             data-marketplace-cart-sku-value={extension.sku}
             data-marketplace-cart-name-value={extension.name}
             data-marketplace-cart-currency-value={extension.currency}
           >
-            <div class="border border-base-300 p-6">
-              <p class="text-xs uppercase tracking-wider text-base-content/60">
+            <div class="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-[0_8px_24px_-12px_rgba(10,25,48,0.12)]">
+              <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-content/50">
                 Pricing
               </p>
-              <div class="mt-3 space-y-1">
+              <div class="mt-4 space-y-1">
                 {single ? (
-                  <p class="text-2xl font-semibold">
-                    {single}{' '}
-                    <span class="text-sm font-normal text-base-content/60">
+                  <p class="font-serif text-3xl tracking-tight">
+                    {single}
+                    <span class="ml-2 text-sm font-sans font-normal text-base-content/55">
                       single-store
                     </span>
                   </p>
                 ) : (
-                  <p class="text-2xl font-semibold">Free</p>
+                  <p class="font-serif text-3xl tracking-tight">Free</p>
                 )}
                 {unlimited && (
-                  <p class="text-base text-base-content/80">
-                    {unlimited}{' '}
-                    <span class="text-sm text-base-content/60">
-                      unlimited
-                    </span>
+                  <p class="text-base text-base-content/75">
+                    {unlimited}
+                    <span class="ml-2 text-sm text-base-content/50">unlimited</span>
                   </p>
                 )}
               </div>
+
               {(single || unlimited) && (
-                <div class="mt-5 space-y-2">
+                <div class="mt-6 space-y-2">
                   {single && (
                     <button
                       type="button"
-                      class="btn btn-primary w-full"
+                      class="w-full rounded-lg bg-base-content px-5 py-3 text-sm font-semibold text-base-100 transition-all hover:bg-accent disabled:opacity-50"
                       data-action="marketplace-cart#add"
                       data-tier="single"
                       data-price={String(extension.price_single ?? '')}
@@ -156,7 +169,7 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                   {unlimited && (
                     <button
                       type="button"
-                      class="btn btn-outline w-full"
+                      class="w-full rounded-lg border border-base-300 px-5 py-3 text-sm font-semibold text-base-content transition-all hover:border-base-content disabled:opacity-50"
                       data-action="marketplace-cart#add"
                       data-tier="unlimited"
                       data-price={String(extension.price_unlimited ?? '')}
@@ -165,39 +178,42 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                     </button>
                   )}
                   <p
-                    class="hidden text-sm text-error mt-2"
+                    class="hidden mt-3 text-xs text-error"
                     data-marketplace-cart-target="message"
                   ></p>
                 </div>
               )}
+
+              <p class="mt-5 border-t border-base-300/60 pt-4 text-xs text-base-content/55">
+                Year-one updates included. Optional 30%/yr maintenance after.
+              </p>
             </div>
 
-            <div class="border border-base-300 p-6">
-              <p class="text-xs uppercase tracking-wider text-base-content/60">
+            <div class="rounded-2xl border border-base-300/70 bg-base-content p-5 text-base-100/90">
+              <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-100/50">
                 Install
               </p>
-              <pre class="mt-3 overflow-x-auto bg-base-200 p-3 font-mono text-xs">
-                <code>
-                  composer require {extension.composer_package}
-                </code>
+              <pre class="mt-3 overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
+                <span class="text-amber-300">$</span> composer require{'\n'}
+                {'  '}{extension.composer_package}
               </pre>
-              <p class="mt-3 text-xs text-base-content/60">
-                PHP 8.3+, Maho {extension.supported_maho_versions}
+              <p class="mt-3 border-t border-base-100/10 pt-3 text-[11px] text-base-100/45">
+                PHP 8.3+ · Maho {extension.supported_maho_versions}
               </p>
             </div>
 
-            <div class="border border-base-300 p-6">
-              <p class="text-xs uppercase tracking-wider text-base-content/60">
-                Details
+            <div class="rounded-2xl border border-base-300/70 bg-base-100 p-6">
+              <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-content/50">
+                Build
               </p>
-              <dl class="mt-3 space-y-2 text-sm">
-                <div>
-                  <dt class="text-base-content/60">SKU</dt>
-                  <dd class="font-mono text-xs">{extension.sku}</dd>
+              <dl class="mt-4 space-y-3 text-sm">
+                <div class="flex items-baseline justify-between">
+                  <dt class="text-base-content/50">SKU</dt>
+                  <dd class="font-mono text-xs text-base-content/80">{extension.sku}</dd>
                 </div>
-                <div>
-                  <dt class="text-base-content/60">Version</dt>
-                  <dd class="font-mono text-xs">{extension.version}</dd>
+                <div class="flex items-baseline justify-between">
+                  <dt class="text-base-content/50">Version</dt>
+                  <dd class="font-mono text-xs text-base-content/80">{extension.version}</dd>
                 </div>
               </dl>
             </div>
