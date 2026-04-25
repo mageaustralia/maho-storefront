@@ -158,7 +158,7 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                   {single && (
                     <button
                       type="button"
-                      class="w-full rounded-lg bg-base-content px-5 py-3 text-sm font-semibold text-base-100 transition-all hover:bg-accent disabled:opacity-50"
+                      class="btn !h-auto w-full !rounded-lg !bg-base-content !text-base-100 px-5 py-3 text-sm font-semibold !border-0 transition-all hover:!bg-accent hover:!text-base-100 disabled:opacity-50"
                       data-action="marketplace-cart#add"
                       data-tier="single"
                       data-price={String(extension.price_single ?? '')}
@@ -169,7 +169,7 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                   {unlimited && (
                     <button
                       type="button"
-                      class="w-full rounded-lg border border-base-300 px-5 py-3 text-sm font-semibold text-base-content transition-all hover:border-base-content disabled:opacity-50"
+                      class="btn btn-outline !h-auto w-full !rounded-lg !border !border-base-300 !bg-transparent px-5 py-3 text-sm font-semibold !text-base-content transition-all hover:!border-base-content hover:!bg-base-200 disabled:opacity-50"
                       data-action="marketplace-cart#add"
                       data-tier="unlimited"
                       data-price={String(extension.price_unlimited ?? '')}
