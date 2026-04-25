@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { jsx } from 'hono/jsx';
+import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { MarketplaceExtension } from '../../../types';
 import { formatPrice } from '../../../marketplace-api';
@@ -14,47 +14,73 @@ interface ExtensionCardProps {
 }
 
 /**
- * Minimalist monochrome card: name, tagline, composer_package (mono),
- * price line, "View details" link. No hero image in v1 — the catalog
- * doesn't ship images yet and a placeholder is honest about that.
+ * Editorial extension card. Pairs serif headline with sans body, pulls a
+ * thin gold accent line on hover, and surfaces price as a top-right tag.
  */
 export const ExtensionCard: FC<ExtensionCardProps> = ({ extension }) => {
   const single = formatPrice(extension.price_single, extension.currency);
   const unlimited = formatPrice(extension.price_unlimited, extension.currency);
-  let priceLine: string;
-  if (single && unlimited) {
-    priceLine = `${single} single · ${unlimited} unlimited`;
-  } else if (single) {
-    priceLine = single;
-  } else {
-    priceLine = 'Free';
-  }
-
+  const isFree = !single;
   const href = `/marketplace/${encodeURIComponent(extension.url_key)}`;
 
   return (
     <a
       href={href}
-      class="group block border border-base-300 bg-base-100 p-6 transition-colors hover:border-base-content/30"
+      class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-base-300/70 bg-base-100 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-base-content/40 hover:shadow-[0_20px_40px_-20px_rgba(10,25,48,0.18)]"
+      data-turbo-prefetch="true"
     >
-      <h3 class="text-lg font-semibold text-base-content group-hover:underline">
-        {extension.name}
-      </h3>
-      {extension.tagline && (
-        <p class="mt-2 text-sm leading-relaxed text-base-content/70 line-clamp-3">
-          {extension.tagline}
+      <div class="absolute right-5 top-5">
+        {isFree ? (
+          <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-700">
+            Free
+          </span>
+        ) : (
+          <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-900">
+            Pro
+          </span>
+        )}
+      </div>
+
+      <div class="flex-1 pr-16">
+        <h3 class="font-serif text-2xl leading-tight tracking-tight text-base-content transition-colors">
+          {extension.name}
+        </h3>
+        {extension.tagline && (
+          <p class="mt-3 text-sm leading-relaxed text-base-content/65 line-clamp-3">
+            {extension.tagline}
+          </p>
+        )}
+      </div>
+
+      <div class="mt-6 space-y-3 border-t border-base-300/60 pt-5">
+        <p class="font-mono text-[11px] uppercase tracking-wider text-base-content/40">
+          {extension.composer_package}
         </p>
-      )}
-      <p class="mt-4 font-mono text-xs text-base-content/60">
-        {extension.composer_package}
-      </p>
-      <p class="mt-3 text-sm font-medium text-base-content">{priceLine}</p>
-      <p class="mt-4 text-xs text-base-content/50">
-        Maho {extension.supported_maho_versions}
-      </p>
-      <p class="mt-5 text-sm font-medium text-base-content group-hover:underline">
-        View extension →
-      </p>
+        <div class="flex items-baseline justify-between">
+          {single ? (
+            <p class="text-base-content">
+              <span class="text-xl font-semibold">{single}</span>
+              <span class="ml-2 text-xs text-base-content/50">single</span>
+            </p>
+          ) : (
+            <p class="text-xl font-semibold text-base-content">Free</p>
+          )}
+          <span class="text-xs text-base-content/40">
+            Maho {extension.supported_maho_versions.replace(/^>=/, '')}+
+          </span>
+        </div>
+        {unlimited && (
+          <p class="text-xs text-base-content/55">
+            <span class="font-medium text-base-content/75">{unlimited}</span> unlimited
+          </p>
+        )}
+        <p class="pt-2 text-sm font-medium text-base-content">
+          View extension{' '}
+          <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
+        </p>
+      </div>
+
+      <span class="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500/0 transition-transform duration-500 group-hover:scale-x-100"></span>
     </a>
   );
 };

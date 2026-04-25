@@ -625,6 +625,7 @@ export default defineConfig({
       sans: themeConfig.fonts.sans,
       mono: themeConfig.fonts.mono,
       heading: themeConfig.fonts.heading,
+      serif: themeConfig.fonts.serif ?? "'Instrument Serif', ui-serif, Georgia, serif",
     },
     breakpoints: { ...themeConfig.breakpoints },
     borderRadius: { ...themeConfig.radii },
