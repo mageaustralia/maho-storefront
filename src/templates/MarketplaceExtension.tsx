@@ -109,7 +109,13 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
             )}
           </article>
 
-          <aside class="space-y-6">
+          <aside
+            class="space-y-6"
+            data-controller="marketplace-cart"
+            data-marketplace-cart-sku-value={extension.sku}
+            data-marketplace-cart-name-value={extension.name}
+            data-marketplace-cart-currency-value={extension.currency}
+          >
             <div class="border border-base-300 p-6">
               <p class="text-xs uppercase tracking-wider text-base-content/60">
                 Pricing
@@ -134,6 +140,36 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                   </p>
                 )}
               </div>
+              {(single || unlimited) && (
+                <div class="mt-5 space-y-2">
+                  {single && (
+                    <button
+                      type="button"
+                      class="btn btn-primary w-full"
+                      data-action="marketplace-cart#add"
+                      data-tier="single"
+                      data-price={String(extension.price_single ?? '')}
+                    >
+                      Buy single-store · {single}
+                    </button>
+                  )}
+                  {unlimited && (
+                    <button
+                      type="button"
+                      class="btn btn-outline w-full"
+                      data-action="marketplace-cart#add"
+                      data-tier="unlimited"
+                      data-price={String(extension.price_unlimited ?? '')}
+                    >
+                      Buy unlimited · {unlimited}
+                    </button>
+                  )}
+                  <p
+                    class="hidden text-sm text-error mt-2"
+                    data-marketplace-cart-target="message"
+                  ></p>
+                </div>
+              )}
             </div>
 
             <div class="border border-base-300 p-6">

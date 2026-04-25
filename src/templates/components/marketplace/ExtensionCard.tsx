@@ -52,6 +52,9 @@ export const ExtensionCard: FC<ExtensionCardProps> = ({ extension }) => {
       <p class="mt-4 text-xs text-base-content/50">
         Maho {extension.supported_maho_versions}
       </p>
+      <p class="mt-5 text-sm font-medium text-base-content group-hover:underline">
+        View extension →
+      </p>
     </a>
   );
 };
