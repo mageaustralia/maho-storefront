@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maho-storefront/schemas/page-config.schema.json",
+  "title": "Maho Storefront Page Config",
+  "description": "Component variant and section configuration for a Maho Storefront store. Used by page.json in each theme folder.",
+  "type": "object",
+  "required": ["pages"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "pages": {
+      "type": "object",
+      "properties": {
+        "product": {
+          "type": "object",
+          "properties": {
+            "components": {
+              "type": "object",
+              "properties": {
+                "layout": { "type": "string", "enum": ["masonry", "standard"] },
+                "gallery": { "type": "string", "enum": ["masonry", "carousel", "zoom"] },
+                "info-panel": { "type": "string", "enum": ["compact", "standard"] },
+                "card": { "type": "string", "enum": ["minimal", "standard", "featured", "horizontal"] },
+                "price": { "type": "string", "enum": ["standard"] },
+                "variant-picker": { "type": "string", "enum": ["swatch", "dropdown", "standard"] },
+                "quantity-stepper": { "type": "string", "enum": ["standard"] },
+                "tabs": { "type": "string", "enum": ["accordion", "tabbed"] }
+              },
+              "additionalProperties": false
+            },
+            "sections": {
+              "type": "object",
+              "properties": {
+                "showBreadcrumbs": { "type": "boolean" },
+                "showSizeGuide": { "type": "boolean" },
+                "sizeGuideVariant": { "type": "string", "enum": ["table", "modal", "visual"] },
+                "showRelated": { "type": "boolean" },
+                "showUpsell": { "type": "boolean" },
+                "showRecentlyViewed": { "type": "boolean" },
+                "showSpecifications": { "type": "boolean" },
+                "showReviews": { "type": "boolean" },
+                "reviewsPosition": { "type": "string", "enum": ["tabbed", "below"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "category": {
+          "type": "object",
+          "properties": {
+            "components": {
+              "type": "object",
+              "properties": {
+                "card": { "type": "string", "enum": ["minimal", "standard", "featured", "horizontal"] },
+                "filter": { "type": "string", "enum": ["sidebar", "drawer"] },
+                "sort": { "type": "string", "enum": ["standard"] },
+                "pagination": { "type": "string", "enum": ["standard", "load-more"] }
+              },
+              "additionalProperties": false
+            },
+            "gridColumns": {
+              "type": "object",
+              "properties": {
+                "mobile": { "type": "integer", "minimum": 1, "maximum": 4 },
+                "tablet": { "type": "integer", "minimum": 1, "maximum": 4 },
+                "desktop": { "type": "integer", "minimum": 1, "maximum": 6 }
+              },
+              "additionalProperties": false
+            },
+            "filterPosition": { "type": "string", "enum": ["sidebar-left", "sidebar-right", "top"] },
+            "showSubcategories": { "type": "boolean" },
+            "swatchLabels": { "type": "boolean" },
+            "cmsInsertion": { "type": "string", "enum": ["cell", "row", "none"], "description": "Where to insert CMS blocks in the product grid" },
+            "cmsInsertPosition": { "type": "integer", "minimum": 0, "description": "Zero-based index at which to insert the CMS block" }
+          },
+          "additionalProperties": false
+        },
+        "cart": {
+          "type": "object",
+          "properties": {
+            "components": {
+              "type": "object",
+              "properties": {
+                "drawer": { "type": "string", "enum": ["slide"] },
+                "line-item": { "type": "string", "enum": ["standard"] },
+                "summary": { "type": "string", "enum": ["standard"] }
+              },
+              "additionalProperties": false
+            },
+            "showRecommendations": { "type": "boolean" },
+            "showProgressBar": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "variant": { "type": "string", "enum": ["centered", "sticky", "minimal", "mega", "visual"] }
+          },
+          "required": ["variant"],
+          "additionalProperties": false
+        },
+        "footer": {
+          "type": "object",
+          "properties": {
+            "variant": { "type": "string", "enum": ["standard", "minimal", "mega", "centered"] }
+          },
+          "required": ["variant"],
+          "additionalProperties": false
+        },
+        "homepage": {
+          "type": "object",
+          "properties": {
+            "components": {
+              "type": "object",
+              "properties": {
+                "hero": { "type": "string", "enum": ["split", "fullwidth", "minimal"] },
+                "promo-grid": { "type": "string", "enum": ["2up", "3up"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "engagement": {
+          "type": "object",
+          "properties": {
+            "components": {
+              "type": "object",
+              "properties": {
+                "newsletter": { "type": "string", "enum": ["inline", "popup", "popup-image", "flyout"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "search": {
+          "type": "object",
+          "properties": {
+            "components": {
+              "type": "object",
+              "properties": {
+                "bar": { "type": "string", "enum": ["overlay", "standard"] },
+                "results": { "type": "string", "enum": ["standard"] },
+                "backend": { "type": "string", "enum": ["lucene", "meilisearch", "default"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "account": {
+          "type": "object",
+          "properties": {
+            "components": {
+              "type": "object",
+              "properties": {
+                "auth": { "type": "string", "enum": ["standard"] },
+                "dashboard": { "type": "string", "enum": ["standard"] },
+                "orders": { "type": "string", "enum": ["standard"] },
+                "address-book": { "type": "string", "enum": ["standard"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "checkout": {
+          "type": "object",
+          "properties": {
+            "components": {
+              "type": "object",
+              "properties": {
+                "layout": { "type": "string", "enum": ["single-page", "multi-step"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "blog": {
+          "type": "object",
+          "properties": {
+            "kicker": { "type": "string" },
+            "headline": { "type": "string" },
+            "headlineAccent": { "type": "string" },
+            "subheadline": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "marketplace": {
+          "type": "object",
+          "properties": {
+            "kicker": { "type": "string" },
+            "headline": { "type": "string" },
+            "headlineAccent": { "type": "string" },
+            "subheadline": { "type": "string" },
+            "taglineChips": { "type": "array", "items": { "type": "string" } },
+            "seoDescription": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "marketplaceExtension": {
+          "type": "object",
+          "properties": {
+            "warrantyNote": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "announcementBar": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "text": { "type": "string" },
+            "bgColor": { "type": "string" },
+            "textColor": { "type": "string" },
+            "link": { "type": "string" },
+            "dismissible": { "type": "boolean" }
+          },
+          "required": ["enabled", "text"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

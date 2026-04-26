@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schemas/page-config.schema.json",
   "pages": {
     "product": {
       "components": {
