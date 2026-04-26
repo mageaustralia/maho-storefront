@@ -443,6 +443,13 @@ ul:not(.prose ul):not(.prose ol) { list-style: none; }
 /* Scrollbar hide utility */
 .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Component token application — wires theme.json tokens to DaisyUI components */
+.btn { border-radius: var(--btn-radius); text-transform: var(--btn-text-transform); font-weight: var(--btn-font-weight); }
+.card { border-radius: var(--card-radius); }
+.card:hover { box-shadow: var(--card-hover-shadow); }
+.badge { border-radius: var(--badge-radius); text-transform: var(--badge-text-transform); font-size: var(--badge-font-size); font-weight: var(--badge-font-weight); }
+.input, .select, textarea.textarea { border-radius: var(--input-radius) !important; }
 `.trim();
 }
 
