@@ -11,6 +11,7 @@ import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
 import { ExtensionCard } from './components/marketplace/ExtensionCard';
+import { getSection } from '../page-config';
 
 interface MarketplacePageProps {
   config: StoreConfig;
@@ -30,13 +31,22 @@ export const MarketplacePage: FC<MarketplacePageProps> = ({
   devData,
 }) => {
   const canonical = `${config.baseUrl.replace(/\/$/, '')}/marketplace`;
+  // Brand-overridable copy. Defaults are generic; brands provide voice via
+  // themes/<theme>/page.json under `pages.marketplace.*`.
+  const kickerCopy = getSection<string>('marketplace', 'kicker', 'Catalogue', currentStoreCode);
+  const headlineCopy = getSection<string>('marketplace', 'headline', 'Extensions', currentStoreCode);
+  const headlineAccent = getSection<string>('marketplace', 'headlineAccent', '', currentStoreCode);
+  const subheadlineCopy = getSection<string>('marketplace', 'subheadline',
+    'Composer-installable extensions for Maho.', currentStoreCode);
+  const tagline = getSection<string[]>('marketplace', 'taglineChips', ['Honest pricing', 'Maho Storefront ready'], currentStoreCode);
+  const seoDescription = getSection<string>('marketplace', 'seoDescription',
+    'Curated Maho e-commerce extensions.', currentStoreCode);
   const collectionLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'Maho Extensions',
     url: canonical,
-    description:
-      'Curated Maho e-commerce extensions, maintained by Mage Australia.',
+    description: seoDescription,
   };
 
   return (
@@ -48,8 +58,8 @@ export const MarketplacePage: FC<MarketplacePageProps> = ({
       devData={devData}
     >
       <Seo
-        title="Extensions — Mageaustralia"
-        description="Curated Maho e-commerce extensions, maintained by Mage Australia."
+        title={`${headlineCopy} ${headlineAccent}`.trim() + ` — ${config.storeName}`}
+        description={seoDescription}
         canonicalUrl={canonical}
         siteName={config.storeName}
         jsonLd={[collectionLd]}
@@ -60,26 +70,33 @@ export const MarketplacePage: FC<MarketplacePageProps> = ({
         <div class="mx-auto max-w-6xl px-4 py-14 md:py-20">
           <div class="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-base-content/50">
             <span class="inline-block h-px w-8 bg-base-content/40"></span>
-            Catalogue
+            {kickerCopy}
           </div>
           <h1 class="mt-6 font-serif text-4xl leading-[1.05] tracking-tight md:text-6xl">
-            Modern Maho extensions,<br />
-            <span class="italic text-base-content/60">crafted in Melbourne.</span>
+            {headlineCopy}
+            {headlineAccent && (
+              <>
+                <br />
+                <span class="italic text-base-content/60">{headlineAccent}</span>
+              </>
+            )}
           </h1>
-          <p class="mt-6 max-w-2xl text-base leading-relaxed text-base-content/70 md:text-lg">
-            Composer-installable. Pay-once with year-one updates. PHP 8.3+, Maho
-            26.0+. Some open source on GitHub, others commercial here. Built by
-            people who ship Maho stores in production.
-          </p>
+          {subheadlineCopy && (
+            <p class="mt-6 max-w-2xl text-base leading-relaxed text-base-content/70 md:text-lg">
+              {subheadlineCopy}
+            </p>
+          )}
           <div class="mt-8 flex flex-wrap items-center gap-4 text-sm text-base-content/60">
             <span class="inline-flex items-center gap-2">
               <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
               {extensions.length} {extensions.length === 1 ? 'extension' : 'extensions'} available
             </span>
-            <span class="text-base-content/30">·</span>
-            <span>Honest pricing</span>
-            <span class="text-base-content/30">·</span>
-            <span>Maho Storefront ready</span>
+            {Array.isArray(tagline) && tagline.map(chip => (
+              <>
+                <span class="text-base-content/30">·</span>
+                <span>{chip}</span>
+              </>
+            ))}
           </div>
         </div>
       </section>

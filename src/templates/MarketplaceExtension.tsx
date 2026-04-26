@@ -16,6 +16,7 @@ import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
 import { formatPrice } from '../marketplace-api';
+import { getSection } from '../page-config';
 
 interface MarketplaceExtensionPageProps {
   config: StoreConfig;
@@ -37,6 +38,9 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
   const single = formatPrice(extension.price_single, extension.currency);
   const unlimited = formatPrice(extension.price_unlimited, extension.currency);
   const canonical = `${config.baseUrl.replace(/\/$/, '')}/marketplace/${encodeURIComponent(extension.url_key)}`;
+
+  // Brand-overridable copy for the pricing aside note (commercial terms).
+  const warrantyNote = getSection<string>('marketplaceExtension', 'warrantyNote', '', currentStoreCode);
 
   const productLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -184,9 +188,11 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                 </div>
               )}
 
-              <p class="mt-5 border-t border-base-300/60 pt-4 text-xs text-base-content/55">
-                Year-one updates included. Optional 30%/yr maintenance after.
-              </p>
+              {warrantyNote && (
+                <p class="mt-5 border-t border-base-300/60 pt-4 text-xs text-base-content/55">
+                  {warrantyNote}
+                </p>
+              )}
             </div>
 
             <div class="rounded-2xl border border-base-300/70 bg-base-content p-5 text-base-100/90">

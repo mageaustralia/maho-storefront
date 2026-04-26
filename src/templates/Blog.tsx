@@ -12,6 +12,7 @@ import { Layout } from './Layout';
 import { LayoutShell } from './components/LayoutShell';
 import { Seo } from './components/Seo';
 import { djb2 } from '../utils/hash';
+import { getSection } from '../page-config';
 
 export interface BlogPostSummary {
   identifier: string;
@@ -44,6 +45,14 @@ const formatDate = (s: string | null) =>
 export const BlogPage: FC<BlogPageProps> = ({ config, categories, posts, blogCategories, activeCategory, stores, currentStoreCode, sidebarLeft, sidebarRight, lastChecked, devData }) => {
   const [featured, ...rest] = posts;
 
+  // Brand-overridable copy. Defaults are generic; brands set their voice
+  // via themes/<theme>/page.json under `pages.blog.{kicker,headline,headlineAccent,subheadline}`.
+  // headlineAccent is rendered as an italic accent span after the headline.
+  const kickerCopy = getSection<string>('blog', 'kicker', 'Journal', currentStoreCode);
+  const headlineCopy = getSection<string>('blog', 'headline', 'Latest articles', currentStoreCode);
+  const headlineAccent = getSection<string>('blog', 'headlineAccent', '', currentStoreCode);
+  const subheadlineCopy = getSection<string>('blog', 'subheadline', '', currentStoreCode);
+
   return (
     <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
       <Seo
@@ -63,18 +72,21 @@ export const BlogPage: FC<BlogPageProps> = ({ config, categories, posts, blogCat
         <div class="mx-auto max-w-6xl px-4 py-14 md:py-20">
           <div class="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-base-content/50">
             <span class="inline-block h-px w-10 bg-base-content/40"></span>
-            {activeCategory ? activeCategory.name : 'Journal'}
+            {activeCategory ? activeCategory.name : kickerCopy}
           </div>
           <h1 class="mt-6 font-serif text-5xl leading-[1.05] tracking-tight md:text-7xl">
             {activeCategory ? activeCategory.name : (
               <>
-                Notes from the <span class="italic text-base-content/55">build floor.</span>
+                {headlineCopy}
+                {headlineAccent && <> <span class="italic text-base-content/55">{headlineAccent}</span></>}
               </>
             )}
           </h1>
-          <p class="mt-6 max-w-2xl text-base leading-relaxed text-base-content/70 md:text-lg">
-            Thinking out loud about Maho, modern PHP commerce, the death of M2 marketplaces, and what bespoke SaaS actually means in 2026.
-          </p>
+          {subheadlineCopy && (
+            <p class="mt-6 max-w-2xl text-base leading-relaxed text-base-content/70 md:text-lg">
+              {subheadlineCopy}
+            </p>
+          )}
 
           {blogCategories && blogCategories.length > 0 && (
             <div class="mt-10 flex flex-wrap gap-2">
@@ -101,10 +113,15 @@ export const BlogPage: FC<BlogPageProps> = ({ config, categories, posts, blogCat
       </section>
 
       <LayoutShell template="one_column" sidebarLeft={sidebarLeft} sidebarRight={sidebarRight}>
-        {/* `.blog-page` wrapper is a freshness-controller hook */}
-        <section class="blog-page mx-auto max-w-6xl px-4 py-12 md:py-16">
+        <section
+          class="mx-auto max-w-6xl px-4 py-12 md:py-16"
+          data-freshness-target="blog-page"
+        >
           {posts.length === 0 ? (
-            <div class="no-products rounded-2xl border border-dashed border-base-300 bg-base-100 p-16 text-center">
+            <div
+              class="rounded-2xl border border-dashed border-base-300 bg-base-100 p-16 text-center"
+              data-freshness-target="blog-empty"
+            >
               <p class="font-serif text-2xl">No posts yet.</p>
               <p class="mt-3 text-sm text-base-content/60">Working on it. Watch this space.</p>
             </div>
@@ -153,8 +170,11 @@ export const BlogPage: FC<BlogPageProps> = ({ config, categories, posts, blogCat
                 </a>
               )}
 
-              {/* Rest of posts in 3-up grid — `.blog-grid` class is a freshness-controller hook */}
-              <div class="blog-grid grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+              {/* Rest of posts in 3-up grid */}
+              <div
+                class="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3"
+                data-freshness-target="blog-grid"
+              >
                 {(activeCategory ? posts : rest).map((post) => (
                   <a
                     key={post.identifier}
