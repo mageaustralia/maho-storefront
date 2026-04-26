@@ -121,7 +121,9 @@ export const CardFeatured: FC<ProductCardProps> = ({ product, currency = 'USD', 
         ) : (
           <button
             class="btn btn-primary w-full"
-            onclick={`(async()=>{const c=localStorage.getItem('maho_cart_id');if(!c){const r=await fetch(window.MAHO_API_URL+'/api/guest-carts',{method:'POST',headers:{'Accept':'application/ld+json'}});const d=await r.json();localStorage.setItem('maho_cart_id',d.maskedId)}const m=localStorage.getItem('maho_cart_id');const r=await fetch(window.MAHO_API_URL+'/api/guest-carts/'+m+'/items',{method:'POST',headers:{'Accept':'application/ld+json','Content-Type':'application/ld+json'},body:JSON.stringify({sku:'${product.sku}',qty:1})});if(r.ok){document.dispatchEvent(new CustomEvent('cart:updated'));document.dispatchEvent(new CustomEvent('cart:open'));this.textContent='Added!';setTimeout(()=>this.textContent='Quick Add',2000)}else{this.textContent='Error';setTimeout(()=>this.textContent='Quick Add',2000)}})()`}
+            data-controller="cart"
+            data-cart-sku-value={product.sku}
+            data-action="cart#add"
           >
             Quick Add
           </button>
