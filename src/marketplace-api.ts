@@ -18,6 +18,14 @@ const MARKETPLACE_API_BASE = 'https://admin.mageaustralia.com.au';
 /** Marketplace root category id in the Maho catalog tree (urlKey "marketplace"). */
 const MARKETPLACE_CATEGORY_ID = 11;
 
+/** Same headers ApiClient sends — includes the worker-auth token and the
+ *  ld+json content negotiation that the API expects. Without these, filter
+ *  query params like ?urlKey=… return 500. */
+const API_HEADERS: Record<string, string> = {
+  'Accept': 'application/ld+json',
+  'X-Worker-Auth': 'maho-storefront-sync-626538104ee3e0ef',
+};
+
 interface ApiCollection<T> { member?: T[]; totalItems?: number }
 
 /** Maho's API Platform returns JSON-LD when Accept omits a preference (the
@@ -35,7 +43,7 @@ function unwrapCollection<T>(body: unknown): T[] {
 export async function fetchMarketplaceProducts(): Promise<Product[]> {
   try {
     const url = `${MARKETPLACE_API_BASE}/api/products?categoryId=${MARKETPLACE_CATEGORY_ID}&itemsPerPage=200&order[name]=asc`;
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: API_HEADERS });
     if (!res.ok) return [];
     return unwrapCollection<Product>(await res.json());
   } catch {
@@ -43,19 +51,15 @@ export async function fetchMarketplaceProducts(): Promise<Product[]> {
   }
 }
 
-/** Find a marketplace product by its url_key. Falls back to a list-scan
- *  for stores under ~200 products; if the catalogue grows past that we'd
- *  want a dedicated index endpoint. */
+/** Find a marketplace product by its url_key. Confirms category membership
+ *  via the categoryId filter so an unrelated product that happens to share
+ *  a url_key can't slip through. */
 export async function findMarketplaceProductByUrlKey(urlKey: string): Promise<Product | null> {
   try {
-    const url = `${MARKETPLACE_API_BASE}/api/products?urlKey=${encodeURIComponent(urlKey)}&itemsPerPage=1`;
-    const res = await fetch(url);
+    const url = `${MARKETPLACE_API_BASE}/api/products?urlKey=${encodeURIComponent(urlKey)}&categoryId=${MARKETPLACE_CATEGORY_ID}&itemsPerPage=1`;
+    const res = await fetch(url, { headers: API_HEADERS });
     if (!res.ok) return null;
-    const first = unwrapCollection<Product>(await res.json())[0] ?? null;
-    if (!first) return null;
-    // Confirm it really is a marketplace product (in the marketplace category).
-    if (!isMarketplaceProduct(first)) return null;
-    return first;
+    return unwrapCollection<Product>(await res.json())[0] ?? null;
   } catch {
     return null;
   }
@@ -65,7 +69,7 @@ export async function findMarketplaceProductByUrlKey(urlKey: string): Promise<Pr
  *  additionalAttributes — everything the listing endpoint trims). */
 export async function fetchMarketplaceProduct(id: number): Promise<Product | null> {
   try {
-    const res = await fetch(`${MARKETPLACE_API_BASE}/api/products/${id}`);
+    const res = await fetch(`${MARKETPLACE_API_BASE}/api/products/${id}`, { headers: API_HEADERS });
     if (!res.ok) return null;
     return (await res.json()) as Product;
   } catch {
@@ -73,18 +77,15 @@ export async function fetchMarketplaceProduct(id: number): Promise<Product | nul
   }
 }
 
-/** Identify whether a Product is a marketplace extension. Marketplace
- *  products are downloadable products in the marketplace category that
- *  carry a composer_package custom attribute (without it they're not
- *  composer-installable, which makes them not really an extension). */
+/** Identify whether a Product is a marketplace extension. Listing-endpoint
+ *  responses trim additionalAttributes so we can only check what's actually
+ *  there: the type and the category. Use this on detail-endpoint Products. */
 export function isMarketplaceProduct(p: Product): boolean {
   if (p.type !== 'downloadable') return false;
-  if (Array.isArray(p.categoryIds) && !p.categoryIds.includes(MARKETPLACE_CATEGORY_ID)) {
-    // categoryIds may exclude the parent-tree root in listing responses;
-    // skip the strict check when it isn't present at all.
-    if (p.categoryIds.length > 0) return false;
+  if (Array.isArray(p.categoryIds) && p.categoryIds.length > 0) {
+    return p.categoryIds.includes(MARKETPLACE_CATEGORY_ID);
   }
-  return getAttribute(p, 'composer_package') !== null;
+  return true;
 }
 
 type DownloadableLink = NonNullable<Product['downloadableLinks']>[number];
