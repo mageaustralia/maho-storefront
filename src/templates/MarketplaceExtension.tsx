@@ -127,12 +127,23 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
             )}
           </article>
 
+          {/* Pricing + buy panel — uses the SAME `data-controller="product"`
+              wiring as the regular product detail page. The two visible CTAs
+              are tier shortcuts: each pre-selects its corresponding hidden
+              download-link radio, then triggers product#stickyAdd via
+              standard markup. No marketplace-specific cart logic. */}
           <aside
             class="space-y-5 lg:sticky lg:top-24 lg:self-start"
-            data-controller="marketplace-cart"
-            data-marketplace-cart-sku-value={extension.sku}
-            data-marketplace-cart-name-value={extension.name}
-            data-marketplace-cart-currency-value={extension.currency}
+            data-controller="product"
+            data-product-type-value={extension.type_id}
+            data-product-product-id-value={String(extension.product_id)}
+            data-product-sku-value={extension.sku}
+            data-product-currency-value={extension.currency}
+            data-product-name={extension.name}
+            data-product-price={String(extension.price_single ?? 0)}
+            data-product-final-price={String(extension.price_single ?? 0)}
+            data-product-thumbnail={extension.image_url ?? ''}
+            data-product-url-key={extension.url_key}
           >
             <div class="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-[0_8px_24px_-12px_rgba(10,25,48,0.12)]">
               <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-content/50">
@@ -157,35 +168,62 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                 )}
               </div>
 
-              {(single || unlimited) && (
+              {/* Hidden radios — one per downloadable link. The Buy CTAs
+                  below set `checked` on the matching radio before triggering
+                  product#stickyAdd, so product-controller's downloadable
+                  branch picks up the right link via querySelectorAll
+                  ('[data-download-link-id]:checked'). */}
+              {extension.license_links?.map(link => (
+                <input
+                  key={link.id}
+                  type="radio"
+                  name="license-link"
+                  data-download-link-id={String(link.id)}
+                  data-tier={link.tier}
+                  hidden
+                />
+              ))}
+
+              {extension.license_links && extension.license_links.length > 0 && (
                 <div class="mt-6 space-y-2">
-                  {single && (
-                    <button
-                      type="button"
-                      class="btn !h-auto w-full !rounded-lg !bg-base-content !text-base-100 px-5 py-3 text-sm font-semibold !border-0 transition-all hover:!bg-accent hover:!text-base-100 disabled:opacity-50"
-                      data-action="marketplace-cart#add"
-                      data-tier="single"
-                      data-price={String(extension.price_single ?? '')}
-                    >
-                      Buy single-store · {single}
-                    </button>
-                  )}
-                  {unlimited && (
-                    <button
-                      type="button"
-                      class="btn btn-outline !h-auto w-full !rounded-lg !border !border-base-300 !bg-transparent px-5 py-3 text-sm font-semibold !text-base-content transition-all hover:!border-base-content hover:!bg-base-200 disabled:opacity-50"
-                      data-action="marketplace-cart#add"
-                      data-tier="unlimited"
-                      data-price={String(extension.price_unlimited ?? '')}
-                    >
-                      Buy unlimited · {unlimited}
-                    </button>
-                  )}
-                  <p
-                    class="hidden mt-3 text-xs text-error"
-                    data-marketplace-cart-target="message"
-                  ></p>
+                  {extension.license_links.map((link, idx) => {
+                    const priceLabel = formatPrice(link.price, extension.currency) ?? '';
+                    const tierLabel = link.tier === 'unlimited' ? 'Buy unlimited' : 'Buy single-store';
+                    const isPrimary = idx === 0;
+                    return (
+                      <button
+                        key={link.id}
+                        type="button"
+                        class={
+                          isPrimary
+                            ? 'btn !h-auto w-full !rounded-lg !bg-base-content !text-base-100 px-5 py-3 text-sm font-semibold !border-0 transition-all hover:!bg-accent hover:!text-base-100 disabled:opacity-50'
+                            : 'btn btn-outline !h-auto w-full !rounded-lg !border !border-base-300 !bg-transparent px-5 py-3 text-sm font-semibold !text-base-content transition-all hover:!border-base-content hover:!bg-base-200 disabled:opacity-50'
+                        }
+                        data-link-id={String(link.id)}
+                        onclick={`var aside=this.closest('[data-controller~=&quot;product&quot;]');aside.querySelectorAll('[data-download-link-id]').forEach(function(r){r.checked=r.dataset.downloadLinkId===this.dataset.linkId}.bind(this));aside.querySelector('[data-product-target=&quot;addButton&quot;]').click();`}
+                      >
+                        {tierLabel} · {priceLabel}
+                      </button>
+                    );
+                  })}
+                  <p class="cart-message" data-product-target="message"></p>
                 </div>
+              )}
+
+              {/* Standard product-controller hidden Add button — Buy CTAs
+                  above .click() this after pre-selecting the right radio.
+                  Hidden because the visible CTAs ARE the user-facing add
+                  buttons. */}
+              {extension.license_links && extension.license_links.length > 0 && (
+                <button
+                  type="button"
+                  hidden
+                  data-action="product#stickyAdd"
+                  data-product-target="addButton"
+                  aria-hidden="true"
+                >
+                  Add to cart
+                </button>
               )}
 
               {warrantyNote && (
