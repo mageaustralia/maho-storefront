@@ -39,13 +39,24 @@ function unwrapCollection<T>(body: unknown): T[] {
   return [];
 }
 
-/** Fetch the marketplace catalogue list. Returns [] on any failure. */
+/** Fetch the marketplace catalogue list. Returns [] on any failure.
+ *
+ *  Maho's listing endpoint trims additionalAttributes, downloadableLinks
+ *  and mediaGallery — but the marketplace card needs all three (tagline,
+ *  per-tier prices, image label). So we fan out to /api/products/{id} for
+ *  each item. Marketplace catalogues are small (single-digit count); the
+ *  Cloudflare edge fronts the whole thing. If the catalogue ever grows
+ *  past ~20 we'd want a bespoke endpoint. */
 export async function fetchMarketplaceProducts(): Promise<Product[]> {
   try {
     const url = `${MARKETPLACE_API_BASE}/api/products?categoryId=${MARKETPLACE_CATEGORY_ID}&itemsPerPage=200&order[name]=asc`;
     const res = await fetch(url, { headers: API_HEADERS });
     if (!res.ok) return [];
-    return unwrapCollection<Product>(await res.json());
+    const list = unwrapCollection<Product>(await res.json());
+    const detailed = await Promise.all(
+      list.map(p => (p.id ? fetchMarketplaceProduct(p.id) : Promise.resolve(null)))
+    );
+    return detailed.filter((p): p is Product => p !== null);
   } catch {
     return [];
   }
