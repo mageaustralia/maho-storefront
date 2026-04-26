@@ -101,9 +101,10 @@ export const BlogPage: FC<BlogPageProps> = ({ config, categories, posts, blogCat
       </section>
 
       <LayoutShell template="one_column" sidebarLeft={sidebarLeft} sidebarRight={sidebarRight}>
-        <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+        {/* `.blog-page` wrapper is a freshness-controller hook */}
+        <section class="blog-page mx-auto max-w-6xl px-4 py-12 md:py-16">
           {posts.length === 0 ? (
-            <div class="rounded-2xl border border-dashed border-base-300 bg-base-100 p-16 text-center">
+            <div class="no-products rounded-2xl border border-dashed border-base-300 bg-base-100 p-16 text-center">
               <p class="font-serif text-2xl">No posts yet.</p>
               <p class="mt-3 text-sm text-base-content/60">Working on it. Watch this space.</p>
             </div>
@@ -152,8 +153,8 @@ export const BlogPage: FC<BlogPageProps> = ({ config, categories, posts, blogCat
                 </a>
               )}
 
-              {/* Rest of posts in 3-up grid */}
-              <div class="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+              {/* Rest of posts in 3-up grid — `.blog-grid` class is a freshness-controller hook */}
+              <div class="blog-grid grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
                 {(activeCategory ? posts : rest).map((post) => (
                   <a
                     key={post.identifier}
