@@ -27,7 +27,7 @@ interface SearchResultsPageProps {
 
 export const SearchResultsPage: FC<SearchResultsPageProps> = ({ config, categories, query, products, totalItems, currentPage, totalPages, stores, currentStoreCode, devData }) => (
   <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
-    <Seo title={`${query ? `Search: ${query}` : 'Search'} | ${config.storeName}`} />
+    <Seo title={`${query ? `Search: ${query}` : 'Search'} | ${config.storeName}`} noindex={true} />
     <div class="py-6">
       {/* Search form */}
       <div class="mb-8">

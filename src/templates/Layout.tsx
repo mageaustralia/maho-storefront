@@ -41,7 +41,7 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ config, categories,
   const v = `?v=${ASSET_HASH}`;
   const { themeName, googleFontsUrl } = getThemeForStore(currentStoreCode);
   return (
-    <html lang="en" data-theme={themeName}>
+    <html lang={config.locale?.replace('_', '-') ?? 'en'} data-theme={themeName}>
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
