@@ -106,6 +106,20 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
         </div>
       </section>
 
+      {/* Editorial hero image — only renders if the catalogue product
+          has one set; falls through cleanly when absent. */}
+      {extension.image_url && (
+        <figure class="mx-auto max-w-6xl px-4 pt-10 md:pt-14">
+          <img
+            src={extension.image_url}
+            alt={extension.name}
+            class="aspect-[3/2] w-full rounded-2xl object-cover"
+            loading="eager"
+            decoding="async"
+          />
+        </figure>
+      )}
+
       <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div class="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_340px]">
           <article class="prose prose-base max-w-none text-base-content/85 prose-headings:font-serif prose-headings:tracking-tight prose-h2:text-3xl prose-h3:text-xl prose-a:text-accent prose-code:font-mono prose-code:text-sm">
