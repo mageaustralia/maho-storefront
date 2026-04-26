@@ -48,8 +48,8 @@ export const BlogPostPage: FC<BlogPostPageProps> = ({ config, categories, post, 
 
     <LayoutShell template="one_column" sidebarLeft={sidebarLeft} sidebarRight={sidebarRight}>
       <article>
-        {/* Editorial header band */}
-        <header class="border-b border-base-300/60 bg-gradient-to-b from-base-200/40 to-transparent">
+        {/* Editorial header band — `.blog-post-header` class is a freshness-controller hook */}
+        <header class="blog-post-header border-b border-base-300/60 bg-gradient-to-b from-base-200/40 to-transparent">
           <div class="mx-auto max-w-3xl px-4 py-12 md:py-16">
             <nav class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/50">
               <a href="/blog" class="transition-colors hover:text-base-content" data-turbo-prefetch="true">
@@ -83,10 +83,11 @@ export const BlogPostPage: FC<BlogPostPageProps> = ({ config, categories, post, 
 
         {post.imageUrl && (
           <figure class="mx-auto max-w-5xl px-4 pt-10">
+            {/* `.blog-post-hero` class is a freshness-controller hook */}
             <img
               src={post.imageUrl}
               alt={post.title}
-              class="aspect-[2/1] w-full rounded-2xl object-cover"
+              class="blog-post-hero aspect-[2/1] w-full rounded-2xl object-cover"
               loading="eager"
               decoding="async"
             />
@@ -95,8 +96,9 @@ export const BlogPostPage: FC<BlogPostPageProps> = ({ config, categories, post, 
 
         {post.content && (
           <div class="mx-auto max-w-3xl px-4 py-12 md:py-16">
+            {/* `.blog-post-content` class is a freshness-controller hook */}
             <div
-              class="prose prose-base max-w-none text-base-content/85 prose-headings:font-serif prose-headings:tracking-tight prose-h2:text-3xl prose-h2:mt-12 prose-h3:text-xl prose-h3:mt-10 prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-base-content/30 prose-blockquote:font-serif prose-blockquote:italic prose-code:font-mono prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-code:bg-base-200 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-base-content prose-pre:text-base-100 prose-img:rounded-xl prose-hr:border-base-300/60"
+              class="blog-post-content prose prose-base max-w-none text-base-content/85 prose-headings:font-serif prose-headings:tracking-tight prose-h2:text-3xl prose-h2:mt-12 prose-h3:text-xl prose-h3:mt-10 prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-base-content/30 prose-blockquote:font-serif prose-blockquote:italic prose-code:font-mono prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-code:bg-base-200 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-base-content prose-pre:text-base-100 prose-img:rounded-xl prose-hr:border-base-300/60"
               dangerouslySetInnerHTML={{ __html: rewriteContentUrls(post.content) }}
             />
 
