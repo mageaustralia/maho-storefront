@@ -498,7 +498,7 @@ export default class FreshnessController extends Controller {
       let mgArr = d.mediaGallery || [];
       if (mgArr && typeof mgArr === 'object' && !Array.isArray(mgArr)) mgArr = Object.values(mgArr);
       const gallery = mgArr.map(m => m.url).join(',');
-      return this._hash(`${d.updatedAt}|${d.name}|${d.finalPrice}|${d.specialPrice ?? ''}|${d.stockStatus}|${d.description ?? ''}|${d.imageUrl ?? ''}|${opts}|${variants}|${gallery}|${(d.groupedProducts||[]).length}|${(d.bundleOptions||[]).length}|${(d.downloadableLinks||[]).length}|${(d.relatedProducts||[]).length}|${(d.crossSellProducts||[]).length}|${(d.upsellProducts||[]).length}`);
+      return this._hash(`${d.updatedAt}|${d.name}|${d.finalPrice}|${d.specialPrice ?? ''}|${d.stockStatus}|${d.description ?? ''}|${d.imageUrl ?? ''}|${opts}|${variants}|${gallery}|${(d.groupedProducts||[]).length}|${(d.bundleOptions||[]).length}|${(d.downloadableLinks||[]).length}|${(d.relatedProducts||[]).length}|${(d.crosssellProducts||[]).length}|${(d.upsellProducts||[]).length}`);
     }
     if (type === 'blog-list') {
       // d is an array of post summaries
