@@ -6,7 +6,7 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
-import type { Category, StoreConfig, StorefrontStore, MarketplaceExtension } from '../types';
+import type { Category, StoreConfig, StorefrontStore, Product } from '../types';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
@@ -16,7 +16,7 @@ import { getSection } from '../page-config';
 interface MarketplacePageProps {
   config: StoreConfig;
   categories: Category[];
-  extensions: MarketplaceExtension[];
+  products: Product[];
   stores?: StorefrontStore[];
   currentStoreCode?: string;
   devData?: DevData | null;
@@ -25,14 +25,12 @@ interface MarketplacePageProps {
 export const MarketplacePage: FC<MarketplacePageProps> = ({
   config,
   categories,
-  extensions,
+  products,
   stores,
   currentStoreCode,
   devData,
 }) => {
   const canonical = `${config.baseUrl.replace(/\/$/, '')}/marketplace`;
-  // Brand-overridable copy. Defaults are generic; brands provide voice via
-  // themes/<theme>/page.json under `pages.marketplace.*`.
   const kickerCopy = getSection<string>('marketplace', 'kicker', 'Catalogue', currentStoreCode);
   const headlineCopy = getSection<string>('marketplace', 'headline', 'Extensions', currentStoreCode);
   const headlineAccent = getSection<string>('marketplace', 'headlineAccent', '', currentStoreCode);
@@ -65,7 +63,6 @@ export const MarketplacePage: FC<MarketplacePageProps> = ({
         jsonLd={[collectionLd]}
       />
 
-      {/* Editorial hero section — generous space, serif headline */}
       <section class="border-b border-base-300/60 bg-gradient-to-b from-base-200/30 to-transparent">
         <div class="mx-auto max-w-6xl px-4 py-14 md:py-20">
           <div class="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-base-content/50">
@@ -89,7 +86,7 @@ export const MarketplacePage: FC<MarketplacePageProps> = ({
           <div class="mt-8 flex flex-wrap items-center gap-4 text-sm text-base-content/60">
             <span class="inline-flex items-center gap-2">
               <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-              {extensions.length} {extensions.length === 1 ? 'extension' : 'extensions'} available
+              {products.length} {products.length === 1 ? 'extension' : 'extensions'} available
             </span>
             {Array.isArray(tagline) && tagline.map(chip => (
               <>
@@ -102,7 +99,7 @@ export const MarketplacePage: FC<MarketplacePageProps> = ({
       </section>
 
       <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
-        {extensions.length === 0 ? (
+        {products.length === 0 ? (
           <div class="rounded-2xl border border-dashed border-base-300 bg-base-100 p-16 text-center">
             <p class="font-serif text-2xl text-base-content">No extensions yet.</p>
             <p class="mt-3 text-sm text-base-content/60">First commercial modules ship soon — check back, or follow the build log on the blog.</p>
@@ -110,8 +107,8 @@ export const MarketplacePage: FC<MarketplacePageProps> = ({
           </div>
         ) : (
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {extensions.map((ext) => (
-              <ExtensionCard extension={ext} />
+            {products.map((p) => (
+              <ExtensionCard product={p} currency={config.baseCurrencyCode || 'AUD'} />
             ))}
           </div>
         )}

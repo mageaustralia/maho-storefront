@@ -33,9 +33,9 @@ import { MarketplacePage } from './templates/Marketplace';
 import { MarketplaceExtensionPage } from './templates/MarketplaceExtension';
 import { NotFoundPage } from './templates/NotFound';
 import {
-  fetchMarketplaceExtensions,
-  findMarketplaceExtensionByUrlKey,
-  fetchMarketplaceExtension,
+  fetchMarketplaceProducts,
+  findMarketplaceProductByUrlKey,
+  fetchMarketplaceProduct,
 } from './marketplace-api';
 import {
   DEV_COOKIE,
@@ -1341,9 +1341,9 @@ app.get('/marketplace', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const [{ config, categories }, extensions] = await Promise.all([
+  const [{ config, categories }, products] = await Promise.all([
     getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
-    fetchMarketplaceExtensions(),
+    fetchMarketplaceProducts(),
   ]);
   const devData = timer
     ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '')
@@ -1352,7 +1352,7 @@ app.get('/marketplace', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
     <MarketplacePage
       config={config}
       categories={categories}
-      extensions={extensions}
+      products={products}
       stores={stores}
       currentStoreCode={currentStoreCode}
       devData={devData}
@@ -1372,20 +1372,20 @@ app.get('/marketplace/:slug', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
     new URL(c.req.url).origin
   );
 
-  // url_key → SKU lookup, then fetch full detail (which includes description
-  // + additional_images which the list endpoint omits).
-  const listItem = await findMarketplaceExtensionByUrlKey(slug);
+  // url_key → product lookup, then fetch full detail (which includes
+  // mediaGallery + downloadableLinks + additionalAttributes that the list
+  // endpoint omits).
+  const listItem = await findMarketplaceProductByUrlKey(slug);
   if (!listItem) {
-    // Slug isn't a marketplace extension. Maho's URL rewrites prefix all
+    // Slug isn't a marketplace product. Maho's URL rewrites prefix all
     // marketplace-tree categories with the parent's url_key (which happens
     // to be "marketplace"), so a click on a category breadcrumb like
     // /catalog-display 301s to /marketplace/catalog-display and lands here.
-    // Pass it through to the marketplace listing with the category filter
-    // — the listing page handles unknown filters gracefully (shows all).
+    // Pass it through to the marketplace listing with the category filter.
     return c.redirect(`/marketplace?category=${encodeURIComponent(slug)}`, 301);
   }
-  const extension = await fetchMarketplaceExtension(listItem.sku);
-  if (!extension) {
+  const product = listItem.id ? await fetchMarketplaceProduct(listItem.id) : null;
+  if (!product) {
     return c.notFound();
   }
 
@@ -1396,7 +1396,7 @@ app.get('/marketplace/:slug', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
     <MarketplaceExtensionPage
       config={config}
       categories={categories}
-      extension={extension}
+      product={product}
       stores={stores}
       currentStoreCode={currentStoreCode}
       devData={devData}
@@ -2769,7 +2769,7 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
       // landing instead of the standard product page. Lookup is the
       // already-synced marketplace list in KV (no extra Maho call).
       // Avoids two URLs serving the same product with different chrome.
-      const isMarketplaceExt = await findMarketplaceExtensionByUrlKey(slug).catch(() => null);
+      const isMarketplaceExt = await findMarketplaceProductByUrlKey(slug).catch(() => null);
       if (isMarketplaceExt) {
         return c.redirect(`/marketplace/${encodeURIComponent(slug)}`, 301);
       }
