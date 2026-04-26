@@ -31,6 +31,7 @@ import { Layout } from './templates/Layout';
 import { Seo } from './templates/components/Seo';
 import { MarketplacePage } from './templates/Marketplace';
 import { MarketplaceExtensionPage } from './templates/MarketplaceExtension';
+import { NotFoundPage } from './templates/NotFound';
 import {
   fetchMarketplaceExtensions,
   findMarketplaceExtensionByUrlKey,
@@ -1375,7 +1376,13 @@ app.get('/marketplace/:slug', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
   // + additional_images which the list endpoint omits).
   const listItem = await findMarketplaceExtensionByUrlKey(slug);
   if (!listItem) {
-    return c.notFound();
+    // Slug isn't a marketplace extension. Maho's URL rewrites prefix all
+    // marketplace-tree categories with the parent's url_key (which happens
+    // to be "marketplace"), so a click on a category breadcrumb like
+    // /catalog-display 301s to /marketplace/catalog-display and lands here.
+    // Pass it through to the marketplace listing with the category filter
+    // — the listing page handles unknown filters gracefully (shows all).
+    return c.redirect(`/marketplace?category=${encodeURIComponent(slug)}`, 301);
   }
   const extension = await fetchMarketplaceExtension(listItem.sku);
   if (!extension) {
@@ -1502,10 +1509,7 @@ app.get('/blog/:slug', withEdgeCache(CACHE_BLOG), async (c) => {
 
   if (!post) {
     return c.html(
-      <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
-        <Seo title={`Not Found | ${config.storeName}`} />
-        <div class="not-found"><h1>Post Not Found</h1><p>This blog post doesn't exist.</p><a href="/blog">Back to Blog</a></div>
-      </Layout>,
+      <NotFoundPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} attemptedPath={c.req.path} />,
       404
     );
   }
@@ -1632,10 +1636,7 @@ app.get('/page/:identifier', withEdgeCache(CACHE_CMS), async (c) => {
     } catch {}
 
     return c.html(
-      <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
-        <Seo title={`Not Found | ${config.storeName}`} />
-        <div class="not-found"><h1>Page Not Found</h1><p>The page you're looking for doesn't exist.</p><a href="/">Go Home</a></div>
-      </Layout>,
+      <NotFoundPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} attemptedPath={c.req.path} />,
       404
     );
   }
@@ -2530,10 +2531,7 @@ app.get('/:parent/:child', withEdgeCache(CACHE_CATEGORY), async (c) => {
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
   if (!category) {
     return c.html(
-      <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
-        <Seo title={`Not Found | ${config.storeName}`} />
-        <div class="not-found"><h1>Page Not Found</h1><p>The page you're looking for doesn't exist.</p><a href="/">Go Home</a></div>
-      </Layout>,
+      <NotFoundPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} attemptedPath={c.req.path} />,
       404
     );
   }
@@ -2767,6 +2765,14 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
     }
 
     if (resolved.type === 'product') {
+      // Marketplace extensions get the editorial /marketplace/<slug>
+      // landing instead of the standard product page. Lookup is the
+      // already-synced marketplace list in KV (no extra Maho call).
+      // Avoids two URLs serving the same product with different chrome.
+      const isMarketplaceExt = await findMarketplaceExtensionByUrlKey(slug).catch(() => null);
+      if (isMarketplaceExt) {
+        return c.redirect(`/marketplace/${encodeURIComponent(slug)}`, 301);
+      }
       const fullProduct = await apiClient.fetchProductById(resolved.id);
       if (fullProduct) {
         c.executionCtx.waitUntil(store.put(`${prefix}product:${slug}`, fullProduct, 86400));
@@ -2808,6 +2814,35 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
     </Layout>,
     404
   );
+});
+
+// Global 404 handler — catches c.notFound() calls from individual route
+// handlers (which would otherwise fall through to Hono's bare-text default)
+// AND any path that no route matched. Renders the editorial NotFoundPage.
+app.notFound(async (c) => {
+  try {
+    const store = createStore(c.env, null);
+    const { stores, currentStoreCode } = await getStoreContext(c);
+    const { config, categories } = await getStoreData(
+      store,
+      currentStoreCode,
+      new URL(c.req.url).origin,
+    );
+    return c.html(
+      <NotFoundPage
+        config={config}
+        categories={categories}
+        stores={stores}
+        currentStoreCode={currentStoreCode}
+        attemptedPath={c.req.path}
+      />,
+      404,
+    );
+  } catch {
+    // Layout fetch can fail when the worker is cold or KV is empty —
+    // fall back to plain text so we never throw on a 404 path.
+    return c.text('Not Found', 404);
+  }
 });
 
 export default app;
