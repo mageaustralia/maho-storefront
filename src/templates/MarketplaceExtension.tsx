@@ -6,22 +6,17 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
-import type {
-  Category,
-  StoreConfig,
-  StorefrontStore,
-  MarketplaceExtensionDetail,
-} from '../types';
+import type { Category, StoreConfig, StorefrontStore, Product } from '../types';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
-import { formatPrice } from '../marketplace-api';
+import { formatPrice, getAttribute, classifyLicenseTier, licenseTotalPrice, normalizeDownloadableLinks, normalizeMediaGallery } from '../marketplace-api';
 import { getSection } from '../page-config';
 
 interface MarketplaceExtensionPageProps {
   config: StoreConfig;
   categories: Category[];
-  extension: MarketplaceExtensionDetail;
+  product: Product;
   stores?: StorefrontStore[];
   currentStoreCode?: string;
   devData?: DevData | null;
@@ -30,33 +25,44 @@ interface MarketplaceExtensionPageProps {
 export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
   config,
   categories,
-  extension,
+  product,
   stores,
   currentStoreCode,
   devData,
 }) => {
-  const single = formatPrice(extension.price_single, extension.currency);
-  const unlimited = formatPrice(extension.price_unlimited, extension.currency);
-  const canonical = `${config.baseUrl.replace(/\/$/, '')}/marketplace/${encodeURIComponent(extension.url_key)}`;
+  const tagline = getAttribute(product, 'marketplace_tagline');
+  const composerPackage = getAttribute(product, 'composer_package');
+  const supportedMaho = getAttribute(product, 'supported_maho_versions') ?? '>=26.0';
+  const storefrontReady = getAttribute(product, 'marketplace_storefront_ready') === 'Yes';
+  const currency = config.baseCurrencyCode || 'AUD';
 
-  // Brand-overridable copy for the pricing aside note (commercial terms).
+  const gallery = normalizeMediaGallery(product);
+  const heroImage = product.imageUrl ?? gallery[0]?.url ?? null;
+  // Screenshot list = all gallery images BUT the one used as the hero.
+  const screenshots = gallery.filter(g => g.url !== heroImage);
+
+  const sortedLinks = normalizeDownloadableLinks(product);
+  const single = sortedLinks.find(l => classifyLicenseTier(l.title) === 'single');
+  const unlimited = sortedLinks.find(l => classifyLicenseTier(l.title) === 'unlimited');
+  const singleLabel = single ? formatPrice(licenseTotalPrice(product, single.price), currency) : null;
+  const unlimitedLabel = unlimited ? formatPrice(licenseTotalPrice(product, unlimited.price), currency) : null;
+
+  const canonical = `${config.baseUrl.replace(/\/$/, '')}/marketplace/${encodeURIComponent(product.urlKey ?? product.sku)}`;
   const warrantyNote = getSection<string>('marketplaceExtension', 'warrantyNote', '', currentStoreCode);
 
   const productLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: extension.name,
+    name: product.name,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'PHP 8.3+, Maho e-commerce',
-    description: extension.tagline ?? extension.short_description ?? extension.name,
-    offers: single
-      ? {
-          '@type': 'Offer',
-          price: extension.price_single,
-          priceCurrency: extension.currency,
-          url: canonical,
-        }
-      : undefined,
+    description: tagline ?? product.shortDescription ?? product.name,
+    offers: singleLabel ? {
+      '@type': 'Offer',
+      price: licenseTotalPrice(product, single?.price ?? 0),
+      priceCurrency: currency,
+      url: canonical,
+    } : undefined,
   };
 
   return (
@@ -68,8 +74,8 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
       devData={devData}
     >
       <Seo
-        title={`${extension.name} — Mageaustralia Extensions`}
-        description={extension.tagline ?? extension.short_description ?? extension.name}
+        title={`${product.name} — Mageaustralia Extensions`}
+        description={tagline ?? product.shortDescription ?? product.name}
         canonicalUrl={canonical}
         siteName={config.storeName}
         jsonLd={[productLd]}
@@ -86,9 +92,9 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
 
           <div class="mt-8 flex flex-wrap items-center gap-2">
             <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900">
-              {single ? 'Pro' : 'Open source'}
+              {singleLabel || unlimitedLabel ? 'Pro' : 'Open source'}
             </span>
-            {(extension as any).storefront_ready && (
+            {storefrontReady && (
               <span class="inline-flex items-center rounded-full bg-base-200 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-base-content/70">
                 Maho Storefront ready
               </span>
@@ -96,23 +102,21 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
           </div>
 
           <h1 class="mt-5 font-serif text-4xl leading-[1.05] tracking-tight md:text-6xl">
-            {extension.name}
+            {product.name}
           </h1>
-          {extension.tagline && (
+          {tagline && (
             <p class="mt-5 max-w-3xl font-serif text-lg italic text-base-content/65 md:text-2xl">
-              {extension.tagline}
+              {tagline}
             </p>
           )}
         </div>
       </section>
 
-      {/* Editorial hero image — only renders if the catalogue product
-          has one set; falls through cleanly when absent. */}
-      {extension.image_url && (
+      {heroImage && (
         <figure class="mx-auto max-w-6xl px-4 pt-10 md:pt-14">
           <img
-            src={extension.image_url}
-            alt={extension.name}
+            src={heroImage}
+            alt={product.name}
             class="aspect-[3/2] w-full rounded-2xl object-cover"
             loading="eager"
             decoding="async"
@@ -123,86 +127,105 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
       <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div class="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_340px]">
           <article class="prose prose-base max-w-none text-base-content/85 prose-headings:font-serif prose-headings:tracking-tight prose-h2:text-3xl prose-h3:text-xl prose-a:text-accent prose-code:font-mono prose-code:text-sm">
-            {extension.short_description && (
+            {product.shortDescription && (
               <p class="text-lg leading-relaxed text-base-content/85">
-                {extension.short_description}
+                {product.shortDescription}
               </p>
             )}
-            {extension.description && (
+            {product.description && (
               <div
                 class="mt-6"
-                dangerouslySetInnerHTML={{ __html: extension.description }}
+                dangerouslySetInnerHTML={{ __html: product.description }}
               />
             )}
-            {!extension.short_description && !extension.description && (
+
+            {/* Screenshot gallery — captioned figures inline. Each gallery
+                image after the hero shows full-width with its label as
+                caption. Captions are written in Maho admin via the standard
+                product image editor (Catalog → Manage Products → image label). */}
+            {screenshots.length > 0 && (
+              <section class="not-prose mt-14 space-y-12">
+                <h2 class="font-serif text-3xl tracking-tight">Screenshots</h2>
+                {screenshots.map((s) => (
+                  <figure key={s.url} class="space-y-3">
+                    <img
+                      src={s.url}
+                      alt={s.label ?? product.name}
+                      loading="lazy"
+                      decoding="async"
+                      class="w-full rounded-xl border border-base-300/60"
+                    />
+                    {s.label && (
+                      <figcaption class="font-mono text-xs uppercase tracking-[0.18em] text-base-content/55">
+                        {s.label}
+                      </figcaption>
+                    )}
+                  </figure>
+                ))}
+              </section>
+            )}
+
+            {!product.shortDescription && !product.description && (
               <p class="text-base-content/60">
                 No detailed description available yet.
               </p>
             )}
           </article>
 
-          {/* Pricing + buy panel — uses the SAME `data-controller="product"`
-              wiring as the regular product detail page. The two visible CTAs
-              are tier shortcuts: each pre-selects its corresponding hidden
-              download-link radio, then triggers product#stickyAdd via
-              standard markup. No marketplace-specific cart logic. */}
           <aside
             class="space-y-5 lg:sticky lg:top-24 lg:self-start"
             data-controller="product"
-            data-product-type-value={extension.type_id}
-            data-product-product-id-value={String(extension.product_id)}
-            data-product-sku-value={extension.sku}
-            data-product-currency-value={extension.currency}
-            data-product-name={extension.name}
-            data-product-price={String(extension.price_single ?? 0)}
-            data-product-final-price={String(extension.price_single ?? 0)}
-            data-product-thumbnail={extension.image_url ?? ''}
-            data-product-url-key={extension.url_key}
+            data-product-type-value={product.type}
+            data-product-product-id-value={String(product.id ?? '')}
+            data-product-sku-value={product.sku}
+            data-product-currency-value={currency}
+            data-product-name={product.name}
+            data-product-price={String(product.price ?? 0)}
+            data-product-final-price={String(product.finalPrice ?? product.price ?? 0)}
+            data-product-thumbnail={product.thumbnailUrl ?? ''}
+            data-product-url-key={product.urlKey ?? ''}
           >
             <div class="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-[0_8px_24px_-12px_rgba(10,25,48,0.12)]">
-              <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-content/50">
-                Pricing
-              </p>
+              <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-content/50">Pricing</p>
               <div class="mt-4 space-y-1">
-                {single ? (
+                {singleLabel ? (
                   <p class="font-serif text-3xl tracking-tight">
-                    {single}
-                    <span class="ml-2 text-sm font-sans font-normal text-base-content/55">
-                      single-store
-                    </span>
+                    {singleLabel}
+                    <span class="ml-2 text-sm font-sans font-normal text-base-content/55">single-store</span>
                   </p>
                 ) : (
                   <p class="font-serif text-3xl tracking-tight">Free</p>
                 )}
-                {unlimited && (
+                {unlimitedLabel && (
                   <p class="text-base text-base-content/75">
-                    {unlimited}
+                    {unlimitedLabel}
                     <span class="ml-2 text-sm text-base-content/50">unlimited</span>
                   </p>
                 )}
               </div>
 
-              {/* Hidden radios — one per downloadable link. The Buy CTAs
-                  below set `checked` on the matching radio before triggering
-                  product#stickyAdd, so product-controller's downloadable
-                  branch picks up the right link via querySelectorAll
-                  ('[data-download-link-id]:checked'). */}
-              {extension.license_links?.map(link => (
+              {/* Hidden radios per downloadable_link — tier CTAs check the
+                  matching one then trigger product#stickyAdd via the
+                  marketplace-tier adapter (10-line controller). */}
+              {sortedLinks.map((link) => (
                 <input
                   key={link.id}
                   type="radio"
                   name="license-link"
                   data-download-link-id={String(link.id)}
-                  data-tier={link.tier}
                   hidden
                 />
               ))}
 
-              {extension.license_links && extension.license_links.length > 0 && (
+              {sortedLinks.length > 0 && (
                 <div class="mt-6 space-y-2" data-controller="marketplace-tier">
-                  {extension.license_links.map((link, idx) => {
-                    const priceLabel = formatPrice(link.price, extension.currency) ?? '';
-                    const tierLabel = link.tier === 'unlimited' ? 'Buy unlimited' : 'Buy single-store';
+                  {sortedLinks.map((link, idx) => {
+                    const total = licenseTotalPrice(product, link.price);
+                    const priceLabel = formatPrice(total, currency) ?? '';
+                    const tier = classifyLicenseTier(link.title);
+                    const tierLabel = tier === 'unlimited' ? 'Buy unlimited'
+                                    : tier === 'single' ? 'Buy single-store'
+                                    : `Buy ${link.title}`;
                     const isPrimary = idx === 0;
                     return (
                       <button
@@ -224,20 +247,14 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                 </div>
               )}
 
-              {/* Standard product-controller hidden Add button — Buy CTAs
-                  above .click() this after pre-selecting the right radio.
-                  Hidden because the visible CTAs ARE the user-facing add
-                  buttons. */}
-              {extension.license_links && extension.license_links.length > 0 && (
+              {sortedLinks.length > 0 && (
                 <button
                   type="button"
                   hidden
                   data-action="product#stickyAdd"
                   data-product-target="addButton"
                   aria-hidden="true"
-                >
-                  Add to cart
-                </button>
+                >Add to cart</button>
               )}
 
               {warrantyNote && (
@@ -247,32 +264,32 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
               )}
             </div>
 
-            <div class="rounded-2xl border border-base-300/70 bg-base-content p-5 text-base-100/90">
-              <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-100/50">
-                Install
-              </p>
-              <pre class="mt-3 overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
-                <span class="text-amber-300">$</span> composer require{'\n'}
-                {'  '}{extension.composer_package}
-              </pre>
-              <p class="mt-3 border-t border-base-100/10 pt-3 text-[11px] text-base-100/45">
-                PHP 8.3+ · Maho {extension.supported_maho_versions}
-              </p>
-            </div>
+            {composerPackage && (
+              <div class="rounded-2xl border border-base-300/70 bg-base-content p-5 text-base-100/90">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-100/50">Install</p>
+                <pre class="mt-3 overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
+                  <span class="text-amber-300">$</span> composer require{'\n'}
+                  {'  '}{composerPackage}
+                </pre>
+                <p class="mt-3 border-t border-base-100/10 pt-3 text-[11px] text-base-100/45">
+                  PHP 8.3+ · Maho {supportedMaho}
+                </p>
+              </div>
+            )}
 
             <div class="rounded-2xl border border-base-300/70 bg-base-100 p-6">
-              <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-content/50">
-                Build
-              </p>
+              <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-base-content/50">Build</p>
               <dl class="mt-4 space-y-3 text-sm">
                 <div class="flex items-baseline justify-between">
                   <dt class="text-base-content/50">SKU</dt>
-                  <dd class="font-mono text-xs text-base-content/80">{extension.sku}</dd>
+                  <dd class="font-mono text-xs text-base-content/80">{product.sku}</dd>
                 </div>
-                <div class="flex items-baseline justify-between">
-                  <dt class="text-base-content/50">Version</dt>
-                  <dd class="font-mono text-xs text-base-content/80">{extension.version}</dd>
-                </div>
+                {composerPackage && (
+                  <div class="flex items-baseline justify-between">
+                    <dt class="text-base-content/50">Package</dt>
+                    <dd class="font-mono text-xs text-base-content/80 truncate ml-3">{composerPackage}</dd>
+                  </div>
+                )}
               </dl>
             </div>
           </aside>
