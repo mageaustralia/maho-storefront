@@ -32,7 +32,6 @@ import SizeGuideController from './controllers/size-guide-controller.js';
 import HoverSwatchController from './controllers/hover-swatch-controller.js';
 import DevToolbarController from './controllers/dev-toolbar-controller.js';
 import AnnouncementBarController from './controllers/announcement-bar-controller.js';
-import MarketplaceCartController from './controllers/marketplace-cart-controller.js';
 import { analytics } from './analytics.js';
 
 // Prevent double-init
@@ -70,7 +69,6 @@ if (!window.__stimulusApp) {
   application.register('hover-swatch', HoverSwatchController);
   application.register('dev-toolbar', DevToolbarController);
   application.register('announcement-bar', AnnouncementBarController);
-  application.register('marketplace-cart', MarketplaceCartController);
 }
 
 // Initialize dataLayer and track page views on Turbo navigation

@@ -385,7 +385,18 @@ export interface MarketplaceExtension {
  * Includes everything in MarketplaceExtension plus full description and
  * the gallery image URL list.
  */
+export interface MarketplaceLicenseLink {
+  id: number;
+  title: string;
+  price: number;
+  sortOrder: number;
+  tier: 'single' | 'unlimited' | 'other';
+}
+
 export interface MarketplaceExtensionDetail extends MarketplaceExtension {
   description: string | null;
   additional_images: string[];
+  product_id: number;
+  type_id: string;
+  license_links: MarketplaceLicenseLink[] | null;
 }
