@@ -185,7 +185,7 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
               ))}
 
               {extension.license_links && extension.license_links.length > 0 && (
-                <div class="mt-6 space-y-2">
+                <div class="mt-6 space-y-2" data-controller="marketplace-tier">
                   {extension.license_links.map((link, idx) => {
                     const priceLabel = formatPrice(link.price, extension.currency) ?? '';
                     const tierLabel = link.tier === 'unlimited' ? 'Buy unlimited' : 'Buy single-store';
@@ -200,7 +200,7 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                             : 'btn btn-outline !h-auto w-full !rounded-lg !border !border-base-300 !bg-transparent px-5 py-3 text-sm font-semibold !text-base-content transition-all hover:!border-base-content hover:!bg-base-200 disabled:opacity-50'
                         }
                         data-link-id={String(link.id)}
-                        onclick={`var aside=this.closest('[data-controller~=&quot;product&quot;]');aside.querySelectorAll('[data-download-link-id]').forEach(function(r){r.checked=r.dataset.downloadLinkId===this.dataset.linkId}.bind(this));aside.querySelector('[data-product-target=&quot;addButton&quot;]').click();`}
+                        data-action="marketplace-tier#pickAndAdd"
                       >
                         {tierLabel} · {priceLabel}
                       </button>
