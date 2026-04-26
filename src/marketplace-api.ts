@@ -20,14 +20,24 @@ const MARKETPLACE_CATEGORY_ID = 11;
 
 interface ApiCollection<T> { member?: T[]; totalItems?: number }
 
+/** Maho's API Platform returns JSON-LD when Accept omits a preference (the
+ *  default), but a plain JSON array when Accept is application/json. We send
+ *  no Accept and unwrap defensively, so either shape is fine. */
+function unwrapCollection<T>(body: unknown): T[] {
+  if (Array.isArray(body)) return body as T[];
+  if (body && typeof body === 'object' && Array.isArray((body as ApiCollection<T>).member)) {
+    return (body as ApiCollection<T>).member as T[];
+  }
+  return [];
+}
+
 /** Fetch the marketplace catalogue list. Returns [] on any failure. */
 export async function fetchMarketplaceProducts(): Promise<Product[]> {
   try {
     const url = `${MARKETPLACE_API_BASE}/api/products?categoryId=${MARKETPLACE_CATEGORY_ID}&itemsPerPage=200&order[name]=asc`;
-    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    const res = await fetch(url);
     if (!res.ok) return [];
-    const body = (await res.json()) as ApiCollection<Product>;
-    return Array.isArray(body.member) ? body.member : [];
+    return unwrapCollection<Product>(await res.json());
   } catch {
     return [];
   }
@@ -39,10 +49,9 @@ export async function fetchMarketplaceProducts(): Promise<Product[]> {
 export async function findMarketplaceProductByUrlKey(urlKey: string): Promise<Product | null> {
   try {
     const url = `${MARKETPLACE_API_BASE}/api/products?urlKey=${encodeURIComponent(urlKey)}&itemsPerPage=1`;
-    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    const res = await fetch(url);
     if (!res.ok) return null;
-    const body = (await res.json()) as ApiCollection<Product>;
-    const first = body.member?.[0] ?? null;
+    const first = unwrapCollection<Product>(await res.json())[0] ?? null;
     if (!first) return null;
     // Confirm it really is a marketplace product (in the marketplace category).
     if (!isMarketplaceProduct(first)) return null;
@@ -56,9 +65,7 @@ export async function findMarketplaceProductByUrlKey(urlKey: string): Promise<Pr
  *  additionalAttributes — everything the listing endpoint trims). */
 export async function fetchMarketplaceProduct(id: number): Promise<Product | null> {
   try {
-    const res = await fetch(`${MARKETPLACE_API_BASE}/api/products/${id}`, {
-      headers: { Accept: 'application/json' },
-    });
+    const res = await fetch(`${MARKETPLACE_API_BASE}/api/products/${id}`);
     if (!res.ok) return null;
     return (await res.json()) as Product;
   } catch {
