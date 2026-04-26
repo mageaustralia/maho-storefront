@@ -51,18 +51,13 @@ export async function fetchMarketplaceProducts(): Promise<Product[]> {
   }
 }
 
-/** Find a marketplace product by its url_key. Confirms category membership
- *  via the categoryId filter so an unrelated product that happens to share
- *  a url_key can't slip through. */
+/** Find a marketplace product by its url_key. The /api/products?urlKey=…
+ *  filter currently 500s on this Maho install, so we scan the marketplace
+ *  listing in-memory. The listing is small (commercial extensions, not
+ *  general catalog) and Cloudflare's cache layer fronts it. */
 export async function findMarketplaceProductByUrlKey(urlKey: string): Promise<Product | null> {
-  try {
-    const url = `${MARKETPLACE_API_BASE}/api/products?urlKey=${encodeURIComponent(urlKey)}&categoryId=${MARKETPLACE_CATEGORY_ID}&itemsPerPage=1`;
-    const res = await fetch(url, { headers: API_HEADERS });
-    if (!res.ok) return null;
-    return unwrapCollection<Product>(await res.json())[0] ?? null;
-  } catch {
-    return null;
-  }
+  const products = await fetchMarketplaceProducts();
+  return products.find(p => p.urlKey === urlKey) ?? null;
 }
 
 /** Fetch the full single-product detail (with mediaGallery, downloadableLinks,
