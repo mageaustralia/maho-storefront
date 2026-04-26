@@ -34,6 +34,8 @@ export const CmsPageTemplate: FC<CmsPageProps> = ({ config, categories, page, st
       <Seo
         title={`${page.title} | ${config.storeName}`}
         description={page.metaDescription ?? undefined}
+        canonicalUrl={`${config.baseUrl}/${page.identifier}`}
+        siteName={config.storeName}
       />
       {/* Freshness metadata — client JS checks API if _lastChecked > 60s */}
       <div hidden

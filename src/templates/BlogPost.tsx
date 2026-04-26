@@ -38,6 +38,9 @@ export const BlogPostPage: FC<BlogPostPageProps> = ({ config, categories, post, 
     <Seo
       title={`${post.title} | Blog | ${config.storeName}`}
       description={post.metaDescription ?? undefined}
+      canonicalUrl={`${config.baseUrl}/blog/${postSlug}`}
+      ogImage={post.imageUrl ?? undefined}
+      siteName={config.storeName}
     />
     {/* Freshness metadata - client JS checks API if _lastChecked > 60s */}
     <div hidden
