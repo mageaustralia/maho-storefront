@@ -29,6 +29,22 @@ export const ExtensionCard: FC<ExtensionCardProps> = ({ extension }) => {
       class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-base-300/70 bg-base-100 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-base-content/40 hover:shadow-[0_20px_40px_-20px_rgba(10,25,48,0.18)]"
       data-turbo-prefetch="true"
     >
+      {/* Hero image — bleed-edges. When absent we fall back to a thin
+          ruled top so the card doesn't look broken. */}
+      {extension.image_url ? (
+        <figure class="-mx-7 -mt-7 mb-5 aspect-[3/2] overflow-hidden bg-base-200/50">
+          <img
+            src={extension.image_url}
+            alt={extension.name}
+            loading="lazy"
+            decoding="async"
+            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        </figure>
+      ) : (
+        <span class="-mx-7 -mt-7 mb-5 block h-px bg-base-300/60"></span>
+      )}
+
       <div class="absolute right-5 top-5">
         {isFree ? (
           <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-700">
