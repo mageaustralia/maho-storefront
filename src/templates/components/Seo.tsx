@@ -15,13 +15,15 @@ interface SeoProps {
   ogType?: string;
   siteName?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noindex?: boolean;
 }
 
-export const Seo: FC<SeoProps> = ({ title, description, canonicalUrl, ogImage, ogType, siteName, jsonLd }) => {
+export const Seo: FC<SeoProps> = ({ title, description, canonicalUrl, ogImage, ogType, siteName, jsonLd, noindex }) => {
   const ldBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
   return (
     <>
       <title>{title}</title>
+      {noindex && <meta name="robots" content="noindex, follow" />}
       {description && <meta name="description" content={description} />}
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
       <meta property="og:title" content={title} />

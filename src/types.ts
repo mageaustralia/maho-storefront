@@ -358,34 +358,3 @@ export interface Env {
   STRIPE_SECRET_KEY?: string; // Stripe secret key for creating PaymentIntents (embed widget)
 }
 
-/**
- * Marketplace extension, as returned by the 1C-c catalog API
- * (GET https://admin.mageaustralia.com.au/marketplace/extensions/index).
- *
- * Field names are snake_case to mirror the Maho attribute codes (easier to
- * reason about when reading the API alongside the admin).
- */
-export interface MarketplaceExtension {
-  sku: string;
-  url_key: string;
-  name: string;
-  composer_package: string;
-  version: string;
-  supported_maho_versions: string;
-  tagline: string | null;
-  short_description: string | null;
-  price_single: number | null;
-  price_unlimited: number | null;
-  currency: string;
-  image_url: string | null;
-}
-
-/**
- * Detail shape returned by GET /marketplace/extensions/view?sku=<sku>.
- * Includes everything in MarketplaceExtension plus full description and
- * the gallery image URL list.
- */
-export interface MarketplaceExtensionDetail extends MarketplaceExtension {
-  description: string | null;
-  additional_images: string[];
-}

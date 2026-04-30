@@ -1,0 +1,1259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Component slot → variant manifest for Maho Storefront page.json",
+  "slots": {
+    "account.address-book": {
+      "slot": "address-book",
+      "domain": "account",
+      "description": "Customer address book with add/edit form and saved address cards",
+      "variants": {
+        "standard": {
+          "label": "Standard Address Book",
+          "description": "Grid of address cards with inline add/edit form, country/region selectors"
+        }
+      },
+      "default": "standard"
+    },
+    "account.auth": {
+      "slot": "auth",
+      "domain": "account",
+      "description": "Authentication forms (login, register, forgot password)",
+      "variants": {
+        "standard": {
+          "label": "Standard Auth Forms",
+          "description": "Traditional email/password forms with field validation"
+        }
+      },
+      "default": "standard"
+    },
+    "account.dashboard": {
+      "slot": "dashboard",
+      "domain": "account",
+      "description": "Customer account dashboard with profile, password, wishlist, and reviews tabs",
+      "variants": {
+        "standard": {
+          "label": "Standard Dashboard",
+          "description": "Tabbed account dashboard with profile management, password change, wishlist, and reviews"
+        }
+      },
+      "default": "standard"
+    },
+    "account.orders": {
+      "slot": "orders",
+      "domain": "account",
+      "description": "Order history list with detail view and pagination",
+      "variants": {
+        "standard": {
+          "label": "Standard Orders List",
+          "description": "Paginated order history with expandable order details"
+        }
+      },
+      "default": "standard"
+    },
+    "blog.card": {
+      "slot": "card",
+      "domain": "blog",
+      "description": "Blog post card for use in grids, listings, and sidebar widgets",
+      "variants": {
+        "standard": {
+          "label": "Standard Blog Card",
+          "description": "Card with featured image, title, excerpt, date, author, and read-more link.",
+          "file": "BlogCardStandard.tsx"
+        },
+        "minimal": {
+          "label": "Minimal Blog Card",
+          "description": "Text-only card without image. Title, date, and short excerpt in a clean layout.",
+          "file": "BlogCardMinimal.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "blog.listing": {
+      "slot": "listing",
+      "domain": "blog",
+      "description": "Blog listing layout for index and archive pages",
+      "variants": {
+        "grid": {
+          "label": "Grid Layout",
+          "description": "Responsive grid of blog cards (1/2/3 columns). Uses the configured BlogCard variant.",
+          "file": "BlogListingGrid.tsx"
+        },
+        "list": {
+          "label": "List Layout",
+          "description": "Vertical list with horizontal entries. Image left, content right. Good for archive pages.",
+          "file": "BlogListingList.tsx"
+        }
+      },
+      "default": "grid"
+    },
+    "cart.coupon-field": {
+      "slot": "coupon-field",
+      "domain": "cart",
+      "description": "Coupon/discount code input field in cart",
+      "variants": {
+        "standard": {
+          "label": "Standard Coupon",
+          "description": "Collapsible input with apply button. Shows applied coupons as badges.",
+          "file": "CouponStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "cart.drawer": {
+      "slot": "drawer",
+      "domain": "cart",
+      "description": "Cart drawer that slides out when items are added",
+      "variants": {
+        "slide": {
+          "label": "Slide Panel",
+          "description": "Slides in from the right. Shows items, totals, and checkout button.",
+          "file": "DrawerSlide.tsx"
+        },
+        "modal": {
+          "label": "Modal Overlay",
+          "description": "Centered modal showing cart contents. Less intrusive for content-heavy pages.",
+          "file": "DrawerModal.tsx"
+        }
+      },
+      "default": "slide"
+    },
+    "cart.line-item": {
+      "slot": "line-item",
+      "domain": "cart",
+      "description": "Individual item row in the cart page",
+      "variants": {
+        "standard": {
+          "label": "Standard Line Item",
+          "description": "Horizontal layout with image, details, quantity stepper, and remove button.",
+          "file": "LineItemStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "cart.progress-bar": {
+      "slot": "progress-bar",
+      "domain": "cart",
+      "description": "Free shipping threshold progress bar",
+      "variants": {
+        "standard": {
+          "label": "Standard Progress",
+          "description": "DaisyUI progress bar showing distance to free shipping threshold.",
+          "file": "ProgressStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "cart.summary": {
+      "slot": "summary",
+      "domain": "cart",
+      "description": "Cart totals summary with subtotal, shipping, and checkout CTA",
+      "variants": {
+        "standard": {
+          "label": "Standard Summary",
+          "description": "Stacked totals with prominent checkout button. Sticky on desktop.",
+          "file": "SummaryStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "category.banner-inline": {
+      "slot": "banner-inline",
+      "domain": "category",
+      "description": "Promotional banner injected between product rows in category grid",
+      "variants": {
+        "standard": {
+          "label": "Standard Inline Banner",
+          "description": "Full-width promo card with image-full pattern, ~3:1 aspect ratio on desktop, CTA button.",
+          "file": "BannerInlineStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "category.grid": {
+      "slot": "grid",
+      "domain": "category",
+      "description": "Product grid layout on category pages",
+      "variants": {
+        "standard": {
+          "label": "Standard Grid",
+          "description": "Responsive CSS grid. 2 cols mobile, 3 tablet, 4 desktop (configurable).",
+          "file": "GridStandard.tsx"
+        },
+        "list": {
+          "label": "List View",
+          "description": "Vertical list with horizontal product cards. Shows more detail per product.",
+          "file": "GridList.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "category.hero": {
+      "slot": "hero",
+      "domain": "category",
+      "description": "Category page hero banner with title, description, and optional background image",
+      "variants": {
+        "standard": {
+          "label": "Standard Hero",
+          "description": "Full-width banner with category name, description, optional background image with dark overlay, and product count badge.",
+          "file": "CategoryHeroStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "category.subcategory-tiles": {
+      "slot": "subcategory-tiles",
+      "domain": "category",
+      "description": "Subcategory navigation tiles above the product grid",
+      "variants": {
+        "standard": {
+          "label": "Standard Tiles",
+          "description": "Horizontal scrollable row of subcategory tiles with images.",
+          "file": "SubcategoryStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "category.toolbar": {
+      "slot": "toolbar",
+      "domain": "category",
+      "description": "Category toolbar with results count, view toggle, and sort",
+      "variants": {
+        "standard": {
+          "label": "Standard Toolbar",
+          "description": "Horizontal bar with product count, sort select, and grid/list toggle.",
+          "file": "ToolbarStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "checkout.address-form": {
+      "slot": "address-form",
+      "domain": "checkout",
+      "description": "Shipping and billing address entry form",
+      "variants": {
+        "standard": {
+          "label": "Standard",
+          "description": "Full address entry form with first/last name, company, street, city, state, postcode, country, and phone fields.",
+          "file": "AddressFormStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "checkout.order-summary": {
+      "slot": "order-summary",
+      "domain": "checkout",
+      "description": "Checkout order review and totals summary panel",
+      "variants": {
+        "standard": {
+          "label": "Standard",
+          "description": "Right-side order summary with line items, thumbnails, and subtotal/shipping/tax/total breakdown.",
+          "file": "OrderSummaryStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "checkout.payment-block": {
+      "slot": "payment-block",
+      "domain": "checkout",
+      "description": "Payment method selection block",
+      "variants": {
+        "standard": {
+          "label": "Standard",
+          "description": "Radio-based payment method selector with bordered cards that highlight when selected.",
+          "file": "PaymentBlockStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "checkout.step-indicator": {
+      "slot": "step-indicator",
+      "domain": "checkout",
+      "description": "Checkout progress step indicator",
+      "variants": {
+        "standard": {
+          "label": "Standard",
+          "description": "Horizontal step indicator using DaisyUI steps component with completed/active state tracking.",
+          "file": "StepIndicatorStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "checkout.trust-badges": {
+      "slot": "trust-badges",
+      "domain": "checkout",
+      "description": "Checkout-specific trust and security indicator badges",
+      "variants": {
+        "standard": {
+          "label": "Standard",
+          "description": "Centered row of trust indicators with lock, shield, and credit card icons for checkout reassurance.",
+          "file": "CheckoutTrustBadges.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "cms.accordion-faq": {
+      "slot": "accordion-faq",
+      "domain": "cms",
+      "description": "Collapsible FAQ accordion for question and answer content",
+      "variants": {
+        "standard": {
+          "label": "Standard Accordion FAQ",
+          "description": "List of collapsible Q&A items using DaisyUI collapse with join container.",
+          "file": "AccordionFaqStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "cms.callout": {
+      "slot": "callout",
+      "domain": "cms",
+      "description": "Tip, warning, note, and error callout boxes with icons",
+      "variants": {
+        "standard": {
+          "label": "Standard Callout",
+          "description": "Colored callout box with icon using DaisyUI alert classes.",
+          "file": "CmsCalloutStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "cms.columns": {
+      "slot": "columns",
+      "domain": "cms",
+      "description": "Multi-column layouts for CMS content sections",
+      "variants": {
+        "two-column": {
+          "label": "Two Column",
+          "description": "Two-column layout with configurable split ratio (50-50, 60-40, 40-60).",
+          "file": "CmsTwoColumn.tsx"
+        },
+        "three-column": {
+          "label": "Three Column",
+          "description": "Three equal columns, stacking to single column on mobile.",
+          "file": "CmsThreeColumn.tsx"
+        }
+      },
+      "default": "two-column"
+    },
+    "cms.image-text-split": {
+      "slot": "image-text-split",
+      "domain": "cms",
+      "description": "Image alongside text content with optional CTA button",
+      "variants": {
+        "standard": {
+          "label": "Standard Image Text Split",
+          "description": "Image on one side, text content on the other with optional CTA. Responsive stacking.",
+          "file": "ImageTextSplitStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "cms.rich-text": {
+      "slot": "rich-text",
+      "domain": "cms",
+      "description": "WYSIWYG content wrapper with typography styling for CMS page content",
+      "variants": {
+        "standard": {
+          "label": "Standard Rich Text",
+          "description": "Prose container with proper typography classes for HTML content.",
+          "file": "CmsRichText.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "cms.video-embed": {
+      "slot": "video-embed",
+      "domain": "cms",
+      "description": "Responsive video embed wrapper for YouTube, Vimeo, and other iframe sources",
+      "variants": {
+        "standard": {
+          "label": "Standard Video Embed",
+          "description": "Responsive 16:9 iframe wrapper with rounded corners.",
+          "file": "VideoEmbedStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "data.comparison-table": {
+      "slot": "comparison-table",
+      "domain": "data",
+      "description": "Side-by-side product comparison table with difference highlighting",
+      "variants": {
+        "standard": {
+          "label": "Standard Comparison Table",
+          "description": "Product images/names as column headers, spec rows below, differing values highlighted, sticky first column with horizontal scroll on mobile.",
+          "file": "ComparisonTableStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "data.spec-table": {
+      "slot": "spec-table",
+      "domain": "data",
+      "description": "Product specification table with grouped key-value rows",
+      "variants": {
+        "standard": {
+          "label": "Standard Spec Table",
+          "description": "Zebra-striped key-value table with optional group headers. Two columns: label (~40% width) and value.",
+          "file": "SpecTableStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "data.stats-counter": {
+      "slot": "stats-counter",
+      "domain": "data",
+      "description": "Row of statistic counters with values and labels",
+      "variants": {
+        "row": {
+          "label": "Stats Counter Row",
+          "description": "Horizontal stats row using DaisyUI stats component. Responsive: vertical on mobile, horizontal on desktop.",
+          "file": "StatsCounterRow.tsx"
+        }
+      },
+      "default": "row"
+    },
+    "engagement.contact-form": {
+      "slot": "contact-form",
+      "domain": "engagement",
+      "description": "Contact us form for customer enquiries",
+      "variants": {
+        "standard": {
+          "label": "Standard",
+          "description": "Full contact form with name, email, subject, and message fields.",
+          "file": "ContactFormStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "engagement.cookie-consent": {
+      "slot": "cookie-consent",
+      "domain": "engagement",
+      "description": "Cookie consent notification bar for privacy compliance",
+      "variants": {
+        "standard": {
+          "label": "Standard",
+          "description": "Fixed bottom bar with privacy message, Accept and Settings buttons.",
+          "file": "CookieConsentBar.tsx"
+        },
+        "minimal": {
+          "label": "Minimal",
+          "description": "Simple bar with message and a single OK button, no settings.",
+          "file": "CookieConsentMinimal.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "engagement.newsletter": {
+      "slot": "newsletter",
+      "domain": "engagement",
+      "description": "Newsletter signup forms for collecting email subscribers",
+      "variants": {
+        "inline": {
+          "label": "Inline",
+          "description": "Horizontal inline form with heading and description. Sits inside a page section.",
+          "file": "NewsletterInline.tsx"
+        },
+        "popup": {
+          "label": "Popup Modal",
+          "description": "DaisyUI modal dialog shown after a configurable delay. Shows once per visitor.",
+          "file": "NewsletterPopup.tsx"
+        },
+        "flyout": {
+          "label": "Flyout",
+          "description": "Small floating card that slides in from the bottom-right corner.",
+          "file": "NewsletterFlyout.tsx"
+        }
+      },
+      "default": "inline"
+    },
+    "engagement.trust-badges": {
+      "slot": "trust-badges",
+      "domain": "engagement",
+      "description": "Trust indicator badges for building customer confidence",
+      "variants": {
+        "standard": {
+          "label": "Badge Row",
+          "description": "Horizontal row of trust badges with icons, titles, and optional descriptions. Wraps on mobile.",
+          "file": "TrustBadgeRow.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "feedback.empty-state": {
+      "slot": "empty-state",
+      "domain": "feedback",
+      "description": "Empty state display (no results, empty cart, no orders)",
+      "variants": {
+        "standard": {
+          "label": "Standard Empty State",
+          "description": "Centered icon, message, and CTA button. Used for empty cart, no search results, etc.",
+          "file": "EmptyStateStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "feedback.error-page": {
+      "slot": "error-page",
+      "domain": "feedback",
+      "description": "Error page display (404, 500)",
+      "variants": {
+        "standard": {
+          "label": "Standard Error Page",
+          "description": "Centered error code, message, and 'Go Home' button.",
+          "file": "ErrorPageStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "feedback.skeleton": {
+      "slot": "skeleton",
+      "domain": "feedback",
+      "description": "Loading skeleton placeholder",
+      "variants": {
+        "standard": {
+          "label": "Standard Skeleton",
+          "description": "Animated pulse placeholder matching component dimensions. Prevents CLS.",
+          "file": "SkeletonStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "feedback.toast": {
+      "slot": "toast",
+      "domain": "feedback",
+      "description": "Toast notification popup",
+      "variants": {
+        "standard": {
+          "label": "Standard Toast",
+          "description": "DaisyUI toast positioned bottom-right. Auto-dismisses after 3 seconds.",
+          "file": "ToastStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "filtering.chip-bar": {
+      "slot": "chip-bar",
+      "domain": "filtering",
+      "description": "Active filter chips displayed above product grid",
+      "variants": {
+        "standard": {
+          "label": "Standard Chips",
+          "description": "Horizontal row of DaisyUI badges with remove buttons. Scrollable on mobile.",
+          "file": "ChipBarStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "filtering.pagination": {
+      "slot": "pagination",
+      "domain": "filtering",
+      "description": "Page navigation for product listings",
+      "variants": {
+        "standard": {
+          "label": "Standard Pagination",
+          "description": "DaisyUI join group with numbered page buttons and prev/next arrows.",
+          "file": "PaginationStandard.tsx"
+        },
+        "load-more": {
+          "label": "Load More Button",
+          "description": "Single 'Load More' button that appends products. Simpler, mobile-friendly.",
+          "file": "PaginationLoadMore.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "filtering.price-range": {
+      "slot": "price-range",
+      "domain": "filtering",
+      "description": "Price range dual-slider filter",
+      "variants": {
+        "standard": {
+          "label": "Dual Slider",
+          "description": "Two-thumb range slider with min/max labels. Native HTML range inputs.",
+          "file": "PriceRangeStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "filtering.sidebar": {
+      "slot": "filter",
+      "domain": "filtering",
+      "description": "Product filtering interface for category pages",
+      "variants": {
+        "sidebar": {
+          "label": "Sidebar Filters",
+          "description": "Left sidebar with collapsible filter groups. Desktop default, becomes drawer on mobile.",
+          "file": "FilterSidebar.tsx"
+        },
+        "drawer": {
+          "label": "Drawer Filters",
+          "description": "Full-height drawer that slides in from the left. Always off-canvas.",
+          "file": "FilterDrawer.tsx"
+        },
+        "inline": {
+          "label": "Inline Filters",
+          "description": "Horizontal filter bar above products. Good for fewer filter options.",
+          "file": "FilterInline.tsx"
+        }
+      },
+      "default": "sidebar"
+    },
+    "filtering.sort-select": {
+      "slot": "sort",
+      "domain": "filtering",
+      "description": "Sort order selector for product listings",
+      "variants": {
+        "standard": {
+          "label": "Standard Select",
+          "description": "DaisyUI select dropdown with sort options (relevance, price, name, newest).",
+          "file": "SortStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "homepage.brand-logo-strip": {
+      "slot": "brand-logo-strip",
+      "domain": "homepage",
+      "description": "Brand logo display section on the homepage",
+      "variants": {
+        "strip": {
+          "label": "Logo Strip (Marquee)",
+          "description": "Horizontal auto-scrolling marquee of brand logos. Grayscale by default, color on hover.",
+          "file": "BrandLogoStrip.tsx"
+        },
+        "grid": {
+          "label": "Logo Grid",
+          "description": "Static grid layout of brand logos in 4-6 columns.",
+          "file": "BrandLogoGrid.tsx"
+        }
+      },
+      "default": "strip"
+    },
+    "homepage.collection-spotlight": {
+      "slot": "collection-spotlight",
+      "domain": "homepage",
+      "description": "Featured collection or category showcase with product row",
+      "variants": {
+        "standard": {
+          "label": "Standard Spotlight",
+          "description": "Section header with scrollable product card row. Shows collection title and 'View All' link.",
+          "file": "SpotlightStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "homepage.countdown-timer": {
+      "slot": "countdown-timer",
+      "domain": "homepage",
+      "description": "Sale countdown timer banner for the homepage",
+      "variants": {
+        "standard": {
+          "label": "Standard Countdown",
+          "description": "Banner with countdown boxes showing days/hours/minutes/seconds, heading, subtext, and CTA link.",
+          "file": "CountdownStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "homepage.featured-products": {
+      "slot": "featured-products",
+      "domain": "homepage",
+      "description": "Featured product row section for the homepage. Reusable for New Arrivals, Trending, Bestsellers — just different heading and data.",
+      "variants": {
+        "row": {
+          "label": "Scrolling Row",
+          "description": "Horizontal scrolling row of product cards with section heading and View All link. Uses scroll-snap.",
+          "file": "FeaturedProductsRow.tsx"
+        }
+      },
+      "default": "row"
+    },
+    "homepage.hero": {
+      "slot": "hero",
+      "domain": "homepage",
+      "description": "Hero section at the top of the homepage",
+      "variants": {
+        "fullwidth": {
+          "label": "Full Width Hero",
+          "description": "Edge-to-edge image/gradient with overlay text and CTA. High impact.",
+          "file": "HeroFullwidth.tsx"
+        },
+        "split": {
+          "label": "Split Hero",
+          "description": "50/50 split with content on one side and image on the other.",
+          "file": "HeroSplit.tsx"
+        },
+        "minimal": {
+          "label": "Minimal Hero",
+          "description": "Text-focused with subtle background. Clean, editorial feel.",
+          "file": "HeroMinimal.tsx"
+        },
+        "slideshow": {
+          "label": "Slideshow Hero",
+          "description": "Auto-rotating slides with different images and messages.",
+          "file": "HeroSlideshow.tsx"
+        }
+      },
+      "default": "fullwidth"
+    },
+    "homepage.icon-features": {
+      "slot": "icon-features",
+      "domain": "homepage",
+      "description": "Feature highlight cards with icons for the homepage (e.g. Free Shipping, Easy Returns, VIP Rewards)",
+      "variants": {
+        "row": {
+          "label": "Feature Row",
+          "description": "Horizontal row of 3-4 feature cards with icon, title, and description.",
+          "file": "IconFeatureRow.tsx"
+        },
+        "grid": {
+          "label": "Feature Grid",
+          "description": "2x2 grid layout for displaying more features.",
+          "file": "IconFeatureGrid.tsx"
+        }
+      },
+      "default": "row"
+    },
+    "homepage.promo-banner": {
+      "slot": "promo-banner",
+      "domain": "homepage",
+      "description": "Sitewide announcement banner at the top of the page",
+      "variants": {
+        "standard": {
+          "label": "Standard Banner",
+          "description": "Full-width colored bar with text and optional link. Dismissible.",
+          "file": "PromoBannerTop.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "homepage.promo-grid": {
+      "slot": "promo-grid",
+      "domain": "homepage",
+      "description": "Promotional content grid on the homepage",
+      "variants": {
+        "2up": {
+          "label": "Two Column",
+          "description": "Two equal-width promo cards side by side.",
+          "file": "PromoGrid2Up.tsx"
+        },
+        "3up": {
+          "label": "Three Column",
+          "description": "Three equal-width promo cards. Default homepage layout.",
+          "file": "PromoGrid3Up.tsx"
+        },
+        "4up": {
+          "label": "Four Column",
+          "description": "Four cards across. Compact, good for many promos.",
+          "file": "PromoGrid4Up.tsx"
+        }
+      },
+      "default": "3up"
+    },
+    "homepage.promo-strip": {
+      "slot": "promo-strip",
+      "domain": "homepage",
+      "description": "Horizontal row of icon + text feature callouts (shipping, returns, support)",
+      "variants": {
+        "standard": {
+          "label": "Standard Strip",
+          "description": "4-column grid of icon + text feature highlights. Responsive 2-col on mobile.",
+          "file": "PromoStrip.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "homepage.shop-by-category": {
+      "slot": "shop-by-category",
+      "domain": "homepage",
+      "description": "Category navigation tiles on the homepage",
+      "variants": {
+        "tiles": {
+          "label": "Category Tiles",
+          "description": "Grid of category cards with images and titles. Links to category pages.",
+          "file": "ShopByCategoryTiles.tsx"
+        }
+      },
+      "default": "tiles"
+    },
+    "navigation.breadcrumb": {
+      "slot": "breadcrumb",
+      "domain": "navigation",
+      "description": "Breadcrumb navigation trail",
+      "variants": {
+        "standard": {
+          "label": "Standard Breadcrumb",
+          "description": "Horizontal breadcrumb with separator arrows. Truncates long names on mobile.",
+          "file": "BreadcrumbStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "navigation.footer": {
+      "slot": "footer",
+      "domain": "navigation",
+      "description": "Site footer with branding, links, newsletter, and copyright",
+      "variants": {
+        "standard": {
+          "label": "Standard Footer",
+          "description": "4-column layout with newsletter, link columns, and copyright bar. Full-featured.",
+          "file": "FooterStandard.tsx"
+        },
+        "minimal": {
+          "label": "Minimal Footer",
+          "description": "Single row with copyright and social icons. Maximum simplicity.",
+          "file": "FooterMinimal.tsx"
+        },
+        "centered": {
+          "label": "Centered Footer",
+          "description": "Centered logo, horizontal nav links, social icons, and copyright. Brand-focused.",
+          "file": "FooterCentered.tsx"
+        },
+        "mega": {
+          "label": "Mega Footer",
+          "description": "Two-row footer: logo + columns + newsletter on top, social + copyright on bottom. Content-rich.",
+          "file": "FooterMega.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "navigation.header": {
+      "slot": "header",
+      "domain": "navigation",
+      "description": "Site header with logo, navigation, search, and cart",
+      "variants": {
+        "sticky": {
+          "label": "Sticky Header",
+          "description": "Fixed header that stays visible on scroll. Compact with dropdown nav. Default.",
+          "file": "HeaderSticky.tsx"
+        },
+        "minimal": {
+          "label": "Minimal Header",
+          "description": "Centered logo, uppercase nav links, thin icon strokes. Editorial/fashion feel.",
+          "file": "HeaderMinimal.tsx"
+        },
+        "centered": {
+          "label": "Centered Header",
+          "description": "Two-tier: utility bar on top, centered logo, nav bar below. Premium/luxury.",
+          "file": "HeaderCentered.tsx"
+        },
+        "mega": {
+          "label": "Mega Menu Header",
+          "description": "Full-width dropdown panels with subcategories in columns and optional category image. E-commerce/tech.",
+          "file": "HeaderMega.tsx"
+        },
+        "visual": {
+          "label": "Visual Menu Header",
+          "description": "Megamenu with subcategories as image cards with label overlays. Lifestyle/visual brands.",
+          "file": "HeaderVisual.tsx"
+        }
+      },
+      "default": "sticky"
+    },
+    "navigation.mobile-drawer": {
+      "slot": "mobile-drawer",
+      "domain": "navigation",
+      "description": "Mobile navigation drawer (hamburger menu)",
+      "variants": {
+        "standard": {
+          "label": "Standard Drawer",
+          "description": "Full-height slide-out drawer with accordion category navigation.",
+          "file": "MobileDrawerStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-display.badge": {
+      "slot": "badge",
+      "domain": "product-display",
+      "description": "Product badges (sale, new, low-stock, bestseller)",
+      "variants": {
+        "standard": {
+          "label": "Standard Badge",
+          "description": "DaisyUI badge positioned top-left of product image. Colored by type.",
+          "file": "BadgeStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-display.card": {
+      "slot": "card",
+      "domain": "product-display",
+      "description": "Product card shown in grids, search results, and recommendations",
+      "variants": {
+        "standard": {
+          "label": "Standard Card",
+          "description": "Vertical card with image, title, price, and quick-add button. DaisyUI card with shadow hover.",
+          "file": "CardStandard.tsx"
+        },
+        "minimal": {
+          "label": "Minimal Card",
+          "description": "Clean card without shadows or borders. Image + text only, modern aesthetic.",
+          "file": "CardMinimal.tsx"
+        },
+        "horizontal": {
+          "label": "Horizontal Card",
+          "description": "Side-by-side image and content. Good for list view or search results.",
+          "file": "CardHorizontal.tsx"
+        },
+        "featured": {
+          "label": "Featured Card",
+          "description": "Larger, prominent card for hero/spotlight positions. Bigger image, rating stars, sale badge with savings percentage, and Quick Add button.",
+          "file": "CardFeatured.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-display.gallery": {
+      "slot": "gallery",
+      "domain": "product-display",
+      "description": "Product image gallery on the product detail page",
+      "variants": {
+        "carousel": {
+          "label": "Carousel with Thumbnails",
+          "description": "Swipeable main image with thumbnail strip below. Supports fullscreen zoom. Best for products with many images.",
+          "file": "GalleryCarousel.tsx"
+        },
+        "grid": {
+          "label": "Image Grid",
+          "description": "2-column grid showing all images at once. Click to zoom. Best for showing multiple angles.",
+          "file": "GalleryGrid.tsx"
+        },
+        "single": {
+          "label": "Single Image",
+          "description": "One large image with thumbnails. Clean and minimal. Best for simple products.",
+          "file": "GallerySingle.tsx"
+        }
+      },
+      "default": "carousel"
+    },
+    "product-display.info-panel": {
+      "slot": "product-info-panel",
+      "description": "Product information panel with title, price, options, and add-to-cart",
+      "variants": {
+        "compact": {
+          "label": "Compact",
+          "description": "Slim sidebar-friendly panel. Title, price, stock, options, add-to-cart in a narrow column.",
+          "file": "InfoPanelCompact.tsx"
+        }
+      },
+      "default": "compact"
+    },
+    "product-display.layout": {
+      "slot": "layout",
+      "domain": "product-display",
+      "description": "Product page layout — gallery and info arrangement",
+      "variants": {
+        "standard": {
+          "label": "Standard 50/50",
+          "description": "Equal two-column layout. Gallery left (carousel), product info right. Description/reviews below as full-width sections.",
+          "file": "LayoutStandard.tsx"
+        },
+        "masonry": {
+          "label": "Masonry Gallery + Slim Sidebar",
+          "description": "Wide masonry image grid left (~65%), slim product info right (~35%). Description/reviews/related as accordion below the sidebar.",
+          "file": "LayoutMasonry.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-display.price": {
+      "slot": "price",
+      "domain": "product-display",
+      "description": "Product price display (regular, sale, range)",
+      "variants": {
+        "standard": {
+          "label": "Standard Price",
+          "description": "Shows current price with strikethrough for sale items. Compact inline display.",
+          "file": "PriceStandard.tsx"
+        },
+        "stacked": {
+          "label": "Stacked Price",
+          "description": "Vertical layout with 'Was/Now' labels. More prominent sale display.",
+          "file": "PriceStacked.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-display.quantity-stepper": {
+      "slot": "quantity-stepper",
+      "domain": "product-display",
+      "description": "Quantity input with increment/decrement buttons",
+      "variants": {
+        "standard": {
+          "label": "Standard Stepper",
+          "description": "DaisyUI join group with -/+ buttons flanking the quantity input.",
+          "file": "QuantityStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-display.recently-viewed": {
+      "slot": "recently-viewed",
+      "domain": "product-display",
+      "description": "Recently viewed products section populated from localStorage via client-side JS",
+      "variants": {
+        "row": {
+          "label": "Horizontal Row",
+          "description": "Horizontal scrollable row of recently viewed product cards. Client-side populated from localStorage.",
+          "file": "RecentlyViewedRow.tsx"
+        }
+      },
+      "default": "row"
+    },
+    "product-display.sticky-atc": {
+      "slot": "sticky-atc",
+      "domain": "product-display",
+      "description": "Sticky add-to-cart bar that appears on scroll past the main product actions",
+      "variants": {
+        "standard": {
+          "label": "Standard Sticky Bar",
+          "description": "Fixed bottom bar with product name, price, and Add to Cart button. Slides up on scroll.",
+          "file": "StickyAtcStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-display.stock-indicator": {
+      "slot": "stock-indicator",
+      "domain": "product-display",
+      "description": "Stock availability display on product page",
+      "variants": {
+        "standard": {
+          "label": "Standard Stock",
+          "description": "Text with colored dot indicator. Green for in-stock, red for out-of-stock.",
+          "file": "StockStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-display.tabs": {
+      "slot": "tabs",
+      "domain": "product-display",
+      "description": "Product info tabs (description, specs, reviews, shipping)",
+      "variants": {
+        "tabbed": {
+          "label": "Tabbed",
+          "description": "DaisyUI tabs with underline style. Standard horizontal tabs below product info.",
+          "file": "TabsTabbed.tsx"
+        },
+        "accordion": {
+          "label": "Accordion",
+          "description": "Collapsible accordion sections. Better for mobile, shows all section titles at once.",
+          "file": "TabsAccordion.tsx"
+        }
+      },
+      "default": "tabbed"
+    },
+    "product-display.variant-picker": {
+      "slot": "variant-picker",
+      "domain": "product-display",
+      "description": "Product variant selection (color, size, etc.)",
+      "variants": {
+        "swatch": {
+          "label": "Visual Swatches",
+          "description": "Circular color swatches and button-style size selectors. Most visual option.",
+          "file": "VariantSwatch.tsx"
+        },
+        "dropdown": {
+          "label": "Dropdown Selects",
+          "description": "Standard select dropdowns. Compact, works well for many options.",
+          "file": "VariantDropdown.tsx"
+        },
+        "button": {
+          "label": "Button Group",
+          "description": "Pill-style buttons in a row. Good for size selection with few options.",
+          "file": "VariantButton.tsx"
+        }
+      },
+      "default": "swatch"
+    },
+    "product-utility.compare": {
+      "slot": "compare",
+      "domain": "product-utility",
+      "description": "Product comparison components for side-by-side spec comparison",
+      "variants": {
+        "tray": {
+          "label": "Compare Tray",
+          "description": "Fixed bottom tray showing selected products with thumbnails and a Compare button.",
+          "file": "CompareTray.tsx"
+        },
+        "table": {
+          "label": "Compare Table",
+          "description": "Full comparison table with product images as column headers and spec rows.",
+          "file": "CompareTable.tsx"
+        }
+      },
+      "default": "tray"
+    },
+    "product-utility.delivery-date": {
+      "slot": "delivery-date",
+      "domain": "product-utility",
+      "description": "Estimated delivery date display with truck icon",
+      "variants": {
+        "standard": {
+          "label": "Delivery Date Standard",
+          "description": "Inline delivery estimate with green truck icon and estimated date text.",
+          "file": "DeliveryDateStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-utility.notify-me": {
+      "slot": "notify-me",
+      "domain": "product-utility",
+      "description": "Back in stock notification signup for out-of-stock products",
+      "variants": {
+        "standard": {
+          "label": "Notify Me Standard",
+          "description": "Inline email form shown when a product is out of stock. Uses DaisyUI fieldset pattern.",
+          "file": "NotifyMeStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-utility.shipping-estimator": {
+      "slot": "shipping-estimator",
+      "domain": "product-utility",
+      "description": "Shipping cost and delivery date estimator with postcode entry",
+      "variants": {
+        "standard": {
+          "label": "Shipping Estimator Standard",
+          "description": "Inline postcode entry with join input group pattern. Shows shipping methods and costs.",
+          "file": "ShippingEstimatorStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "product-utility.size-guide": {
+      "slot": "size-guide",
+      "domain": "product-utility",
+      "description": "Product size guide display with measurements and sizing information",
+      "variants": {
+        "table": {
+          "label": "Size Guide Table",
+          "description": "Standard table-based size guide with zebra striping and horizontal scroll.",
+          "file": "SizeGuideTable.tsx"
+        },
+        "visual": {
+          "label": "Visual Size Guide",
+          "description": "Visual body/racket diagram with measurement list displayed side by side.",
+          "file": "SizeGuideVisual.tsx"
+        },
+        "modal": {
+          "label": "Size Guide Modal",
+          "description": "Table-based size guide wrapped in a DaisyUI modal dialog with trigger button.",
+          "file": "SizeGuideModal.tsx"
+        }
+      },
+      "default": "table"
+    },
+    "product-utility.wishlist-button": {
+      "slot": "wishlist-button",
+      "domain": "product-utility",
+      "description": "Wishlist/favorites toggle button for adding products to a wishlist",
+      "variants": {
+        "standard": {
+          "label": "Wishlist Button Standard",
+          "description": "Heart icon toggle button with ghost circle styling. Outlined when inactive, filled when active.",
+          "file": "WishlistButtonStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "reviews.rating-summary": {
+      "slot": "rating-summary",
+      "domain": "reviews",
+      "description": "Star rating breakdown display showing overall rating and per-star distribution",
+      "variants": {
+        "standard": {
+          "label": "Standard Rating Summary",
+          "description": "Large overall rating with stars, horizontal bar breakdown by star level, and total review count.",
+          "file": "RatingSummaryStandard.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "reviews.review-list": {
+      "slot": "review-list",
+      "domain": "reviews",
+      "description": "List of customer product reviews with ratings, text, and metadata",
+      "variants": {
+        "standard": {
+          "label": "Standard Review List",
+          "description": "Vertical stack of review cards with name, date, star rating, title, body, and verified badge.",
+          "file": "ReviewListStandard.tsx"
+        },
+        "compact": {
+          "label": "Compact Review List",
+          "description": "Condensed inline layout — no title, shorter body text, tighter spacing.",
+          "file": "ReviewListCompact.tsx"
+        }
+      },
+      "default": "standard"
+    },
+    "reviews.social-proof": {
+      "slot": "social-proof",
+      "domain": "reviews",
+      "description": "Social proof indicators showing trust signals and store statistics",
+      "variants": {
+        "strip": {
+          "label": "Social Proof Strip",
+          "description": "Thin horizontal bar with icon-text stat items like customer count, average rating, and return policy.",
+          "file": "SocialProofStrip.tsx"
+        }
+      },
+      "default": "strip"
+    },
+    "reviews.testimonial": {
+      "slot": "testimonial",
+      "domain": "reviews",
+      "description": "Marketing testimonial displays with customer quotes and attribution",
+      "variants": {
+        "carousel": {
+          "label": "Testimonial Carousel",
+          "description": "Horizontal scrolling testimonial cards with scroll-snap. Quote, author name, and optional role/image.",
+          "file": "TestimonialCarousel.tsx"
+        },
+        "grid": {
+          "label": "Testimonial Grid",
+          "description": "3-column responsive grid of testimonial cards.",
+          "file": "TestimonialGrid.tsx"
+        }
+      },
+      "default": "carousel"
+    },
+    "search.bar": {
+      "slot": "bar",
+      "domain": "search",
+      "description": "Search input interface",
+      "variants": {
+        "overlay": {
+          "label": "Search Overlay",
+          "description": "Full-screen overlay with large search input and predictive results.",
+          "file": "SearchOverlay.tsx"
+        },
+        "inline": {
+          "label": "Inline Search",
+          "description": "Search bar in the header with dropdown results panel.",
+          "file": "SearchInline.tsx"
+        }
+      },
+      "default": "overlay"
+    },
+    "search.results": {
+      "slot": "results",
+      "domain": "search",
+      "description": "Search results page layout",
+      "variants": {
+        "standard": {
+          "label": "Standard Results",
+          "description": "Grid of product cards with search summary and sort options.",
+          "file": "ResultsStandard.tsx"
+        }
+      },
+      "default": "standard"
+    }
+  }
+}

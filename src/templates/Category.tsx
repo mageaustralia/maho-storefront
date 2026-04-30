@@ -47,7 +47,8 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
   const sidebarParent = parentCategory ?? (isParentCategory ? category : null);
   const sidebarChildren = sidebarParent?.children?.filter(c => c.includeInMenu) ?? [];
 
-  const canonicalUrl = `${config.baseUrl}/${cleanUrlPath(category.urlPath) || category.urlKey}`;
+  const categoryBaseCanonical = `${config.baseUrl}/${cleanUrlPath(category.urlPath) || category.urlKey}`;
+  const canonicalUrl = currentPage > 1 ? `${categoryBaseCanonical}?page=${currentPage}` : categoryBaseCanonical;
 
   const breadcrumbItems: { name: string; url?: string }[] = [{ name: 'Home', url: config.baseUrl }];
   if (parentCategory) {

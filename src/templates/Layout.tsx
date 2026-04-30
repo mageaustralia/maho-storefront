@@ -41,7 +41,7 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ config, categories,
   const v = `?v=${ASSET_HASH}`;
   const { themeName, googleFontsUrl } = getThemeForStore(currentStoreCode);
   return (
-    <html lang="en" data-theme={themeName}>
+    <html lang={config.locale?.replace('_', '-') ?? 'en'} data-theme={themeName}>
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -49,6 +49,10 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ config, categories,
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
         <link rel="stylesheet" href={googleFontsUrl} />
         <link rel="stylesheet" href={`/styles.css${v}`} data-turbo-track="reload" />
+        {/* Browsers prefer SVG favicon when listed; fall back to /favicon.ico
+            (auto-fetched). Both routes are registered conditionally by the
+            brand overlay; absent overlay routes 404 and the tag is a no-op. */}
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         {/* Hide dismissed announcement bar before first paint — prevents layout shift on Turbo navigation */}
         <style dangerouslySetInnerHTML={{ __html: `html.ab-dismissed #announcement-bar{display:none}` }} />
         <script dangerouslySetInnerHTML={{ __html: `try{if(sessionStorage.getItem('announcement-bar-dismissed'))document.documentElement.classList.add('ab-dismissed')}catch(e){}` }} />

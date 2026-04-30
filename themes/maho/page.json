@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schemas/page-config.schema.json",
   "pages": {
     "product": {
       "components": {
@@ -84,6 +85,26 @@
       "components": {
         "layout": "single-page"
       }
+    },
+    "blog": {
+      "kicker": "Journal",
+      "headline": "Latest articles",
+      "headlineAccent": "",
+      "subheadline": ""
+    },
+    "marketplace": {
+      "kicker": "Catalogue",
+      "headline": "Extensions",
+      "headlineAccent": "",
+      "subheadline": "Composer-installable extensions for Maho.",
+      "taglineChips": [
+        "Honest pricing",
+        "Maho Storefront ready"
+      ],
+      "seoDescription": "Curated Maho e-commerce extensions."
+    },
+    "marketplaceExtension": {
+      "warrantyNote": ""
     }
   }
 }

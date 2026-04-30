@@ -298,10 +298,21 @@ export default class FreshnessController extends Controller {
     document.dispatchEvent(new CustomEvent('product:freshData', { detail: data }));
   }
 
+  /**
+   * Find a freshness DOM target. Templates declare freshness-patchable nodes
+   * with `data-freshness-target="<name>"`, decoupling the patch logic from
+   * the styling classes that templates use for layout. See docs/freshness.md.
+   */
+  _target(name) {
+    return document.querySelector(`[data-freshness-target="${name}"]`);
+  }
+
   _patchCms(data) {
     if (!data.content) return;
 
-    // Homepage: CMS content is inside <section data-controller="home-carousel"><div>...</div></section>
+    // Homepage: CMS content is rendered inside the home-carousel controller's
+    // first <div>. That node has its own data-controller binding, so we don't
+    // wrap it with a freshness target and use the controller selector instead.
     const homeCmsEl = document.querySelector('[data-controller="home-carousel"] > div');
     if (homeCmsEl) {
       homeCmsEl.innerHTML = data.content;
@@ -309,54 +320,48 @@ export default class FreshnessController extends Controller {
       return;
     }
 
-    // Regular CMS pages
-    const contentEl = document.querySelector('.cms-content, .cms-page-content');
+    const contentEl = this._target('cms-content');
     if (contentEl) {
       contentEl.innerHTML = data.content;
       _log('[freshness] patched CMS page content');
     }
 
-    // Update title (skip for homepage which doesn't have an h1)
-    const titleEl = document.querySelector('.cms-page h1, .page-title');
+    const titleEl = this._target('cms-title');
     if (titleEl && data.title) {
       titleEl.textContent = data.title;
     }
   }
 
   _patchBlog(data) {
-    // Update blog post content
-    const contentEl = document.querySelector('.blog-post-content');
+    const contentEl = this._target('blog-content');
     if (contentEl && data.content) {
       contentEl.innerHTML = data.content;
     }
-    // Update title
-    const titleEl = document.querySelector('.blog-post-header h1');
+    const titleEl = this._target('blog-title');
     if (titleEl) {
       titleEl.textContent = data.contentHeading || data.title || '';
     }
-    // Update hero image
-    const heroEl = document.querySelector('.blog-post-hero');
+    const heroEl = this._target('blog-hero');
     if (heroEl && data.imageUrl) {
       heroEl.src = data.imageUrl;
       heroEl.alt = data.title || '';
     }
-    // Update page title
     document.title = `${data.title} | Blog | ${document.title.split('|').pop()?.trim() || 'Store'}`;
   }
 
   _patchBlogList(posts) {
-    const grid = document.querySelector('.blog-grid');
-    const noPostsEl = document.querySelector('.blog-page .no-products');
+    const grid = this._target('blog-grid');
+    const noPostsEl = this._target('blog-empty');
 
     if (!Array.isArray(posts)) return;
 
     if (posts.length === 0) {
       if (grid) grid.remove();
       if (!noPostsEl) {
-        const container = document.querySelector('.blog-page');
+        const container = this._target('blog-page');
         if (container) {
           const p = document.createElement('p');
-          p.className = 'no-products';
+          p.setAttribute('data-freshness-target', 'blog-empty');
           p.textContent = 'No blog posts yet.';
           container.appendChild(p);
         }
@@ -408,12 +413,12 @@ export default class FreshnessController extends Controller {
       grid.innerHTML = '';
       grid.appendChild(fragment);
     } else {
-      const container = document.querySelector('.blog-page .category-header');
+      const container = this._target('blog-page');
       if (container) {
         const div = document.createElement('div');
-        div.className = 'blog-grid';
+        div.setAttribute('data-freshness-target', 'blog-grid');
         div.appendChild(fragment);
-        container.after(div);
+        container.appendChild(div);
       }
     }
   }
@@ -460,7 +465,7 @@ export default class FreshnessController extends Controller {
     } else if (needsOptions) {
       actionHtml = `<a href="${url}" class="btn btn-sm btn-primary btn-outline w-full" data-turbo-prefetch="true">Select Options</a>`;
     } else {
-      actionHtml = `<button class="btn btn-sm btn-primary w-full" onclick="(async()=>{const c=localStorage.getItem('maho_cart_id');if(!c){const r=await fetch(window.MAHO_API_URL+'/api/guest-carts',{method:'POST',headers:{'Accept':'application/ld+json'}});const d=await r.json();localStorage.setItem('maho_cart_id',d.maskedId)}const m=localStorage.getItem('maho_cart_id');const r=await fetch(window.MAHO_API_URL+'/api/guest-carts/'+m+'/items',{method:'POST',headers:{'Accept':'application/ld+json','Content-Type':'application/ld+json'},body:JSON.stringify({sku:'${p.sku}',qty:1})});if(r.ok){document.dispatchEvent(new CustomEvent('cart:updated'));document.dispatchEvent(new CustomEvent('cart:open'));this.textContent='Added!';setTimeout(()=>this.textContent='Add to Cart',2000)}else{this.textContent='Error';setTimeout(()=>this.textContent='Add to Cart',2000)}})()">Add to Cart</button>`;
+      actionHtml = `<button class="btn btn-sm btn-primary w-full" data-controller="cart" data-cart-sku-value="${p.sku}" data-action="cart#add">Add to Cart</button>`;
     }
     setSlotHtml(el, 'actions', actionHtml);
 
@@ -493,7 +498,7 @@ export default class FreshnessController extends Controller {
       let mgArr = d.mediaGallery || [];
       if (mgArr && typeof mgArr === 'object' && !Array.isArray(mgArr)) mgArr = Object.values(mgArr);
       const gallery = mgArr.map(m => m.url).join(',');
-      return this._hash(`${d.updatedAt}|${d.name}|${d.finalPrice}|${d.specialPrice ?? ''}|${d.stockStatus}|${d.description ?? ''}|${d.imageUrl ?? ''}|${opts}|${variants}|${gallery}|${(d.groupedProducts||[]).length}|${(d.bundleOptions||[]).length}|${(d.downloadableLinks||[]).length}|${(d.relatedProducts||[]).length}|${(d.crossSellProducts||[]).length}|${(d.upsellProducts||[]).length}`);
+      return this._hash(`${d.updatedAt}|${d.name}|${d.finalPrice}|${d.specialPrice ?? ''}|${d.stockStatus}|${d.description ?? ''}|${d.imageUrl ?? ''}|${opts}|${variants}|${gallery}|${(d.groupedProducts||[]).length}|${(d.bundleOptions||[]).length}|${(d.downloadableLinks||[]).length}|${(d.relatedProducts||[]).length}|${(d.crosssellProducts||[]).length}|${(d.upsellProducts||[]).length}`);
     }
     if (type === 'blog-list') {
       // d is an array of post summaries
