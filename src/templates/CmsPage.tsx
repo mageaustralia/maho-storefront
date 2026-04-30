@@ -66,7 +66,7 @@ export const CmsPageTemplate: FC<CmsPageProps> = ({ config, categories, page, st
           {page.content && (
             <div class="mx-auto max-w-3xl px-4 py-12 md:py-16">
               <div
-                class="prose prose-base max-w-none text-base-content/85 prose-headings:font-serif prose-headings:tracking-tight prose-h2:text-3xl prose-h2:mt-12 prose-h3:text-xl prose-h3:mt-10 prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-base-content/30 prose-blockquote:font-serif prose-blockquote:italic prose-code:font-mono prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-code:bg-base-200 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-base-content prose-pre:text-base-100 prose-img:rounded-xl prose-hr:border-base-300/60 description-content"
+                class="prose prose-base max-w-none text-base-content/85 prose-headings:font-serif prose-headings:tracking-tight prose-h2:text-3xl prose-h2:mt-12 prose-h3:text-xl prose-h3:mt-10 prose-a:text-accent prose-a:no-underline hover:prose-a:underline [&_.btn]:!text-primary-content [&_.btn]:!no-underline prose-blockquote:border-l-base-content/30 prose-blockquote:font-serif prose-blockquote:italic prose-code:font-mono prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-code:bg-base-200 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-base-content prose-pre:text-base-100 prose-img:rounded-xl prose-hr:border-base-300/60 description-content"
                 data-freshness-target="cms-content"
                 dangerouslySetInnerHTML={{ __html: rewriteContentUrls(page.content) }}
               />
