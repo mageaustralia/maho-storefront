@@ -39,7 +39,7 @@ export class FilterablePagesApi {
    * Fetch megamenu data for all top-level categories
    */
   async fetchAllMenuData(): Promise<MenuData[]> {
-    const data = await this.fetch<{ member: MenuData[] }>('/api/menu-data');
+    const data = await this.fetch<{ member: MenuData[] }>('/api/rest/v2/menu-data');
     return data.member ?? [];
   }
 
@@ -48,7 +48,7 @@ export class FilterablePagesApi {
    */
   async fetchMenuData(categoryId: number): Promise<MenuData | null> {
     try {
-      return await this.fetch<MenuData>(`/api/menu-data/${categoryId}`);
+      return await this.fetch<MenuData>(`/api/rest/v2/menu-data/${categoryId}`);
     } catch {
       return null;
     }
@@ -68,7 +68,7 @@ export class FilterablePagesApi {
       attributeCode,
     });
     const data = await this.fetch<{ member: FilterablePage[] }>(
-      `/api/filterable-pages?${params}`,
+      `/api/rest/v2/filterable-pages?${params}`,
     );
     return data.member?.[0] ?? null;
   }
@@ -78,7 +78,7 @@ export class FilterablePagesApi {
    */
   async fetchEnrichedFilters(categoryId: number): Promise<EnrichedFilter[]> {
     const data = await this.fetch<{ member: EnrichedFilter[] }>(
-      `/api/enriched-filters?categoryId=${categoryId}`,
+      `/api/rest/v2/enriched-filters?categoryId=${categoryId}`,
     );
     return data.member ?? [];
   }

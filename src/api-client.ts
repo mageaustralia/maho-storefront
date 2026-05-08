@@ -129,26 +129,26 @@ export class MahoApiClient {
   }
 
   async fetchStoreConfig(): Promise<StoreConfig> {
-    return this.fetch<StoreConfig>('/api/store-config');
+    return this.fetch<StoreConfig>('/api/rest/v2/store-config');
   }
 
   async fetchCategories(): Promise<Category[]> {
     // Fetch all active categories that are in menu (auto-paginates if >100)
-    return this.fetchAllPages<Category>('/api/categories?isActive=1&includeInMenu=1&order[position]=asc', 100);
+    return this.fetchAllPages<Category>('/api/rest/v2/categories?isActive=1&includeInMenu=1&order[position]=asc', 100);
   }
 
   async fetchCategory(urlKey: string): Promise<Category | null> {
-    const results = await this.fetchCollection<Category>(`/api/categories?urlKey=${encodeURIComponent(urlKey)}`);
+    const results = await this.fetchCollection<Category>(`/api/rest/v2/categories?urlKey=${encodeURIComponent(urlKey)}`);
     return results[0] ?? null;
   }
 
   async fetchCategoryById(id: number): Promise<Category> {
-    return this.fetch<Category>(`/api/categories/${id}`);
+    return this.fetch<Category>(`/api/rest/v2/categories/${id}`);
   }
 
   async fetchCategoryProducts(categoryId: number, page: number = 1, itemsPerPage: number = 24): Promise<{ products: Product[]; totalItems: number }> {
     const data = await this.fetch<{ member: Product[]; totalItems: number }>(
-      `/api/products?categoryId=${categoryId}&order[position]=asc&page=${page}&itemsPerPage=${itemsPerPage}`
+      `/api/rest/v2/products?categoryId=${categoryId}&order[position]=asc&page=${page}&itemsPerPage=${itemsPerPage}`
     );
     return {
       products: data.member ?? [],
@@ -157,29 +157,29 @@ export class MahoApiClient {
   }
 
   async fetchProduct(urlKey: string): Promise<Product | null> {
-    const results = await this.fetchCollection<Product>(`/api/products?urlKey=${encodeURIComponent(urlKey)}`);
+    const results = await this.fetchCollection<Product>(`/api/rest/v2/products?urlKey=${encodeURIComponent(urlKey)}`);
     // Validate the API returned the correct product (not a random one)
     const matches = results.filter(p => p.urlKey === urlKey);
     if (matches.length === 0) return null;
     // Prefer configurable over simple when multiple products share a url_key
     const best = matches.find(p => p.type === 'configurable') ?? matches[0];
     // Fetch full detail (collection doesn't include variants, options, etc.)
-    const full = await this.fetch<Product>(`/api/products/${best.id}`);
+    const full = await this.fetch<Product>(`/api/rest/v2/products/${best.id}`);
     return this.normalizeProduct(full);
   }
 
   async fetchProductById(id: number): Promise<Product> {
-    const full = await this.fetch<Product>(`/api/products/${id}`);
+    const full = await this.fetch<Product>(`/api/rest/v2/products/${id}`);
     return this.normalizeProduct(full);
   }
 
   async fetchProductBySku(sku: string): Promise<Product | null> {
-    const data = await this.fetch<{ member: Product[] }>(`/api/products?search=${encodeURIComponent(sku)}&itemsPerPage=5`);
+    const data = await this.fetch<{ member: Product[] }>(`/api/rest/v2/products?search=${encodeURIComponent(sku)}&itemsPerPage=5`);
     // search is fuzzy — find exact SKU match
     const product = data.member?.find(p => p.sku === sku);
     if (!product) return null;
     // Fetch full detail with variants/options
-    const full = await this.fetch<Product>(`/api/products/${product.id}`);
+    const full = await this.fetch<Product>(`/api/rest/v2/products/${product.id}`);
     return this.normalizeProduct(full);
   }
 
@@ -189,7 +189,7 @@ export class MahoApiClient {
 
   async fetchAllProductsFull(page: number = 1, itemsPerPage: number = 50): Promise<{ products: Product[]; totalItems: number }> {
     const data = await this.fetch<{ member: Product[]; totalItems: number }>(
-      `/api/products?fullDetail=1&page=${page}&itemsPerPage=${itemsPerPage}`
+      `/api/rest/v2/products?fullDetail=1&page=${page}&itemsPerPage=${itemsPerPage}`
     );
     return {
       products: data.member ?? [],
@@ -199,7 +199,7 @@ export class MahoApiClient {
 
   async fetchAllProducts(page: number = 1, itemsPerPage: number = 30): Promise<{ products: Product[]; totalItems: number }> {
     const data = await this.fetch<{ member: Product[]; totalItems: number }>(
-      `/api/products?page=${page}&itemsPerPage=${itemsPerPage}`
+      `/api/rest/v2/products?page=${page}&itemsPerPage=${itemsPerPage}`
     );
     return {
       products: data.member ?? [],
@@ -208,29 +208,29 @@ export class MahoApiClient {
   }
 
   async fetchCmsPage(identifier: string): Promise<CmsPage | null> {
-    const results = await this.fetchCollection<CmsPage>(`/api/cms-pages?identifier=${encodeURIComponent(identifier)}`);
+    const results = await this.fetchCollection<CmsPage>(`/api/rest/v2/cms-pages?identifier=${encodeURIComponent(identifier)}`);
     return results[0] ?? null;
   }
 
   async fetchCountries(): Promise<Country[]> {
-    return this.fetchAllPages<Country>('/api/countries', 300);
+    return this.fetchAllPages<Country>('/api/rest/v2/countries', 300);
   }
 
   async fetchBlogPosts(): Promise<BlogPost[]> {
-    return this.fetchAllPages<BlogPost>('/api/blog-posts?order[publishDate]=desc', 50);
+    return this.fetchAllPages<BlogPost>('/api/rest/v2/blog-posts?order[publishDate]=desc', 50);
   }
 
   async fetchBlogCategories(): Promise<BlogCategory[]> {
-    return this.fetchAllPages<BlogCategory>('/api/blog-categories', 100);
+    return this.fetchAllPages<BlogCategory>('/api/rest/v2/blog-categories', 100);
   }
 
   async fetchAllCmsPages(): Promise<CmsPage[]> {
-    return this.fetchAllPages<CmsPage>('/api/cms-pages', 100);
+    return this.fetchAllPages<CmsPage>('/api/rest/v2/cms-pages', 100);
   }
 
   async searchProducts(query: string, page: number = 1, itemsPerPage: number = 24): Promise<{ products: Product[]; totalItems: number }> {
     const data = await this.fetch<{ member: Product[]; totalItems: number }>(
-      `/api/products?search=${encodeURIComponent(query)}&page=${page}&itemsPerPage=${itemsPerPage}`
+      `/api/rest/v2/products?search=${encodeURIComponent(query)}&page=${page}&itemsPerPage=${itemsPerPage}`
     );
     return {
       products: data.member ?? [],
@@ -244,7 +244,7 @@ export class MahoApiClient {
    */
   async searchSuggestLucene(query: string, limit: number = 10): Promise<SearchSuggestResponse> {
     const data = await this.fetch<SearchSuggestResponse>(
-      `/api/search/suggest?q=${encodeURIComponent(query)}&limit=${limit}`
+      `/api/rest/v2/search/suggest?q=${encodeURIComponent(query)}&limit=${limit}`
     );
     return {
       products: data.products ?? [],
@@ -262,7 +262,7 @@ export class MahoApiClient {
   async resolveUrl(path: string): Promise<{ type: string; id: number; identifier: string } | null> {
     try {
       const results = await this.fetchCollection<{ type: string; id: number; identifier: string }>(
-        `/api/url-resolver?path=${encodeURIComponent(path)}`
+        `/api/rest/v2/url-resolver?path=${encodeURIComponent(path)}`
       );
       const result = results[0];
       if (!result || result.type === 'not_found') return null;
@@ -273,12 +273,12 @@ export class MahoApiClient {
   }
 
   async fetchCmsBlock(identifier: string): Promise<{ identifier: string; content: string } | null> {
-    const results = await this.fetchCollection<{ identifier: string; content: string }>(`/api/cms-blocks?identifier=${encodeURIComponent(identifier)}`);
+    const results = await this.fetchCollection<{ identifier: string; content: string }>(`/api/rest/v2/cms-blocks?identifier=${encodeURIComponent(identifier)}`);
     return results[0] ?? null;
   }
 
   async fetchBlogPost(identifier: string): Promise<BlogPost | null> {
-    const results = await this.fetchCollection<BlogPost>(`/api/blog-posts?urlKey=${encodeURIComponent(identifier)}`);
+    const results = await this.fetchCollection<BlogPost>(`/api/rest/v2/blog-posts?urlKey=${encodeURIComponent(identifier)}`);
     return results[0] ?? null;
   }
 }
