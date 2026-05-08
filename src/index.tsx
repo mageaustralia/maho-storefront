@@ -256,6 +256,7 @@ const GATE_EXCLUDED = new Set([
   '/sync', '/cache/delete', '/cache/keys', '/cache/purge', '/cache/warm-urls',
   '/dev/login', '/dev/logout', '/dev/preview',
   '/dev/config', '/dev/tokens',
+  '/pulse',
 ]);
 
 function isGateExcluded(path: string): boolean {
