@@ -147,7 +147,7 @@ export function getAnnouncementBar(storeCode?: string): {
   dismissible?: boolean;
 } | null {
   const config = getPageConfig(storeCode);
-  const bar = (config.pages as Record<string, any>).announcementBar;
+  const bar = (config.pages as Record<string, any> | undefined)?.announcementBar;
   if (!bar || !bar.enabled || !bar.text) return null;
   return bar;
 }
