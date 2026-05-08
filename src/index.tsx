@@ -1113,7 +1113,7 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
   let shippingPrice = 0;
   if (shippingMethod && shippingAddress) {
     // POST shipping-methods with address to set address + get available rates
-    const methodsRes = await fetch(`${apiUrl}/api/guest-carts/${cartId}/shipping-methods`, {
+    const methodsRes = await fetch(`${apiUrl}/api/rest/v2/guest-carts/${cartId}/shipping-methods`, {
       method: 'POST',
       headers: mahoHeaders,
       body: JSON.stringify({ address: shippingAddress }),
@@ -1126,7 +1126,7 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
   }
 
   // Fetch cart totals from Maho backend
-  const cartUrl = `${apiUrl}/api/guest-carts/${cartId}`;
+  const cartUrl = `${apiUrl}/api/rest/v2/guest-carts/${cartId}`;
   const cartRes = await fetch(cartUrl, { headers: { 'Accept': 'application/ld+json', ...mahoHeaders } });
   if (!cartRes.ok) {
     return c.json({ error: true, message: 'Cart not found' }, 404);
@@ -1244,9 +1244,18 @@ app.all('/api/*', async (c) => {
   const apiUrl = getApiUrl(c.env, stores, currentStoreCode);
   const path = c.req.path;
 
-  // Build the target URL preserving path and query string
+  // Build the target URL preserving path and query string.
+  // Maho's API Platform endpoints are namespaced under /api/rest/v2 (see
+  // mageaustralia/maho commit fd6206b5). The browser still hits the
+  // friendlier /api/* path on the Worker; the Worker rewrites to
+  // /api/rest/v2/* when proxying to the backend. Skip the rewrite for
+  // paths that already include the v2 prefix (so server-side calls that
+  // pass through this proxy aren't double-prefixed).
   const url = new URL(c.req.url);
-  const targetUrl = `${apiUrl}${path}${url.search}`;
+  const backendPath = path.startsWith('/api/rest/v2/')
+    ? path
+    : '/api/rest/v2/' + path.slice('/api/'.length);
+  const targetUrl = `${apiUrl}${backendPath}${url.search}`;
 
   // Forward headers, add auth
   const headers = new Headers();
