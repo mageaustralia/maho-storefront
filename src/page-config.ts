@@ -86,7 +86,7 @@ function getPageConfig(storeCode?: string): PageConfigShape {
  */
 export function getVariant(page: string, slot: string, fallback: string = 'standard', storeCode?: string): string {
   const config = getPageConfig(storeCode);
-  const pageConf = (config.pages as Record<string, any>)[page];
+  const pageConf = (config.pages as Record<string, any> | undefined)?.[page];
   if (!pageConf) return fallback;
 
   // Check components map first
@@ -112,7 +112,7 @@ export function getVariant(page: string, slot: string, fallback: string = 'stand
  */
 export function getSection<T = any>(page: string, key: string, fallback?: T, storeCode?: string): T {
   const config = getPageConfig(storeCode);
-  const pageConf = (config.pages as Record<string, any>)[page];
+  const pageConf = (config.pages as Record<string, any> | undefined)?.[page];
   if (!pageConf) return fallback as T;
 
   // Check sections map
