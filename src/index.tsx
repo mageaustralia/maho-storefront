@@ -860,14 +860,78 @@ app.get('/robots.txt', async (c) => {
   });
 });
 
+// /sitemap.xml — generated from KV (categories, products, CMS, blog) with
+// <lastmod> on each entry. Backend's own sitemap was 404ing across all
+// storefronts; owning it on the Worker means it always works and carries
+// freshness signals search engines + agents can use to skip unchanged pages.
+app.get('/sitemap.xml', async (c) => {
+  const { currentStoreCode } = await getStoreContext(c);
+  const store = createStore(c.env);
+  const origin = new URL(c.req.url).origin;
+  const { generateSitemap } = await import('./agents/sitemap');
+  const body = await generateSitemap({ store, origin, storeCode: currentStoreCode });
+  return c.body(body, 200, {
+    'Content-Type': 'application/xml; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
+// /.well-known/api-catalog (RFC 9727) — JSON descriptor the Link header
+// on every response already advertises. Points at OpenAPI + OAuth + MCP.
+app.get('/.well-known/api-catalog', async (c) => {
+  const origin = new URL(c.req.url).origin;
+  const { generateApiCatalog } = await import('./agents/api-catalog');
+  return c.json(generateApiCatalog({ origin }), 200, {
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
+// /.well-known/oauth-authorization-server (RFC 8414) — OAuth 2.0 discovery.
+// Maps the storefront's /api/auth/* endpoints (which proxy to Maho's
+// /api/rest/v2/auth/*) into the standard discovery shape.
+app.get('/.well-known/oauth-authorization-server', async (c) => {
+  const origin = new URL(c.req.url).origin;
+  const { generateOAuthDiscovery } = await import('./agents/oauth-discovery');
+  return c.json(generateOAuthDiscovery({ origin }), 200, {
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
+// /.well-known/mcp/server-card.json — descriptor for the MCP server.
+// The card is published now so discovery tooling picks us up; the actual
+// /mcp endpoint is a stub until the dedicated MCP Worker ships.
+app.get('/.well-known/mcp/server-card.json', async (c) => {
+  const { currentStoreCode } = await getStoreContext(c);
+  const store = createStore(c.env);
+  const origin = new URL(c.req.url).origin;
+  const { config } = await getStoreData(store, currentStoreCode, origin);
+  const { generateMcpServerCard } = await import('./agents/mcp-server-card');
+  return c.json(generateMcpServerCard({ origin, storeName: config.storeName }), 200, {
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
+// /mcp — stub until the real MCP server lands in a sibling Worker.
+// Returns 503 + a structured "coming soon" so discovery tools can tell
+// us apart from a 404 / non-MCP host.
+app.all('/mcp', async (c) => {
+  const origin = new URL(c.req.url).origin;
+  const { mcpStubBody } = await import('./agents/mcp-server-card');
+  return c.json(mcpStubBody({ origin }), 503, {
+    'Retry-After': '604800', // a week — agents back off, we don't churn
+    'Cache-Control': 'public, max-age=300',
+  });
+});
+
 // Backend pass-through routes
 // These paths are proxied directly to the Maho backend instead of being
 // handled by the storefront. Backend URLs in the response body are rewritten
 // to the storefront domain. Add any paths your backend serves that should
 // be accessible on the storefront domain (supports Hono wildcard patterns).
 const BACKEND_PASSTHROUGH = [
-  '/sitemap.xml',
-  '/sitemap/*',        // sitemap index files (sitemap-categories.xml, etc.)
+  '/sitemap/*',        // sub-sitemaps (sitemap-categories.xml, etc.) — only used by
+                        // backends that emit a sitemap-index. Storefront-owned
+                        // /sitemap.xml above is preferred.
   '/media/feeds/*',    // product/data feeds (JSON, XML, CSV)
 ];
 
