@@ -504,6 +504,16 @@ function withEdgeCache(ttlSeconds: number) {
   return async (c: any, next: () => Promise<void>) => {
     if (c.req.method !== 'GET') { await next(); return; }
 
+    // Bypass cache for markdown requests — same URL serves two representations
+    // (HTML for humans, markdown for agents) and the cache key is URL-only, so
+    // a cached HTML response would clobber the markdown branch. Agent traffic
+    // is low-volume and re-renders cheaply from KV anyway.
+    if (c.get('wantsMarkdown') as boolean | undefined) {
+      await next();
+      if (c.res) c.res.headers.set('X-Edge-Cache', 'MD-BYPASS');
+      return;
+    }
+
     // Allow cache bypass with ?nocache param (for debugging/testing)
     const url = new URL(c.req.url);
     if (url.searchParams.has('nocache')) {
