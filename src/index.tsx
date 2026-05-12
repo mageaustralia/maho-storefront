@@ -228,12 +228,20 @@ app.use('*', async (c, next) => {
   c.header('Link', '</.well-known/api-catalog>; rel="api-catalog"', { append: true });
 });
 
+// Paths the storefront serves that legitimately end in a blocked
+// extension (e.g. /sitemap.xml). Exempt from BLOCKED_EXTENSIONS so we
+// don't 404 our own routes.
+const BLOCKED_EXTENSIONS_ALLOWLIST = new Set<string>([
+  '/sitemap.xml',
+]);
+
 app.use('*', async (c, next) => {
   const path = c.req.path;
   const rawUrl = c.req.url;
 
-  // Block suspicious file extensions
-  if (BLOCKED_EXTENSIONS.test(path)) {
+  // Block suspicious file extensions, with an allowlist for legit
+  // storefront-served files (sitemap.xml etc.).
+  if (BLOCKED_EXTENSIONS.test(path) && !BLOCKED_EXTENSIONS_ALLOWLIST.has(path)) {
     return c.text('Not Found', 404);
   }
 
@@ -274,7 +282,7 @@ const GATE_EXCLUDED = new Set([
 ]);
 
 function isGateExcluded(path: string): boolean {
-  return GATE_EXCLUDED.has(path) || path.startsWith('/public/') || path.startsWith('/dev/tokens/') || path.startsWith('/api/') || path.startsWith('/media/') || path.startsWith('/core/index/resize/') || path.startsWith('/skin/') || path.startsWith('/sync/') || path.startsWith('/sitemap') || path.startsWith('/plugins/') || path.startsWith('/embed');
+  return GATE_EXCLUDED.has(path) || path.startsWith('/public/') || path.startsWith('/dev/tokens/') || path.startsWith('/api/') || path.startsWith('/media/') || path.startsWith('/core/index/resize/') || path.startsWith('/skin/') || path.startsWith('/sync/') || path.startsWith('/sitemap') || path.startsWith('/plugins/') || path.startsWith('/embed') || path.startsWith('/.well-known/') || path === '/llms.txt' || path === '/mcp';
 }
 
 // Password gate page HTML (standalone, no Layout dependency)
