@@ -214,6 +214,20 @@ app.use('/index.php/*', async (c, next) => {
   return c.redirect(`${url.origin}${cleanPath}${url.search}`, 301);
 });
 
+// Agent-readiness: markdown content negotiation. Detects `Accept: text/markdown`
+// or `/index.md` / `*.md` path suffixes, sets c.var.wantsMarkdown for routes
+// to branch on, and rewrites the path so the entity router still matches.
+import { markdownNegotiation } from './agents/markdown';
+app.use('*', markdownNegotiation);
+
+// Agent-readiness: advertise the API catalog via Link header on every response.
+// Browsers ignore it; agents that look for `Link: rel="api-catalog"` (RFC 8288 +
+// RFC 9727) will find the discovery doc. Catalog itself ships in a follow-up.
+app.use('*', async (c, next) => {
+  await next();
+  c.header('Link', '</.well-known/api-catalog>; rel="api-catalog"', { append: true });
+});
+
 app.use('*', async (c, next) => {
   const path = c.req.path;
   const rawUrl = c.req.url;
@@ -810,13 +824,38 @@ app.get('/admin', async (c) => {
   return c.redirect(`${apiUrl}/index.php/admin`, 302);
 });
 
+// Agent-readiness: /llms.txt + storefront-owned /robots.txt.
+// The storefront takes ownership of these so we can serve content signals
+// + AI-bot rules that match our "agent ready" posture rather than whatever
+// Cloudflare or the backend injects. See src/agents/.
+app.get('/llms.txt', async (c) => {
+  const { stores, currentStoreCode } = await getStoreContext(c);
+  const store = createStore(c.env);
+  const origin = new URL(c.req.url).origin;
+  const { config, categories, footerPages } = await getStoreData(store, currentStoreCode, origin);
+  const { generateLlmsTxt } = await import('./agents/llms-txt');
+  const body = generateLlmsTxt({ config, categories, footerPages, origin });
+  return c.body(body, 200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
+app.get('/robots.txt', async (c) => {
+  const origin = new URL(c.req.url).origin;
+  const { generateRobotsTxt } = await import('./agents/robots-txt');
+  return c.body(generateRobotsTxt({ origin }), 200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
 // Backend pass-through routes
 // These paths are proxied directly to the Maho backend instead of being
 // handled by the storefront. Backend URLs in the response body are rewritten
 // to the storefront domain. Add any paths your backend serves that should
 // be accessible on the storefront domain (supports Hono wildcard patterns).
 const BACKEND_PASSTHROUGH = [
-  '/robots.txt',
   '/sitemap.xml',
   '/sitemap/*',        // sitemap index files (sitemap-categories.xml, etc.)
   '/media/feeds/*',    // product/data feeds (JSON, XML, CSV)
@@ -996,6 +1035,12 @@ app.get('/', withEdgeCache(CACHE_HOME), async (c) => {
   const needsSidebars = cmsPage?.pageLayout && !['one_column', 'empty', 'minimal'].includes(cmsPage.pageLayout);
   const sidebars = needsSidebars ? await getSidebarBlocks(store, 'home', currentStoreCode) : { left: null, right: null };
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
+
+  if (c.get('wantsMarkdown') as boolean | undefined) {
+    const { homeToMarkdown, markdownResponse } = await import('./agents/markdown');
+    return markdownResponse(c, homeToMarkdown(config, categories, new URL(c.req.url).origin));
+  }
+
   return c.html(<Home config={config} categories={categories} cmsPage={cmsPage} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={sidebars.left} sidebarRight={sidebars.right} devData={devData} />);
 });
 
@@ -2672,6 +2717,8 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
   const apiClient = createApiClient(c.env, stores, currentStoreCode);
   const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
 
+  const wantsMd = c.get('wantsMarkdown') as boolean | undefined;
+
   // Helper to render category page
   const renderCategory = async (category: Category) => {
     const page = parseInt(c.req.query('page') ?? '1', 10);
@@ -2689,6 +2736,11 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
     const products = productsData?.products?.slice(0, itemsPerPage) ?? [];
     const totalItems = productsData?.totalItems ?? 0;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    if (wantsMd) {
+      const { categoryToMarkdown, markdownResponse } = await import('./agents/markdown');
+      return markdownResponse(c, categoryToMarkdown(category, products, config, new URL(c.req.url).origin));
+    }
 
     let parentCategory: Category | null = null;
     if (category.level > 2) {
@@ -2713,7 +2765,7 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
   };
 
   // Helper to render product page
-  const renderProduct = (product: Product) => {
+  const renderProduct = async (product: Product) => {
     product = normalizeProduct(product);
     let productCategory: Category | null = null;
     const productCatId = product.categoryIds?.[0];
@@ -2727,6 +2779,12 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
     // Sanitize descriptions — strip unprocessed Magento directives ({{widget ...}}, etc.)
     if (product.description) product.description = rewriteContentUrls(product.description);
     if (product.shortDescription) product.shortDescription = rewriteContentUrls(product.shortDescription);
+
+    if (wantsMd) {
+      const { productToMarkdown, markdownResponse } = await import('./agents/markdown');
+      return markdownResponse(c, productToMarkdown(product, config, new URL(c.req.url).origin));
+    }
+
     return c.html(<ProductPage config={config} categories={categories} product={product} productCategory={productCategory} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
   };
 
@@ -2753,6 +2811,10 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
 
   const resolvedCmsPage = kvCms ?? kvCmsUnprefixed;
   if (resolvedCmsPage) {
+    if (wantsMd) {
+      const { cmsPageToMarkdown, markdownResponse } = await import('./agents/markdown');
+      return markdownResponse(c, cmsPageToMarkdown(resolvedCmsPage, new URL(c.req.url).origin));
+    }
     const needsSidebars = resolvedCmsPage.pageLayout && !['one_column', 'empty', 'minimal'].includes(resolvedCmsPage.pageLayout);
     const cmsSidebars = needsSidebars ? await getSidebarBlocks(store, 'cms', currentStoreCode) : { left: null, right: null };
     return c.html(<CmsPageTemplate config={config} categories={categories} page={resolvedCmsPage} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={cmsSidebars.left} sidebarRight={cmsSidebars.right} devData={devData} />);
