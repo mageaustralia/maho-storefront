@@ -1,8 +1,9 @@
 name: Deploy Storefront
 
 on:
-  push:
-    branches: [main]
+  # Manual-only: the storefront ships via deploy.sh (local .env + wrangler.toml + bun).
+  # Auto-deploy on push is intentionally disabled until a sanitized wrangler config
+  # and CF_API_TOKEN / CF_ACCOUNT_ID secrets are wired up.
   workflow_dispatch:
 
 jobs:
