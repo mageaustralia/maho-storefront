@@ -106,7 +106,7 @@ export function mapProductToExtension(p: Product): MarketplaceExtension {
     price_single,
     price_unlimited,
     currency: 'AUD',
-    image_url: (p as any).imageUrl ?? (p as any).smallImageUrl ?? p.thumbnailUrl ?? null,
+    image_url: p.imageUrl ?? p.smallImageUrl ?? p.thumbnailUrl ?? null,
   };
 }
 
@@ -150,7 +150,7 @@ export function mapProductToDetail(p: Product): MarketplaceExtensionDetail {
     price_single,
     price_unlimited,
     currency: 'AUD',
-    image_url: (p as any).imageUrl ?? (p as any).smallImageUrl ?? p.thumbnailUrl ?? null,
+    image_url: p.imageUrl ?? p.smallImageUrl ?? p.thumbnailUrl ?? null,
     additional_images: gallery,
     tiers,
     gallery,

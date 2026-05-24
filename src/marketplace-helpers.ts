@@ -64,16 +64,3 @@ export function licenseTotalPrice(product: Product, linkPrice: number): number {
   return (product.price ?? 0) + linkPrice;
 }
 
-/** Format a price as store currency. Returns null if value is null/NaN. */
-export function formatPrice(value: number | null | undefined, currency: string = 'AUD'): string | null {
-  if (value === null || value === undefined || !Number.isFinite(value)) return null;
-  try {
-    return new Intl.NumberFormat('en-AU', {
-      style: 'currency',
-      currency: currency || 'AUD',
-      maximumFractionDigits: 0,
-    }).format(value);
-  } catch {
-    return `${currency} ${(value as number).toFixed(0)}`;
-  }
-}
