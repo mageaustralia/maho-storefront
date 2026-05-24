@@ -304,7 +304,7 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                 </code>
               </pre>
               <p class="mt-3 text-xs text-base-content/60">
-                PHP 8.3+, Maho {extension.supported_maho_versions}
+                PHP 8.3+{extension.supported_maho_versions ? `, Maho ${extension.supported_maho_versions}` : ''}
               </p>
             </div>
 
@@ -318,10 +318,12 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                   <dt class="text-base-content/60">SKU</dt>
                   <dd class="font-mono text-xs">{extension.sku}</dd>
                 </div>
-                <div>
-                  <dt class="text-base-content/60">Version</dt>
-                  <dd class="font-mono text-xs">{extension.version}</dd>
-                </div>
+                {extension.version && (
+                  <div>
+                    <dt class="text-base-content/60">Version</dt>
+                    <dd class="font-mono text-xs">{extension.version}</dd>
+                  </div>
+                )}
               </dl>
             </div>
           </aside>
