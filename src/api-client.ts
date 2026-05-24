@@ -281,4 +281,29 @@ export class MahoApiClient {
     const results = await this.fetchCollection<BlogPost>(`/api/rest/v2/blog-posts?urlKey=${encodeURIComponent(identifier)}`);
     return results[0] ?? null;
   }
+
+  /**
+   * Fetch FAQ items for a given category URL key.
+   * Hits the FAQ module's REST endpoint: GET /api/rest/v2/faqs?category=<encoded>.
+   * Returns [] gracefully on any error or non-ok response (endpoint may not be live yet).
+   */
+  async fetchFaqs(categoryUrlKey: string): Promise<{ id: number; question: string; answer: string; position: number }[]> {
+    try {
+      type FaqMember = { id: number; question: string; answer: string; position: number };
+      const data = await this.fetch<{ member?: FaqMember[] } | FaqMember[]>(
+        `/api/rest/v2/faqs?category=${encodeURIComponent(categoryUrlKey)}`
+      );
+      let members: FaqMember[];
+      if (Array.isArray(data)) {
+        members = data;
+      } else {
+        members = (data as { member?: FaqMember[] }).member ?? [];
+      }
+      return members
+        .filter((f) => f && typeof f.question === 'string')
+        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    } catch {
+      return [];
+    }
+  }
 }
