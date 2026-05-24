@@ -1528,6 +1528,11 @@ app.get('/marketplace/:slug', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
   }
   const extension = mapProductToDetail(p);
 
+  // Fetch FAQs if the extension has a faqCategory — gracefully returns [] when endpoint is unavailable
+  const faqItems = extension.faqCategory
+    ? await marketplaceApiClient.fetchFaqs(extension.faqCategory).catch(() => [])
+    : [];
+
   const devData = timer
     ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '')
     : null;
@@ -1536,6 +1541,7 @@ app.get('/marketplace/:slug', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
       config={config}
       categories={categories}
       extension={extension}
+      faqItems={faqItems}
       stores={stores}
       currentStoreCode={currentStoreCode}
       devData={devData}
