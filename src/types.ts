@@ -359,21 +359,28 @@ export interface Env {
 }
 
 /**
- * Marketplace extension, as returned by the 1C-c catalog API
- * (GET https://admin.mageaustralia.com.au/marketplace/extensions/index).
- *
- * Field names are snake_case to mirror the Maho attribute codes (easier to
- * reason about when reading the API alongside the admin).
+ * A resolved license tier derived from a downloadable link.
+ */
+export interface MarketplaceTier {
+  label: string;
+  price: number | null;
+  kind: 'single' | 'unlimited' | 'other';
+}
+
+/**
+ * Marketplace extension list item — mapped from the standard Product DTO.
+ * Field names are snake_case to mirror the Maho attribute codes.
  */
 export interface MarketplaceExtension {
   sku: string;
   url_key: string;
   name: string;
   composer_package: string;
-  version: string;
-  supported_maho_versions: string;
+  version: string | null;
+  supported_maho_versions: string | null;
   tagline: string | null;
   short_description: string | null;
+  tier: 'free' | 'paid';
   price_single: number | null;
   price_unlimited: number | null;
   currency: string;
@@ -381,11 +388,18 @@ export interface MarketplaceExtension {
 }
 
 /**
- * Detail shape returned by GET /marketplace/extensions/view?sku=<sku>.
- * Includes everything in MarketplaceExtension plus full description and
- * the gallery image URL list.
+ * Full marketplace extension detail — mapped from the standard Product full-detail DTO.
+ * Includes richer fields for the extension detail page.
  */
 export interface MarketplaceExtensionDetail extends MarketplaceExtension {
   description: string | null;
   additional_images: string[];
+  tiers: MarketplaceTier[];
+  gallery: string[];
+  challenge: string | null;
+  solution: string | null;
+  featureBlocks: { heading: string; body: string }[];
+  faqCategory: string | null;
+  docsUrl: string | null;
+  pdfUrl: string | null;
 }

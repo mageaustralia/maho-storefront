@@ -32,10 +32,10 @@ import { Seo } from './templates/components/Seo';
 import { MarketplacePage } from './templates/Marketplace';
 import { MarketplaceExtensionPage } from './templates/MarketplaceExtension';
 import {
-  fetchMarketplaceExtensions,
-  findMarketplaceExtensionByUrlKey,
-  fetchMarketplaceExtension,
+  mapProductToExtension,
+  mapProductToDetail,
 } from './marketplace-api';
+import { MARKETPLACE_CATEGORY_ID, MARKETPLACE_API_BASE } from './marketplace-helpers';
 import {
   DEV_COOKIE,
   SESSION_TTL,
@@ -1472,15 +1472,20 @@ app.all('/api/*', async (c) => {
 
 
 // Marketplace — public catalog of Mageaustralia extensions
+// Uses a dedicated client always pointed at admin.mageaustralia.com.au — the marketplace
+// catalog lives there regardless of which storefront env (demo/staging/prod) is running.
+const marketplaceApiClient = new MahoApiClient(MARKETPLACE_API_BASE);
+
 app.get('/marketplace', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
   const devSession = c.get('devSession') as DevSession | undefined;
   const timer = devSession ? createDevTimer() : null;
   const store = createStore(c.env, timer);
   const { stores, currentStoreCode } = await getStoreContext(c);
-  const [{ config, categories }, extensions] = await Promise.all([
+  const [{ config, categories }, { products }] = await Promise.all([
     getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
-    fetchMarketplaceExtensions(),
+    marketplaceApiClient.fetchCategoryProducts(MARKETPLACE_CATEGORY_ID, 1, 48),
   ]);
+  const extensions = products.map(mapProductToExtension);
   const devData = timer
     ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '')
     : null;
@@ -1508,16 +1513,20 @@ app.get('/marketplace/:slug', withEdgeCache(CACHE_MARKETPLACE), async (c) => {
     new URL(c.req.url).origin
   );
 
-  // url_key → SKU lookup, then fetch full detail (which includes description
-  // + additional_images which the list endpoint omits).
-  const listItem = await findMarketplaceExtensionByUrlKey(slug);
-  if (!listItem) {
+  // Fetch full product detail by url_key.
+  // The marketplace backend (admin.mageaustralia.com.au) returns 503 for ?urlKey= filter,
+  // so we use a two-step approach: search → exact match → fetch by ID.
+  // For marketplace products SKU equals urlKey, so search by slug finds the right product.
+  const { products: searchResults } = await marketplaceApiClient.searchProducts(slug, 1, 10).catch(() => ({ products: [] as Product[] }));
+  const listItem = searchResults.find((pr) => pr.urlKey === slug);
+  if (!listItem || listItem.id === null) {
     return c.notFound();
   }
-  const extension = await fetchMarketplaceExtension(listItem.sku);
-  if (!extension) {
+  const p = await marketplaceApiClient.fetchProductById(listItem.id).catch(() => null);
+  if (!p) {
     return c.notFound();
   }
+  const extension = mapProductToDetail(p);
 
   const devData = timer
     ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '')
