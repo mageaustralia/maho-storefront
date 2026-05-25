@@ -682,6 +682,10 @@ export default defineConfig({
     'bg-black', '!bg-white', '!text-black', 'hover:!bg-white/80',
     // CMS content — common utility classes
     'text-white', 'text-black', 'bg-black',
+    // CMS layout — gap scale (not scanned from source, used in CMS-authored HTML)
+    'gap-0', 'gap-1', 'gap-2', 'gap-3', 'gap-4', 'gap-5', 'gap-6', 'gap-8', 'gap-10', 'gap-12', 'gap-16',
+    'gap-x-0', 'gap-x-1', 'gap-x-2', 'gap-x-3', 'gap-x-4', 'gap-x-5', 'gap-x-6', 'gap-x-8', 'gap-x-10', 'gap-x-12', 'gap-x-16',
+    'gap-y-0', 'gap-y-1', 'gap-y-2', 'gap-y-3', 'gap-y-4', 'gap-y-5', 'gap-y-6', 'gap-y-8', 'gap-y-10', 'gap-y-12', 'gap-y-16',
   ],
 
   content: {
