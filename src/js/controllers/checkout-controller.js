@@ -6,7 +6,7 @@
 
 import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
-import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
+import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart, normalizeCustomer } from '../utils.js';
 import { analytics } from '../analytics.js';
 import { hydrateTemplate, setSlotHtml, setSlotAttributes, showSlot, PLACEHOLDER_IMAGE } from '../template-helpers.js';
 import { getAdapter, hasAdapter, getAbsorbedMethods, getEarlyInitAdapter } from '../payment-methods/index.js';
@@ -225,7 +225,8 @@ export default class CheckoutController extends Controller {
 
   async _prefillFromCustomer() {
     try {
-      const data = await api.get('/api/auth/me');
+      const data = await api.get('/api/customers/me');
+      normalizeCustomer(data);
 
       // Store customer email
       this._customerEmail = data.email || '';
@@ -491,7 +492,13 @@ export default class CheckoutController extends Controller {
         const err = await response.json();
         throw new Error(err['hydra:description'] || err.detail || err.message || 'Could not load shipping methods');
       }
-      const methods = await response.json();
+      const json = await response.json();
+      const raw = json.availableShippingMethods || json.member || (Array.isArray(json) ? json : []);
+      const methods = raw.map(m => ({
+        ...m,
+        code: m.code || `${m.carrierCode}_${m.methodCode}`,
+        title: m.title || m.methodTitle,
+      }));
 
       if (!methods || methods.length === 0) {
         if (this.hasShippingMethodsTarget) {
@@ -610,7 +617,8 @@ export default class CheckoutController extends Controller {
     }
 
     try {
-      const methods = await api.get(`/api/guest-carts/${maskedId}/payment-methods`);
+      const json = await api.get(`/api/guest-carts/${maskedId}/payment-methods`);
+      const methods = json.availablePaymentMethods || json.member || (Array.isArray(json) ? json : []);
 
       if (!methods || methods.length === 0) {
         if (this.hasPaymentMethodsTarget) {

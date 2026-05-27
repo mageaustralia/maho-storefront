@@ -91,3 +91,22 @@ export function getRecentlyViewed(excludeKeys = [], limit = 8) {
     return items.filter(p => !excludeKeys.includes(p.urlKey)).slice(0, limit);
   } catch { return []; }
 }
+
+// The Customer/Address DTOs from /api/customers/me use lowercase `firstname`/
+// `lastname` (preserving Magento DB convention), while every other DTO and
+// all client code uses camelCase. Mutate in place so downstream reads of
+// data.firstName / addr.firstName resolve to the lowercase fallback.
+export function normalizeCustomer(data) {
+  if (!data || typeof data !== 'object') return data;
+  if (data.firstname && !data.firstName) data.firstName = data.firstname;
+  if (data.lastname && !data.lastName) data.lastName = data.lastname;
+  if (Array.isArray(data.addresses)) data.addresses.forEach(normalizeAddress);
+  return data;
+}
+
+export function normalizeAddress(addr) {
+  if (!addr || typeof addr !== 'object') return addr;
+  if (addr.firstname && !addr.firstName) addr.firstName = addr.firstname;
+  if (addr.lastname && !addr.lastName) addr.lastName = addr.lastname;
+  return addr;
+}

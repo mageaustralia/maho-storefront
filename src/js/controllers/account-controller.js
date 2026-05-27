@@ -6,7 +6,7 @@
 
 import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
-import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
+import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart, normalizeCustomer } from '../utils.js';
 
 export default class AccountController extends Controller {
   static targets = [
@@ -64,7 +64,8 @@ export default class AccountController extends Controller {
 
   async loadProfile() {
     try {
-      const data = await api.get('/api/auth/me');
+      const data = await api.get('/api/customers/me');
+      normalizeCustomer(data);
       this._customer = data;
       localStorage.setItem('maho_customer', JSON.stringify({ firstName: data.firstName, lastName: data.lastName, email: data.email }));
 
