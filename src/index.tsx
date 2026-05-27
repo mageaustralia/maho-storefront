@@ -1237,12 +1237,21 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
   if (currentStoreCode) mahoHeaders['X-Store-Code'] = currentStoreCode;
   if (c.env.MAHO_API_BASIC_AUTH) mahoHeaders['Authorization'] = `Basic ${btoa(c.env.MAHO_API_BASIC_AUTH)}`;
 
-  // If shipping info provided, set it on the cart first so grandTotal includes shipping
+  // Compute the cart's grand total INCLUDING shipping. This has to be the
+  // amount the order will eventually total to, otherwise Stripe.capture()
+  // rejects the order with an amount/currency mismatch.
+  //
+  // Two layers of defence so different client paths all converge on the
+  // right number:
+  //   1. If the client passed shippingMethod + shippingAddress, post it to
+  //      /shipping-methods (sets the address on the cart, returns rates)
+  //      and look up the matched method's price.
+  //   2. After fetching the cart, if the cart has no committed shipping_amount
+  //      and the matched-price lookup didn't fire (e.g. PaymentRequestButton
+  //      flow that doesn't send shipping info, or client-side race), fall
+  //      back to the FIRST available shipping method on the cart.
   let shippingPrice = 0;
   if (shippingMethod && shippingAddress) {
-    // POST shipping-methods with address to set address + get available rates.
-    // Backend returns the Cart with rates nested at .availableShippingMethods;
-    // each entry has carrierCode + methodCode (no top-level `code` field).
     const methodsRes = await fetch(`${apiUrl}/api/rest/v2/guest-carts/${cartId}/shipping-methods`, {
       method: 'POST',
       headers: mahoHeaders,
@@ -1263,12 +1272,24 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
     return c.json({ error: true, message: 'Cart not found' }, 404);
   }
 
-  const cart = await cartRes.json() as { prices?: { grandTotal?: number; shippingAmount?: number | null }; currency?: string };
+  const cart = await cartRes.json() as {
+    prices?: { grandTotal?: number; shippingAmount?: number | null };
+    availableShippingMethods?: Array<{ carrierCode: string; methodCode: string; price: number }>;
+    currency?: string;
+  };
   let grandTotal = cart.prices?.grandTotal || 0;
+  const cartShipping = cart.prices?.shippingAmount;
 
-  // If the cart doesn't include shipping yet (no shippingAmount), add the matched shipping price
-  if (shippingPrice > 0 && (!cart.prices?.shippingAmount || cart.prices.shippingAmount === 0)) {
-    grandTotal += shippingPrice;
+  if (!cartShipping || cartShipping === 0) {
+    // Cart has no committed shipping yet — add the price we found (from
+    // explicit client info), or fall back to the cart's first available
+    // shipping method so the PI lines up with what place-order will charge.
+    if (shippingPrice <= 0 && cart.availableShippingMethods && cart.availableShippingMethods.length > 0) {
+      shippingPrice = cart.availableShippingMethods[0].price || 0;
+    }
+    if (shippingPrice > 0) {
+      grandTotal += shippingPrice;
+    }
   }
 
   if (!grandTotal || grandTotal <= 0) {
@@ -1291,8 +1312,15 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
       amount: String(amountInCents),
       currency,
       'automatic_payment_methods[enabled]': 'true',
+      // Auth only — actual capture happens when Maho saves the order via
+      // Card.php::capture(). If order placement fails the auth is cancelled
+      // (Card.php::cancel) and the customer is never charged.
+      'capture_method': 'manual',
       'metadata[cart_id]': cartId,
       'metadata[source]': 'maho_storefront',
+      // Multi-install discriminator: lets reconciliation jobs ignore PIs
+      // that belong to a different Maho install sharing this Stripe account.
+      'metadata[maho_origin]': new URL(c.req.url).origin,
     }).toString(),
   });
 

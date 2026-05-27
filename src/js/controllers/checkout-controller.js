@@ -840,9 +840,16 @@ export default class CheckoutController extends Controller {
     }
 
     try {
-      // Let the payment adapter tokenize (get nonce, etc.) before submitting
+      // Let the payment adapter tokenize (get nonce, etc.) before submitting.
+      // Pass the canonical checkout state so the adapter doesn't have to
+      // re-query DOM — DOM reads are racey if shipping methods rendered
+      // mid-click (the radio may not be marked :checked yet in the document
+      // even though the controller's _selectedShipping is set).
       const paymentData = this._paymentAdapter
-        ? await this._paymentAdapter.tokenize()
+        ? await this._paymentAdapter.tokenize({
+            shippingMethod: this._selectedShipping,
+            shippingAddress: addr,
+          })
         : null;
 
       const billingAddr = this._getBillingAddress();

@@ -254,7 +254,28 @@
           return;
         }
 
-        var piResponse = await self._apiPost('/api/payments/stripe/payment-intents', { cartId: cartId });
+        // Include shipping method + address so the Worker can size the PI
+        // correctly. Without this, PI = subtotal-only and a downstream order
+        // total that includes shipping causes an amount-mismatch capture
+        // failure. (Apple Pay / Google Pay / Link all hit this code path.)
+        var piPayload = { cartId: cartId };
+        var radio = document.querySelector('input[name="shipping_method"]:checked');
+        var getVal = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+        if (radio) {
+          piPayload.shippingMethod = radio.value;
+          piPayload.shippingAddress = {
+            firstName: getVal('checkout-firstname'),
+            lastName: getVal('checkout-lastname'),
+            street: [getVal('checkout-street'), getVal('checkout-street2')].filter(Boolean),
+            city: getVal('checkout-city'),
+            postcode: getVal('checkout-postcode'),
+            countryId: getVal('checkout-country'),
+            regionId: getVal('checkout-region') || undefined,
+            region: getVal('checkout-region-text') || undefined,
+            telephone: getVal('checkout-telephone'),
+          };
+        }
+        var piResponse = await self._apiPost('/api/payments/stripe/payment-intents', piPayload);
         if (piResponse.error) {
           ev.complete('fail');
           self._showError(piResponse.message || 'Could not initialize payment.');
@@ -325,7 +346,7 @@
     }
   };
 
-  StripeAdapter.prototype.tokenize = async function () {
+  StripeAdapter.prototype.tokenize = async function (context) {
     // If Payment Request flow already completed, return the PI ID directly
     if (this._prPaymentIntentId) {
       var piId = this._prPaymentIntentId;
@@ -354,25 +375,33 @@
       throw new Error('No active cart found. Please add items to your cart.');
     }
 
-    // Read shipping method + address from the checkout form so the Worker
-    // can set shipping on the cart before creating the PaymentIntent.
+    // Shipping method + address come from the checkout controller's context
+    // (canonical state). Falling back to DOM is racey — the radio may exist
+    // but not yet be marked :checked at click time, which results in the PI
+    // being sized to subtotal-only and an amount mismatch at capture.
     var piBody = { cartId: cartId };
-    var shippingRadio = document.querySelector('input[name="shipping_method"]:checked');
-    if (shippingRadio) {
-      piBody.shippingMethod = shippingRadio.value;
-      // Collect address from checkout form targets
-      var getVal = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
-      piBody.shippingAddress = {
-        firstName: getVal('checkout-firstname'),
-        lastName: getVal('checkout-lastname'),
-        street: [getVal('checkout-street'), getVal('checkout-street2')].filter(Boolean),
-        city: getVal('checkout-city'),
-        postcode: getVal('checkout-postcode'),
-        countryId: getVal('checkout-country'),
-        regionId: getVal('checkout-region') || undefined,
-        region: getVal('checkout-region-text') || undefined,
-        telephone: getVal('checkout-telephone'),
-      };
+    if (context && context.shippingMethod && context.shippingAddress) {
+      piBody.shippingMethod = context.shippingMethod;
+      piBody.shippingAddress = context.shippingAddress;
+    } else {
+      // Legacy DOM-read fallback (e.g. Payment Request flow that doesn't
+      // pass context). Best-effort.
+      var shippingRadio = document.querySelector('input[name="shipping_method"]:checked');
+      if (shippingRadio) {
+        piBody.shippingMethod = shippingRadio.value;
+        var getVal = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+        piBody.shippingAddress = {
+          firstName: getVal('checkout-firstname'),
+          lastName: getVal('checkout-lastname'),
+          street: [getVal('checkout-street'), getVal('checkout-street2')].filter(Boolean),
+          city: getVal('checkout-city'),
+          postcode: getVal('checkout-postcode'),
+          countryId: getVal('checkout-country'),
+          regionId: getVal('checkout-region') || undefined,
+          region: getVal('checkout-region-text') || undefined,
+          telephone: getVal('checkout-telephone'),
+        };
+      }
     }
 
     var piResponse = await this._apiPost('/api/payments/stripe/payment-intents', piBody);
