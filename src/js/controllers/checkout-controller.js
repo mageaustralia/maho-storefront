@@ -100,6 +100,76 @@ export default class CheckoutController extends Controller {
 
     // Allow payment adapters to enhance the email field (e.g. Stripe Link)
     this._initEarlyAdapter();
+
+    // Restore in-progress checkout fields from localStorage (covers refresh /
+    // navigate-away-and-back). For guests this is the only persistence layer;
+    // logged-in customers also get _prefillFromCustomer above which wins.
+    this._restoreFormDraft();
+    this._attachDraftSaver();
+  }
+
+  // Fields we save+restore. Match the storefront's input ids — first/last
+  // name, address, country, region, phone, plus email and the optional
+  // billing-separately fields.
+  static FORM_DRAFT_FIELDS = [
+    'email', 'firstName', 'lastName', 'company', 'street', 'street2',
+    'city', 'postcode', 'country', 'region', 'regionText', 'telephone',
+    'billingFirstName', 'billingLastName', 'billingCompany', 'billingStreet',
+    'billingStreet2', 'billingCity', 'billingPostcode', 'billingCountry',
+    'billingRegion', 'billingRegionText', 'billingTelephone',
+  ];
+
+  _draftKey() {
+    return 'maho_checkout_draft:' + (api.cartId() || 'no-cart');
+  }
+
+  _restoreFormDraft() {
+    let draft;
+    try { draft = JSON.parse(localStorage.getItem(this._draftKey()) || 'null'); } catch { draft = null; }
+    if (!draft) return;
+
+    for (const field of CheckoutController.FORM_DRAFT_FIELDS) {
+      const hasTarget = `has${field[0].toUpperCase()}${field.slice(1)}Target`;
+      const target = `${field}Target`;
+      if (!this[hasTarget]) continue;
+      const el = this[target];
+      // Don't clobber a value that another path (customer prefill, gateway
+      // redirect) already set this turn.
+      if (!el.value && draft[field]) el.value = draft[field];
+    }
+
+    // Repopulate region dropdown for the restored country before re-rendering.
+    if (this.hasCountryTarget && this.countryTarget.value) {
+      this.onCountryChange();
+      // After regions reload, restore the region selection.
+      if (draft.region && this.hasRegionTarget) {
+        setTimeout(() => { this.regionTarget.value = draft.region; }, 100);
+      }
+    }
+    // A restored address may already satisfy the shipping-rate prerequisites —
+    // trigger rate calc so the user sees their shipping options on refresh.
+    this.onAddressChange();
+  }
+
+  _attachDraftSaver() {
+    const save = () => {
+      const draft = {};
+      for (const field of CheckoutController.FORM_DRAFT_FIELDS) {
+        const hasTarget = `has${field[0].toUpperCase()}${field.slice(1)}Target`;
+        const target = `${field}Target`;
+        if (!this[hasTarget]) continue;
+        const val = this[target].value;
+        if (val) draft[field] = val;
+      }
+      try { localStorage.setItem(this._draftKey(), JSON.stringify(draft)); } catch {}
+    };
+    // Save on any input/change inside the controller's element.
+    this.element.addEventListener('input', save);
+    this.element.addEventListener('change', save);
+  }
+
+  _clearFormDraft() {
+    try { localStorage.removeItem(this._draftKey()); } catch {}
   }
 
   async _initEarlyAdapter(retries = 0) {
@@ -800,7 +870,7 @@ export default class CheckoutController extends Controller {
         // and verify the order when customer returns from payment gateway
         sessionStorage.setItem('maho_pending_order', JSON.stringify({
           incrementId: order.incrementId,
-          orderToken: order.orderToken,
+          orderToken: order.accessToken,
           cartId: localStorage.getItem('maho_cart_id'),
           email,
         }));
@@ -810,12 +880,13 @@ export default class CheckoutController extends Controller {
       }
 
       // Direct checkout (no redirect) — clear cart now
+      this._clearFormDraft();
       localStorage.removeItem('maho_cart_id');
       localStorage.removeItem('maho_cart_qty');
       updateCartBadge();
 
       // Navigate to success page with token verification
-      window.Turbo?.visit(`/order/success?order=${encodeURIComponent(order.incrementId)}&token=${encodeURIComponent(order.orderToken)}`);
+      window.Turbo?.visit(`/order/success?order=${encodeURIComponent(order.incrementId)}&token=${encodeURIComponent(order.accessToken)}`);
     } catch (e) {
       if (this.hasOrderErrorTarget) {
         this.orderErrorTarget.textContent = e.message;

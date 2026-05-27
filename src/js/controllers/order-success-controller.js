@@ -40,52 +40,85 @@ export default class OrderSuccessController extends Controller {
       return;
     }
 
+    // Cache the first /details response in sessionStorage so:
+    // (a) in-tab refresh shows the same receipt without re-hitting the API
+    //     (the backend's one-time-use token would 404 the second request),
+    // (b) analytics fire once per actual order placement, not once per
+    //     render of this controller (Turbo / Stimulus can connect twice).
+    const cacheKey = `maho_order_view:${incrementId}:${orderToken.slice(0, 12)}`;
+    let order;
+    let firstRender = true;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        order = JSON.parse(cached);
+        firstRender = false;
+      } catch {}
+    }
+
     try {
-      const response = await api.post(`/api/orders/${encodeURIComponent(incrementId)}/verify`, {
-        orderToken,
-      });
+      if (!order) {
+        // GET /api/orders/{incrementId}/details with X-Order-Token header.
+        // The backend consumes (clears) the token on success — that's why
+        // we cache the response above; a second hit would 404.
+        const response = await fetch(
+          `${api.url()}/api/orders/${encodeURIComponent(incrementId)}/details`,
+          {
+            headers: {
+              'Accept': 'application/ld+json',
+              'X-Order-Token': orderToken,
+            },
+            cache: 'no-store',
+          },
+        );
 
-      if (!response.ok) {
-        this._showError();
-        return;
-      }
+        if (!response.ok) {
+          this._showError();
+          return;
+        }
 
-      const order = await response.json();
-      if (!order.verified) {
-        this._showError();
-        return;
+        order = await response.json();
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify(order));
+        } catch {}
       }
 
       this._order = order;
+      this._firstRender = firstRender;
 
       // Order verified — now safe to clear cart
       localStorage.removeItem('maho_cart_id');
       localStorage.removeItem('maho_cart_qty');
       updateCartBadge();
 
+      // Backend now returns the Order DTO shape — customerEmail not email,
+      // prices.* nested, item.price/qty mapped from order_item.
+      const orderEmail = order.customerEmail || order.email || email;
       if (this.hasOrderNumberTarget) {
         this.orderNumberTarget.textContent = `Your order number is #${order.incrementId}`;
       }
-      if (this.hasOrderEmailTarget && (order.email || email)) {
-        this.orderEmailTarget.textContent = `A confirmation email will be sent to ${order.email || email}`;
+      if (this.hasOrderEmailTarget && orderEmail) {
+        this.orderEmailTarget.textContent = `A confirmation email will be sent to ${orderEmail}`;
       }
 
       // Render order summary
       this._renderOrderSummary(order);
 
-      // Show guest account creation if backend issued an account token (via HttpOnly cookie)
-      if (order.canCreateAccount && this.hasCreateAccountTarget) {
+      // Show guest account creation if backend issued an account token.
+      if ((order.accountToken || order.canCreateAccount) && this.hasCreateAccountTarget) {
         this.createAccountTarget.style.display = '';
       }
 
-      // Analytics: track purchase
-      if (order.items && order.items.length > 0) {
+      // Analytics: track purchase — but ONLY on the first render. Cached
+      // re-renders (refresh, Turbo re-attach) must not double-count.
+      const prices = order.prices || {};
+      if (firstRender && order.items && order.items.length > 0) {
         analytics.purchase(
           order.incrementId,
           order.items,
-          order.grandTotal,
-          order.tax || 0,
-          order.shipping || 0,
+          prices.grandTotal ?? order.grandTotal,
+          prices.taxAmount ?? prices.tax ?? order.tax ?? 0,
+          prices.shippingAmount ?? prices.shipping ?? order.shipping ?? 0,
           order.currency || 'USD',
         );
       }
@@ -112,20 +145,28 @@ export default class OrderSuccessController extends Controller {
       `).join('');
     }
 
-    // Totals
-    if (this.hasSubtotalTarget) this.subtotalTarget.textContent = formatPrice(order.subtotal || order.grandTotal, currency);
-    if (this.hasShippingTarget) this.shippingTarget.textContent = order.shipping ? formatPrice(order.shipping, currency) : 'Free';
-    if (order.tax > 0 && this.hasTaxRowTarget && this.hasTaxTarget) {
+    // Totals — Order DTO nests these under `prices` (subtotal/subtotalInclTax/
+    // shippingAmount/taxAmount/grandTotal). Fall back to flat fields for the
+    // pre-rest-v2 response shape.
+    const prices = order.prices || {};
+    const subtotal = prices.subtotalInclTax ?? prices.subtotal ?? order.subtotal ?? order.grandTotal;
+    const shipping = prices.shippingAmountInclTax ?? prices.shippingAmount ?? prices.shipping ?? order.shipping;
+    const tax = prices.taxAmount ?? prices.tax ?? order.tax ?? 0;
+    const total = prices.grandTotal ?? order.grandTotal;
+    if (this.hasSubtotalTarget) this.subtotalTarget.textContent = formatPrice(subtotal, currency);
+    if (this.hasShippingTarget) this.shippingTarget.textContent = shipping ? formatPrice(shipping, currency) : 'Free';
+    if (tax > 0 && this.hasTaxRowTarget && this.hasTaxTarget) {
       this.taxRowTarget.style.display = '';
-      this.taxTarget.textContent = formatPrice(order.tax, currency);
+      this.taxTarget.textContent = formatPrice(tax, currency);
     }
-    if (this.hasTotalTarget) this.totalTarget.textContent = formatPrice(order.grandTotal, currency);
+    if (this.hasTotalTarget) this.totalTarget.textContent = formatPrice(total, currency);
 
     this.orderSummaryTarget.style.display = '';
   }
 
   async createAccount() {
-    if (!this._order?.email || !this.hasNewPasswordTarget) return;
+    const email = this._order?.customerEmail || this._order?.email;
+    if (!email || !this.hasNewPasswordTarget) return;
     const password = this.newPasswordTarget.value;
     if (!password || password.length < 6) {
       this._showAccountMsg('Password must be at least 6 characters', true);
