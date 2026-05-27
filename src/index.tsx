@@ -1240,15 +1240,18 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
   // If shipping info provided, set it on the cart first so grandTotal includes shipping
   let shippingPrice = 0;
   if (shippingMethod && shippingAddress) {
-    // POST shipping-methods with address to set address + get available rates
+    // POST shipping-methods with address to set address + get available rates.
+    // Backend returns the Cart with rates nested at .availableShippingMethods;
+    // each entry has carrierCode + methodCode (no top-level `code` field).
     const methodsRes = await fetch(`${apiUrl}/api/rest/v2/guest-carts/${cartId}/shipping-methods`, {
       method: 'POST',
       headers: mahoHeaders,
       body: JSON.stringify({ address: shippingAddress }),
     });
     if (methodsRes.ok) {
-      const methods = await methodsRes.json() as Array<{ code: string; price: number }>;
-      const matched = methods.find(m => m.code === shippingMethod);
+      const resp = await methodsRes.json() as { availableShippingMethods?: Array<{ carrierCode: string; methodCode: string; price: number }> };
+      const methods = resp.availableShippingMethods || [];
+      const matched = methods.find(m => `${m.carrierCode}_${m.methodCode}` === shippingMethod);
       if (matched) shippingPrice = matched.price || 0;
     }
   }
@@ -1395,6 +1398,12 @@ app.all('/api/*', async (c) => {
 
   // Add store code header
   if (currentStoreCode) headers.set('X-Store-Code', currentStoreCode);
+
+  // Forward client-set custom headers that aren't standard auth.
+  // X-Order-Token: one-time per-order access token for the guest order
+  // confirmation read at GET /orders/{incrementId}/details.
+  const orderToken = c.req.header('X-Order-Token');
+  if (orderToken) headers.set('X-Order-Token', orderToken);
 
   // Add basic auth if configured (for dev/staging backends)
   if (c.env.MAHO_API_BASIC_AUTH && !authHeader) {
