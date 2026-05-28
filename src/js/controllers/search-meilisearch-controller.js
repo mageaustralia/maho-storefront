@@ -143,17 +143,73 @@ export default class SearchMeilisearchController extends Controller {
     }
   }
 
+  /**
+   * Resolve the current customer's group_id for per-group pricing.
+   *
+   * Returns 0 (= NOT LOGGED IN) when the visitor is anonymous, or the
+   * numeric group_id when a customer is logged in. Checks two sources:
+   *
+   *   1. The `maho_customer` localStorage blob auth-controller stores on
+   *      login. Supports a few field-name casings the backend may use.
+   *   2. The `maho_token` JWT payload as a fallback (decoded client-side,
+   *      no signature check — we just need the claim, the security boundary
+   *      is the API key on the search-only endpoint).
+   */
+  _resolveCustomerGroupId() {
+    const toInt = (v) => {
+      if (typeof v === 'number' && Number.isFinite(v)) return v;
+      if (typeof v === 'string' && v !== '') {
+        const n = parseInt(v, 10);
+        return Number.isNaN(n) ? null : n;
+      }
+      return null;
+    };
+
+    try {
+      const raw = localStorage.getItem('maho_customer');
+      if (raw) {
+        const obj = JSON.parse(raw);
+        const id = toInt(obj.customer_group_id ?? obj.customerGroupId ?? obj.group_id ?? obj.groupId);
+        if (id !== null) return id;
+      }
+    } catch { /* malformed JSON; fall through */ }
+
+    try {
+      const token = localStorage.getItem('maho_token');
+      if (token) {
+        const parts = token.split('.');
+        if (parts.length >= 2) {
+          // base64url -> base64 + pad
+          const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
+          const payload = JSON.parse(atob(padded));
+          const id = toInt(payload.customer_group_id ?? payload.group_id ?? payload.cgid);
+          if (id !== null) return id;
+        }
+      }
+    } catch { /* not a JWT, or atob failed */ }
+
+    return 0;
+  }
+
   _normalizeProducts(hits) {
     const currency = this.currencyValue;
+    const groupId = this._resolveCustomerGroupId();
+    // For anonymous visitors (group 0) read `default`; for logged-in
+    // customers read `group_<id>`. Fall back to `default` if the index
+    // doesn't carry per-group fields yet (e.g. customer_groups_enable is
+    // off on a particular backend, or pre-flag indexed entries).
+    const priceKey = groupId > 0 ? `group_${groupId}` : 'default';
     return hits.map(hit => {
       const priceData = hit.price?.[currency] || hit.price?.[Object.keys(hit.price || {})[0]] || {};
+      const priceValue = priceData[priceKey] ?? priceData.default ?? hit.sort_price ?? 0;
       return {
         id: hit.objectID || hit.id,
         sku: hit.sku || '',
         name: hit.name || '',
         urlKey: this._extractUrlKey(hit.url || ''),
-        price: priceData.default || hit.sort_price || 0,
-        finalPrice: priceData.default || hit.sort_price || 0,
+        price: priceValue,
+        finalPrice: priceValue,
         thumbnailUrl: hit.image_url || hit.thumbnail_url || hit.small_image_url || null,
       };
     });
