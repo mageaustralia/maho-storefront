@@ -210,6 +210,15 @@ describe('Worker routes (integration)', () => {
     });
   });
 
+  describe('stripe plugin (src/plugins/stripe)', () => {
+    it('OPTIONS /api/payments/stripe/payment-intents returns a CORS preflight', async () => {
+      const res = await request('/api/payments/stripe/payment-intents', { method: 'OPTIONS' });
+      expect(res.status).toBe(204);
+      expect(res.headers.get('Access-Control-Allow-Methods')).toContain('POST');
+      expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
+    });
+  });
+
   describe('dev admin (src/routes/dev-admin.ts)', () => {
     it('/dev/tokens (GET) fails closed without auth', async () => {
       expect((await request('/dev/tokens')).status).toBe(401);
