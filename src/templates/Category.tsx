@@ -14,6 +14,7 @@ import { Seo } from './components/Seo';
 import { ProductCard } from './components/product-display/card/index';
 import { SubcategoryTiles } from './components/SubcategoryTiles';
 import { getSection } from '../page-config';
+import { paginationLinks } from '../utils/pagination-links';
 import { rewriteContentUrls } from '../content-rewriter';
 import { djb2 } from '../utils/hash';
 import { cleanUrlPath } from '../utils/format';
@@ -47,7 +48,9 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
   const sidebarParent = parentCategory ?? (isParentCategory ? category : null);
   const sidebarChildren = sidebarParent?.children?.filter(c => c.includeInMenu) ?? [];
 
-  const canonicalUrl = `${config.baseUrl}/${cleanUrlPath(category.urlPath) || category.urlKey}`;
+  const canonicalBase = `${config.baseUrl}/${cleanUrlPath(category.urlPath) || category.urlKey}`;
+  // Self-referencing canonical per page + rel prev/next (see paginationLinks).
+  const { canonical: canonicalUrl, prev: prevUrl, next: nextUrl } = paginationLinks(canonicalBase, currentPage, totalPages);
 
   const breadcrumbItems: { name: string; url?: string }[] = [{ name: 'Home', url: config.baseUrl }];
   if (parentCategory) {
@@ -114,6 +117,9 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
         siteName={config.storeName}
         jsonLd={[collectionLd, breadcrumbLd]}
       />
+      {/* Pagination hints (hoisted into <head> by Hono) */}
+      {prevUrl && <link rel="prev" href={prevUrl} />}
+      {nextUrl && <link rel="next" href={nextUrl} />}
       {/* Freshness metadata — client JS checks both category AND products */}
       <div hidden
         data-freshness-type="category"

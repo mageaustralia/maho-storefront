@@ -8,6 +8,7 @@ import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Product } from '../../../../types';
 import { formatPrice } from '../../../../utils/format';
+import { imageSrcset } from '../../../../utils/image';
 
 interface ProductCardProps {
   product: Product;
@@ -40,7 +41,7 @@ export const ProductCard: FC<ProductCardProps> = ({ product, currency = 'USD', p
       <a href={productUrl} data-turbo-prefetch="true" class="flex flex-col flex-1">
         <figure class="relative aspect-square bg-[var(--product-image-bg)] overflow-hidden">
           {product.thumbnailUrl ? (
-            <img src={product.thumbnailUrl} alt={product.name} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'} fetchpriority={priority ? 'high' : undefined} class="w-full h-full object-contain mix-blend-multiply" />
+            <img src={product.thumbnailUrl} srcset={imageSrcset(product.thumbnailUrl) ?? undefined} sizes={imageSrcset(product.thumbnailUrl) ? '(max-width: 640px) 50vw, 240px' : undefined} alt={product.name} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'} fetchpriority={priority ? 'high' : undefined} class="w-full h-full object-contain mix-blend-multiply" />
           ) : (
             <span class="absolute inset-0 flex items-center justify-center text-base-content/30 text-sm">No Image</span>
           )}

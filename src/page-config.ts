@@ -31,6 +31,7 @@ type PageConfigShape = typeof defaultPageConfig;
 let _renderStoreCode: string | undefined;
 let _renderApiUrl: string = '';
 let _renderPageConfigOverride: string | null = null;
+let _renderImageResize = false;
 
 /**
  * Set the current store code for the render pass.
@@ -46,6 +47,13 @@ export function setRenderStore(storeCode?: string): void {
  */
 export function setRenderApiUrl(url: string): void { _renderApiUrl = url; }
 export function getRenderApiUrl(): string { return _renderApiUrl; }
+
+/**
+ * Whether responsive srcset (via Cloudflare Image Resizing) is enabled for this
+ * render pass. Off by default — see src/utils/image.ts for the cost note.
+ */
+export function setRenderImageResize(on: boolean): void { _renderImageResize = on; }
+export function getRenderImageResize(): boolean { return _renderImageResize; }
 
 /**
  * Override the page config for preview mode.

@@ -76,6 +76,7 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ config, categories,
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         {/* Agent-readiness: point automated readers at /llms.txt. AI agents
             that scan <head> for a reading list, or read HTML comments for a
             markdown-view hint, will discover both here. Browsers ignore them.
