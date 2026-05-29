@@ -5,6 +5,7 @@
  */
 
 import type { Context, Next } from 'hono';
+import { PLUGIN_CSP } from '../plugins/csp';
 
 /**
  * Content-Security-Policy emitted in **Report-Only** mode.
@@ -18,22 +19,41 @@ import type { Context, Next } from 'hono';
  * to enforce. Flipping to enforce also needs nonces on the inline <script>
  * blocks in Layout.tsx / Product.tsx and the inline onclick handlers in the
  * product cards (tracked in the remediation plan, Phase 1.2).
+ *
+ * Gateway/SDK sources (e.g. Stripe's js.stripe.com / api.stripe.com) are NOT
+ * hardcoded here — each plugin owns its CSP sources and they're merged in via
+ * PLUGIN_CSP (src/plugins/csp.ts). Removing a plugin removes its CSP footprint.
  */
+// Core sources every storefront needs, before plugin contributions.
+const BASE_CSP = {
+  // 'unsafe-inline' is present ONLY so report-only doesn't drown in noise from
+  // the known inline scripts; the enforced version will replace it with nonces.
+  scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+  styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+  fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+  imgSrc: ["'self'", 'data:', 'https:'],
+  connectSrc: ["'self'"],
+  frameSrc: [] as string[],
+};
+
+function srcDirective(name: string, base: string[], plugin: string[]): string | null {
+  const sources = [...base, ...plugin];
+  return sources.length ? `${name} ${sources.join(' ')}` : null;
+}
+
 const CSP_REPORT_ONLY = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'self'",
   "form-action 'self'",
-  // 'unsafe-inline' is present ONLY so report-only doesn't drown in noise from
-  // the known inline scripts; the enforced version will replace it with nonces.
-  "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src 'self' data: https:",
-  "connect-src 'self' https://api.stripe.com",
-  "frame-src https://js.stripe.com https://hooks.stripe.com",
-].join('; ');
+  srcDirective('script-src', BASE_CSP.scriptSrc, PLUGIN_CSP.scriptSrc),
+  srcDirective('style-src', BASE_CSP.styleSrc, PLUGIN_CSP.styleSrc),
+  srcDirective('font-src', BASE_CSP.fontSrc, PLUGIN_CSP.fontSrc),
+  srcDirective('img-src', BASE_CSP.imgSrc, PLUGIN_CSP.imgSrc),
+  srcDirective('connect-src', BASE_CSP.connectSrc, PLUGIN_CSP.connectSrc),
+  srcDirective('frame-src', BASE_CSP.frameSrc, PLUGIN_CSP.frameSrc),
+].filter(Boolean).join('; ');
 
 /**
  * Global security-headers middleware.

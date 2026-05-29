@@ -22,3 +22,4 @@
 export { registerStripeRoutes, type StripeRouteDeps } from './routes';
 export { syncStripeConfig, type SyncStripeOptions } from './sync';
 export { getStripePublishableKey } from './config';
+export { STRIPE_CSP } from './csp';
