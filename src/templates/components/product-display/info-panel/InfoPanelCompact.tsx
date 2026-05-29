@@ -7,6 +7,7 @@
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Product as ProductType } from '../../../../types';
+import { sanitizeCmsHtml } from '../../../../utils/sanitize-html';
 
 interface InfoPanelCompactProps {
   product: ProductType;
@@ -91,7 +92,7 @@ export const InfoPanelCompact: FC<InfoPanelCompactProps> = ({ product, currency,
 
       {/* Short description */}
       {product.shortDescription && (
-        <div class="text-sm text-base-content/70 leading-relaxed" dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
+        <div class="text-sm text-base-content/70 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(product.shortDescription) }} />
       )}
 
       {/* Configurable Options */}

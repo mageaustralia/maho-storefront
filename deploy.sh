@@ -11,12 +11,12 @@ fi
 
 # Build CSS + JavaScript before deploying
 echo "Building..."
-CI=true bun run build
+CI=true npm run build
 
 # Deploy to Cloudflare (uses wrangler.toml by default, or specify with --config)
 CLOUDFLARE_API_KEY="$CLOUDFLARE_API_KEY" \
 CLOUDFLARE_EMAIL="$CLOUDFLARE_EMAIL" \
-bun x wrangler deploy --config wrangler.toml "$@"
+npx wrangler deploy --config wrangler.toml "$@"
 
 # Purge edge cache
 if [ -n "$PURGE_HOSTS" ]; then

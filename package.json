@@ -5,8 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "npm run generate && npm run build:css && npm run build:js && wrangler dev --config wrangler.toml --local",
+    "dev:watch": "npm run generate && (unocss \"src/**/*.{tsx,ts,js}\" --watch --out-file public/styles.css & esbuild src/js/app.js --bundle --format=esm --outfile=public/controllers.js.txt --external:https://cdn.jsdelivr.net/* --watch & wrangler dev --config wrangler.toml --local)",
     "deploy": "wrangler deploy",
     "types": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check src",
+    "format": "biome format --write src",
     "test": "vitest run",
     "build:js": "esbuild src/js/app.js --bundle --minify --format=esm --outfile=public/controllers.js.txt --external:https://cdn.jsdelivr.net/* && esbuild src/embed/embed.ts --bundle --minify --format=iife --outfile=public/embed.js.txt --target=es2020",
     "build:css": "unocss \"src/**/*.tsx\" \"src/**/*.ts\" \"src/**/*.js\" --out-file public/styles.css",
@@ -19,18 +23,20 @@
     "docs:build": "cd docs && npx vitepress build"
   },
   "dependencies": {
-    "hono": "latest"
+    "hono": "^4.11.9",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "latest",
+    "@biomejs/biome": "^1.9.4",
+    "@cloudflare/workers-types": "^4.20260207.0",
     "@hotwired/stimulus": "^3.2.2",
     "@unocss/cli": "^66.1.0",
     "@unocss/preset-typography": "^66.6.2",
     "daisyui": "^5.5.19",
     "esbuild": "^0.20.0",
-    "typescript": "latest",
+    "typescript": "^5.9.3",
     "unocss": "^66.1.0",
     "vitest": "^4.0.18",
-    "wrangler": "latest"
+    "wrangler": "^4.63.0"
   }
 }

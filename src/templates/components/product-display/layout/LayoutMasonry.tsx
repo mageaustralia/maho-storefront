@@ -7,6 +7,7 @@
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Product as ProductType } from '../../../../types';
+import { sanitizeCmsHtml } from '../../../../utils/sanitize-html';
 import { ProductCard } from '../card/index';
 
 interface LayoutMasonryProps {
@@ -164,7 +165,7 @@ export const LayoutMasonry: FC<LayoutMasonryProps> = ({ product, currency, produ
 
           {/* Short description */}
           {product.shortDescription && (
-            <div class="text-sm text-base-content/70 leading-relaxed" dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
+            <div class="text-sm text-base-content/70 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(product.shortDescription) }} />
           )}
 
           {/* Configurable Options */}
@@ -352,7 +353,7 @@ export const LayoutMasonry: FC<LayoutMasonryProps> = ({ product, currency, produ
                   Description
                   <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                 </summary>
-                <div class="pb-4 text-sm text-base-content/70 leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
+                <div class="pb-4 text-sm text-base-content/70 leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(product.description) }} />
               </details>
             )}
 

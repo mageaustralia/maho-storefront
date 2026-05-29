@@ -15,6 +15,7 @@ import type {
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
+import { sanitizeCmsHtml } from '../utils/sanitize-html';
 import { Gallery } from './components/marketplace/Gallery';
 import { FeatureBlocks } from './components/marketplace/FeatureBlocks';
 import { Faq } from './components/marketplace/Faq';
@@ -153,11 +154,11 @@ export const MarketplaceExtensionPage: FC<MarketplaceExtensionPageProps> = ({
                 <p class="text-base-content/80">{extension.short_description}</p>
               )}
               {extension.description && (
-                /* The API emits HTML; safe to render because admins author this
-                   content and it already goes through Maho's admin XSS filters. */
+                /* Admin-authored HTML — sanitised before render (Maho's WYSIWYG
+                   does not strip script/event-handlers on its own). */
                 <div
                   class="mt-6 text-base-content/90"
-                  dangerouslySetInnerHTML={{ __html: extension.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(extension.description) }}
                 />
               )}
               {!extension.short_description && !extension.description && (

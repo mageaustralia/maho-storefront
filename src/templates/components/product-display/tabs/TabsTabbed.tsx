@@ -7,6 +7,7 @@
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Product as ProductType } from '../../../../types';
+import { sanitizeCmsHtml } from '../../../../utils/sanitize-html';
 import { ProductCard } from '../card/index';
 import { getSection } from '../../../../page-config';
 
@@ -32,7 +33,7 @@ export const TabsTabbed: FC<TabsTabbedProps> = ({ product, currency }) => {
       {product.description && (
         <div class="product-full-description">
           <h2>Description</h2>
-          <div class="description-content" dangerouslySetInnerHTML={{ __html: product.description }} />
+          <div class="description-content" dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(product.description) }} />
         </div>
       )}
 

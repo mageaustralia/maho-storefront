@@ -7,6 +7,7 @@
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Product as ProductType, Category, StoreConfig, StorefrontStore } from '../types';
+import { sanitizeCmsHtml } from '../utils/sanitize-html';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
@@ -451,7 +452,7 @@ export const ProductPage: FC<ProductPageProps> = ({ config, categories, product,
                   </div>
 
                   {product.shortDescription && (
-                    <div class="product-short-desc" dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
+                    <div class="product-short-desc" dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(product.shortDescription) }} />
                   )}
                 </>
               )}

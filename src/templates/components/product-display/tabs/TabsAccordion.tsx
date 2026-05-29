@@ -7,6 +7,7 @@
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Product as ProductType } from '../../../../types';
+import { sanitizeCmsHtml } from '../../../../utils/sanitize-html';
 import { ProductCard } from '../card/index';
 import { getSection } from '../../../../page-config';
 
@@ -37,7 +38,7 @@ export const TabsAccordion: FC<TabsAccordionProps> = ({ product, currency }) => 
             Description
             {chevron}
           </summary>
-          <div class="pb-4 text-sm text-base-content/70 leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
+          <div class="pb-4 text-sm text-base-content/70 leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(product.description) }} />
         </details>
       )}
 

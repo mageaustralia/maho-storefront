@@ -352,6 +352,7 @@ export interface Env {
   MAHO_API_URL: string;
   SYNC_SECRET: string;
   DEV_SECRET?: string;        // HMAC signing key for dev session cookies
+  WORKER_AUTH?: string;       // Shared secret sent as X-Worker-Auth to the Maho backend
   MAHO_API_BASIC_AUTH?: string; // Optional basic auth for API (user:pass)
   STORES?: string;       // JSON array of StorefrontStore
   GOOGLE_MAPS_KEY?: string; // Google Places Autocomplete API key

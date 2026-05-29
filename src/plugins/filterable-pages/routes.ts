@@ -39,6 +39,7 @@ export function registerFilterablePagesRoutes(
       helpers.getApiUrl(c.env, stores, storeCode),
       storeCode,
       c.env.MAHO_API_BASIC_AUTH,
+      c.env.WORKER_AUTH,
     );
 
     const result = await syncMenuDataOnly(api, store, prefix);
