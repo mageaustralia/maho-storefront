@@ -7,10 +7,10 @@
 import { EmbedApi, type EmbedCart, type ShippingMethod, type PaymentMethod } from './api';
 import type { CartManager } from './cart-manager';
 import { lightboxStyles } from './styles';
+import { createPaymentAdapter, type PaymentAdapter, type PaymentHost } from './payments';
 
 type Step = 'cart' | 'shipping' | 'delivery' | 'payment' | 'confirm';
 
-const STRIPE_JS_URL = 'https://js.stripe.com/v3/';
 // Google Maps API key is passed via config; empty = autocomplete disabled
 
 interface CountryOption {
@@ -43,11 +43,8 @@ export class CheckoutFlow {
     city: '', postcode: '', countryId: '', regionId: '', region: '', telephone: '',
   };
 
-  // Stripe
-  private stripe: any = null;
-  private stripeElements: any = null;
-  private cardElement: any = null;
-  private cardComplete = false;
+  // Payment — the adapter for the selected method (gateway-agnostic)
+  private paymentAdapter: PaymentAdapter | null = null;
 
   // Order result
   private orderResult: { incrementId: string } | null = null;
@@ -137,7 +134,7 @@ export class CheckoutFlow {
     this.bindCommon();
 
     if (this.step === 'payment') {
-      this.mountStripe();
+      this.mountPaymentAdapter();
     }
 
     if (this.step === 'shipping') {
@@ -330,7 +327,7 @@ export class CheckoutFlow {
         </div>
 
         <div class="maho-co-label">Card Details</div>
-        <div class="maho-co-stripe-card" data-stripe-card>
+        <div class="maho-co-stripe-card" data-payment-mount>
           <p style="font-size:13px;color:var(--maho-text-muted)">Loading payment...</p>
         </div>
         <div class="maho-co-error" data-error></div>
@@ -676,85 +673,45 @@ export class CheckoutFlow {
     };
   }
 
-  // ---- Stripe ----
+  // ---- Payment ----
 
-  private async mountStripe() {
-    const container = this.container.querySelector('[data-stripe-card]') as HTMLElement;
-    if (!container) return;
-
-    try {
-      // Load Stripe.js if needed
-      if (!(window as any).Stripe) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = STRIPE_JS_URL;
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error('Failed to load Stripe'));
-          document.head.appendChild(script);
-        });
-      }
-
-      // Get publishable key (pre-loaded from /embed/products response)
-      const publishableKey = this.api.stripePublishableKey;
-      if (!publishableKey) {
-        // Fallback: try fetching from API
-        const config = await this.api.getStripeConfig();
-        if (!config?.publishableKey) {
-          container.innerHTML = '<p style="font-size:13px;color:var(--maho-error)">Payment not configured.</p>';
-          return;
-        }
-        this.api.stripePublishableKey = config.publishableKey;
-      }
-
-      this.stripe = (window as any).Stripe(this.api.stripePublishableKey);
-      this.stripeElements = this.stripe.elements();
-      this.cardElement = this.stripeElements.create('card', {
-        style: {
-          base: {
-            fontSize: '15px',
-            color: '#1f2937',
-            '::placeholder': { color: '#9ca3af' },
-          },
-        },
-      });
-
-      container.innerHTML = '';
-      this.cardElement.mount(container);
-
-      this.cardElement.on('change', (event: any) => {
-        this.cardComplete = event.complete;
+  /** Bind the checkout flow's callbacks/accessors for the active adapter. */
+  private paymentHost(): PaymentHost {
+    return {
+      api: this.api,
+      getCartId: () => this.cartManager.getCartId()!,
+      getSelectedShipping: () => this.selectedShipping,
+      buildAddress: () => this.buildAddress(),
+      setReady: (ready: boolean) => {
         const placeBtn = this.container.querySelector('[data-action="place-order"]') as HTMLButtonElement;
-        if (placeBtn) placeBtn.disabled = !event.complete;
-        if (event.error) {
-          const errorEl = this.container.querySelector('[data-error]') as HTMLElement;
-          if (errorEl) { errorEl.textContent = event.error.message; errorEl.classList.add('visible'); }
-        }
-      });
-    } catch (err: any) {
-      container.innerHTML = `<p style="font-size:13px;color:var(--maho-error)">${this.escHtml(err.message || 'Payment error')}</p>`;
-    }
+        if (placeBtn) placeBtn.disabled = !ready;
+      },
+      showError: (message: string) => {
+        const errorEl = this.container.querySelector('[data-error]') as HTMLElement;
+        if (errorEl) { errorEl.textContent = message; errorEl.classList.add('visible'); }
+      },
+    };
+  }
+
+  /** Mount the client UI for the selected payment method, if it has an adapter. */
+  private async mountPaymentAdapter() {
+    const container = this.container.querySelector('[data-payment-mount]') as HTMLElement;
+    if (!container) return;
+    this.paymentAdapter = createPaymentAdapter(this.selectedPayment);
+    // Methods with no client adapter (offline/redirect) keep the inert mount
+    // point; the place-order button is enabled by the adapter when ready.
+    if (!this.paymentAdapter) return;
+    await this.paymentAdapter.mount(container, this.paymentHost());
   }
 
   private async placeOrder() {
     const cartId = this.cartManager.getCartId()!;
-    let paymentData: any = null;
 
-    // Stripe card payment flow
-    if (this.selectedPayment === 'stripe_card' && this.stripe && this.cardElement) {
-      if (!this.cardComplete) throw new Error('Please complete your card details.');
-
-      // Create PaymentIntent (pass shipping info so backend can calculate correct total)
-      const pi = await this.api.createPaymentIntent(cartId, this.selectedShipping, this.buildAddress());
-
-      // Confirm card payment (handles 3DS)
-      const result = await this.stripe.confirmCardPayment(pi.clientSecret, {
-        payment_method: { card: this.cardElement },
-      });
-
-      if (result.error) throw new Error(result.error.message || 'Payment failed.');
-
-      paymentData = { stripe_payment_intent_id: result.paymentIntent.id };
-    }
+    // Run the selected gateway's client-side authorisation (e.g. Stripe 3DS).
+    // Adapter-less methods (offline/redirect) contribute no paymentData.
+    const paymentData = this.paymentAdapter
+      ? await this.paymentAdapter.confirm(this.paymentHost())
+      : null;
 
     // Place the order
     const order = await this.api.placeOrder(cartId, {
@@ -781,12 +738,11 @@ export class CheckoutFlow {
   }
 
   private onClose() {
-    // Clean up Stripe elements (they can't survive being hidden)
-    if (this.cardElement) {
-      try { this.cardElement.destroy(); } catch {}
-      this.cardElement = null;
+    // Tear down the payment gateway SDK (e.g. Stripe Elements can't survive being hidden)
+    if (this.paymentAdapter) {
+      this.paymentAdapter.teardown();
+      this.paymentAdapter = null;
     }
-    this.stripeElements = null;
 
     if (this.step === 'confirm') {
       // After order confirmation, fully destroy the checkout
