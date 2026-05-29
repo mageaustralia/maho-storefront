@@ -210,6 +210,25 @@ describe('Worker routes (integration)', () => {
     });
   });
 
+  describe('cache / freshness ops (src/routes/cache-ops.ts)', () => {
+    it('/pulse returns the pulse JSON (empty fallback on KV miss)', async () => {
+      const res = await request('/pulse');
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ hash: '', updatedAt: '' });
+    });
+
+    it('/cache/keys fails closed without auth', async () => {
+      const res = await request('/cache/keys');
+      expect(res.status).toBe(401);
+    });
+
+    it('/freshness/should-check returns {check:false} without a key', async () => {
+      const res = await request('/freshness/should-check');
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ check: false });
+    });
+  });
+
   describe('account / auth page renders (src/routes/account-pages.tsx)', () => {
     it('renders /login as a complete HTML document', async () => {
       const res = await request('/login');
