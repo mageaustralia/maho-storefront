@@ -210,6 +210,15 @@ describe('Worker routes (integration)', () => {
     });
   });
 
+  describe('dev admin (src/routes/dev-admin.ts)', () => {
+    it('/dev/tokens (GET) fails closed without auth', async () => {
+      expect((await request('/dev/tokens')).status).toBe(401);
+    });
+    it('/dev/config (POST) fails closed without auth', async () => {
+      expect((await request('/dev/config', { method: 'POST' })).status).toBe(401);
+    });
+  });
+
   describe('cache / freshness ops (src/routes/cache-ops.ts)', () => {
     it('/pulse returns the pulse JSON (empty fallback on KV miss)', async () => {
       const res = await request('/pulse');
