@@ -210,6 +210,25 @@ describe('Worker routes (integration)', () => {
     });
   });
 
+  describe('account / auth page renders (src/routes/account-pages.tsx)', () => {
+    it('renders /login as a complete HTML document', async () => {
+      const res = await request('/login');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Content-Type')).toContain('text/html');
+      const html = await res.text();
+      expect(html).toContain('<html');
+      expect(html).toContain('</html>');
+    });
+
+    it('renders /checkout as a complete HTML document (KV-miss countries)', async () => {
+      const res = await request('/checkout');
+      expect(res.status).toBe(200);
+      const html = await res.text();
+      expect(html).toContain('<html');
+      expect(html).toContain('</html>');
+    });
+  });
+
   describe('partial /sync/categories writes + stamps _lastChecked (Phase 3.3)', () => {
     it('stamps _lastChecked on the synced category (no perpetual-stale)', async () => {
       const env = testEnv({ SYNC_SECRET: 'real-secret' });

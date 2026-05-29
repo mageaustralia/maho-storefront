@@ -20,14 +20,6 @@ import { SearchResultsPage } from './templates/SearchResults';
 import { BlogPage, type BlogPostSummary } from './templates/Blog';
 import { BlogPostPage } from './templates/BlogPost';
 import { CmsPageTemplate } from './templates/CmsPage';
-import { CheckoutPage } from './templates/Checkout';
-import { OrderSuccessPage } from './templates/OrderSuccess';
-import { LoginPage } from './templates/Login';
-import { RegisterPage } from './templates/Register';
-import { ForgotPasswordPage } from './templates/ForgotPassword';
-import { ResetPasswordPage } from './templates/ResetPassword';
-import { AccountPage } from './templates/Account';
-import { ContactPage } from './templates/Contact';
 import { Layout } from './templates/Layout';
 import { Seo } from './templates/components/Seo';
 import { MarketplacePage } from './templates/Marketplace';
@@ -154,6 +146,7 @@ function createApiClient(env: Env, stores: StorefrontStore[], storeCode?: string
 import embedScript from '../public/embed.js.txt';
 import { registerStaticAssetRoutes } from './routes/static-assets';
 import { registerAgentRoutes } from './routes/agents';
+import { registerAccountPageRoutes } from './routes/account-pages';
 import { syncCategories } from './sync/entities';
 
 type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession } };
@@ -1644,95 +1637,9 @@ app.get('/blog/:slug', withEdgeCache(CACHE_BLOG), async (c) => {
   return c.html(<BlogPostPage config={config} categories={categories} post={post} postCategories={postCategories} blogCategories={blogCategories ?? []} stores={stores} currentStoreCode={currentStoreCode} sidebarLeft={null} sidebarRight={null} devData={devData} />);
 });
 
-// Auth pages
-app.get('/login', async (c) => {
-  const devSession = c.get('devSession') as DevSession | undefined;
-  const timer = devSession ? createDevTimer() : null;
-  const store = createStore(c.env, timer);
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
-  const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
-  return c.html(<LoginPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
-});
-
-app.get('/register', async (c) => {
-  const devSession = c.get('devSession') as DevSession | undefined;
-  const timer = devSession ? createDevTimer() : null;
-  const store = createStore(c.env, timer);
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
-  const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
-  return c.html(<RegisterPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
-});
-
-app.get('/forgot-password', async (c) => {
-  const devSession = c.get('devSession') as DevSession | undefined;
-  const timer = devSession ? createDevTimer() : null;
-  const store = createStore(c.env, timer);
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
-  const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
-  return c.html(<ForgotPasswordPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
-});
-
-app.get('/reset-password', async (c) => {
-  const devSession = c.get('devSession') as DevSession | undefined;
-  const timer = devSession ? createDevTimer() : null;
-  const store = createStore(c.env, timer);
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
-  const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
-  return c.html(<ResetPasswordPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
-});
-
-// Account
-app.get('/account', async (c) => {
-  const devSession = c.get('devSession') as DevSession | undefined;
-  const timer = devSession ? createDevTimer() : null;
-  const store = createStore(c.env, timer);
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
-  const countries = await store.get<Country[]>('countries') ?? [];
-  const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
-  return c.html(<AccountPage config={config} categories={categories} countries={countries} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
-});
-
-// Contact Us
-app.get('/contacts', async (c) => {
-  const devSession = c.get('devSession') as DevSession | undefined;
-  const timer = devSession ? createDevTimer() : null;
-  const store = createStore(c.env, timer);
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
-  const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
-  return c.html(<ContactPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
-});
-
-// Checkout
-app.get('/checkout', async (c) => {
-  const devSession = c.get('devSession') as DevSession | undefined;
-  const timer = devSession ? createDevTimer() : null;
-  const store = createStore(c.env, timer);
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
-  const countries = await store.get<Country[]>('countries') ?? [];
-  const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
-  const detectedCountry = (c.req.raw.cf as any)?.country as string || '';
-  const prefix = currentStoreCode ? `${currentStoreCode}:` : '';
-  const googleMapsKey = await store.get<string>(`${prefix}google:mapsKey`) || c.env.GOOGLE_MAPS_KEY;
-  return c.html(<CheckoutPage config={config} categories={categories} countries={countries} stores={stores} currentStoreCode={currentStoreCode} devData={devData} googleMapsKey={googleMapsKey} detectedCountry={detectedCountry} />);
-});
-
-// Order success
-app.get('/order/success', async (c) => {
-  const devSession = c.get('devSession') as DevSession | undefined;
-  const timer = devSession ? createDevTimer() : null;
-  const store = createStore(c.env, timer);
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const { config, categories } = await getStoreData(store, currentStoreCode, new URL(c.req.url).origin);
-  const devData = timer ? buildDevData(c, timer, currentStoreCode, devSession?.pageconfig ?? null, '') : null;
-  return c.html(<OrderSuccessPage config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData} />);
-});
+// Auth / account / contact / checkout / order-success page renders
+// (extracted to src/routes/account-pages.tsx — Phase 3.4).
+registerAccountPageRoutes(app, { createStore, getStoreContext, getStoreData, buildDevData });
 
 // CMS page route (edge cached 2 hours)
 app.get('/page/:identifier', withEdgeCache(CACHE_CMS), async (c) => {
