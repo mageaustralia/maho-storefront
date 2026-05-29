@@ -151,13 +151,8 @@ function createApiClient(env: Env, stores: StorefrontStore[], storeCode?: string
 
 
 // @ts-expect-error — static asset imports handled by wrangler
-import styles from '../public/styles.css';
-// @ts-expect-error — static asset imports handled by wrangler
-import controllers from '../public/controllers.js.txt';
-// @ts-expect-error — static asset imports handled by wrangler
-import stripePlugin from '../public/plugins/stripe-payment.js.txt';
-// @ts-expect-error — static asset imports handled by wrangler
 import embedScript from '../public/embed.js.txt';
+import { registerStaticAssetRoutes } from './routes/static-assets';
 
 type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession } };
 const app = new Hono<AppEnv>();
@@ -696,37 +691,9 @@ async function rateLimitExceeded(
   return count > max;
 }
 
-// Static assets — serve inline since CF Workers don't have a filesystem
-// Long cache (1 year) since URLs have content-hash cache busting (?v=...)
-app.get('/styles.css', (c) => {
-  return c.body(styles, 200, { 'Content-Type': 'text/css', 'Cache-Control': 'public, max-age=31536000, immutable' });
-});
-app.get('/controllers.js', (c) => {
-  return c.body(controllers, 200, { 'Content-Type': 'application/javascript', 'Cache-Control': 'public, max-age=31536000, immutable' });
-});
-// Favicon — a small inline SVG mark (no binary asset needed). The <link rel="icon">
-// in Layout points browsers here; /favicon.ico returns 204 so the default
-// browser/crawler probe for /favicon.ico stops 404-ing on every page.
-const FAVICON_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
-  '<rect width="32" height="32" rx="7" fill="#101317"/>' +
-  '<circle cx="16" cy="16" r="8" fill="none" stroke="#c2f04a" stroke-width="3.2"/>' +
-  '</svg>';
-app.get('/favicon.svg', (c) =>
-  c.body(FAVICON_SVG, 200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=604800' }),
-);
-app.get('/favicon.ico', (c) => c.body(null, 204, { 'Cache-Control': 'public, max-age=604800' }));
-
-// Payment plugin static assets
-const plugins: Record<string, string> = {
-  'stripe-payment.js': stripePlugin,
-};
-app.get('/plugins/:name', (c) => {
-  const name = c.req.param('name');
-  const content = plugins[name];
-  if (!content) return c.notFound();
-  return c.body(content, 200, { 'Content-Type': 'application/javascript', 'Cache-Control': 'public, max-age=86400' });
-});
+// Static assets (CSS/JS bundles, favicon, payment-plugin scripts) — see
+// src/routes/static-assets.ts. Served inline since CF Workers have no filesystem.
+registerStaticAssetRoutes(app);
 
 // Embed script — standalone IIFE for external sites
 // Public embed demo page
