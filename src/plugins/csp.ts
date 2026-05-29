@@ -12,6 +12,7 @@
  */
 
 import { STRIPE_CSP } from './stripe/csp';
+import { BRAINTREE_CSP } from './braintree/csp';
 
 /** CSP source lists a plugin contributes, keyed by directive (without the `-src`). */
 export interface PluginCsp {
@@ -24,7 +25,7 @@ export interface PluginCsp {
 }
 
 // One entry per CSP-contributing plugin. Delete a plugin → delete its line.
-const CONTRIBUTIONS: PluginCsp[] = [STRIPE_CSP];
+const CONTRIBUTIONS: PluginCsp[] = [STRIPE_CSP, BRAINTREE_CSP];
 
 function merge(key: keyof PluginCsp): string[] {
   return [...new Set(CONTRIBUTIONS.flatMap(c => c[key] ?? []))];

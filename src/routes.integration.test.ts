@@ -210,6 +210,19 @@ describe('Worker routes (integration)', () => {
     });
   });
 
+  describe('payment plugin client scripts (src/routes/static-assets.ts)', () => {
+    it('serves /plugins/stripe-payment.js', async () => {
+      const res = await request('/plugins/stripe-payment.js');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Content-Type')).toContain('javascript');
+    });
+    it('serves /plugins/braintree-payment.js (no longer 404)', async () => {
+      const res = await request('/plugins/braintree-payment.js');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Content-Type')).toContain('javascript');
+    });
+  });
+
   describe('stripe plugin (src/plugins/stripe)', () => {
     it('OPTIONS /api/payments/stripe/payment-intents returns a CORS preflight', async () => {
       const res = await request('/api/payments/stripe/payment-intents', { method: 'OPTIONS' });
