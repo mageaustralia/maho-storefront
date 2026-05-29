@@ -16,6 +16,7 @@
  */
 
 import { getRenderApiUrl } from './page-config';
+import { sanitizeCmsHtml } from './utils/sanitize-html';
 
 /**
  * Rewrite any hardcoded backend URLs in HTML content to relative paths.
@@ -31,7 +32,10 @@ import { getRenderApiUrl } from './page-config';
  */
 export function rewriteContentUrls(html: string, backendUrl?: string): string {
   const apiUrl = backendUrl || getRenderApiUrl();
-  if (!apiUrl) return html;
+  // Always sanitise admin-authored HTML before it reaches dangerouslySetInnerHTML,
+  // even when there's no backend URL to rewrite. Sanitisation is the security
+  // boundary, so it runs last (on the final, URL-rewritten markup) below.
+  if (!apiUrl) return sanitizeCmsHtml(html);
 
   // Escape for regex (handle dots, slashes, etc.)
   const escaped = apiUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -55,5 +59,6 @@ export function rewriteContentUrls(html: string, backendUrl?: string): string {
   // These are server-side template tags that the headless storefront cannot process
   result = result.replace(/\{\{[^}]+\}\}/g, '');
 
-  return result;
+  // Sanitise last — the security boundary sees the final, URL-rewritten HTML.
+  return sanitizeCmsHtml(result);
 }

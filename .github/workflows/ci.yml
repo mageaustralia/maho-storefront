@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      # Gating: a broken build or failing test blocks the merge.
+      - name: Build (Worker bundle + assets)
+        run: CI=true npm run build
+
+      - name: Test
+        run: npm test
+
+      # Informational: type coverage and lint are being driven down over time
+      # (see proposals/storefront-review-remediation-plan.md, tasks 2.7 / 2.4).
+      # Not gating yet so a known pre-existing error can't block unrelated work.
+      - name: Typecheck (informational)
+        run: npm run typecheck
+        continue-on-error: true
+
+      - name: Lint (informational)
+        run: npm run lint
+        continue-on-error: true

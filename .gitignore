@@ -65,3 +65,22 @@ MOLLIE_CONVERSION_PLAN.md
 packing-sheet_*
 memory/
 ADMIN_THEME_PLAN.md
+
+# Secrets / certificates — never commit (public repo)
+*.certSigningRequest
+*.pem
+*.key
+*.p12
+
+# Data exports / scratch CSVs + their editor lock files
+*.csv
+.~lock.*#
+
+# Local tooling / editor state (not part of the project)
+.obsidian/
+.playwright-mcp/
+.agents/
+.claude/
+performance_stats/
+torchinductor_*/
+test-embed.html

@@ -23,6 +23,7 @@ import { NewsletterPopup } from './components/engagement/newsletter/NewsletterPo
 import { NewsletterPopupImage } from './components/engagement/newsletter/NewsletterPopupImage';
 import { NewsletterFlyout } from './components/engagement/newsletter/NewsletterFlyout';
 import { PluginHeadScripts } from './components/PluginHeadScripts';
+import { safeJsonLd } from '../utils/json-ld';
 
 interface FooterPage { identifier: string; title: string; }
 
@@ -41,8 +42,37 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ config, categories,
   const apiUrl = '';
   const v = `?v=${ASSET_HASH}`;
   const { themeName, googleFontsUrl } = getThemeForStore(currentStoreCode);
+  // BCP-47 lang from the store locale (e.g. "en_US" -> "en-US"); falls back to "en".
+  const lang = (config.locale || 'en_US').replace('_', '-');
+  // Storefront canonical origin for this store (NOT the backend baseUrl).
+  const storeUrl = (stores?.find(s => s.code === currentStoreCode)?.url || '').replace(/\/+$/, '');
+  // Site-level structured data: Organization (brand) + WebSite with a SearchAction
+  // so Google can surface a sitelinks search box. Only emitted when we know the
+  // storefront origin (needed for absolute URLs).
+  const siteJsonLd = storeUrl
+    ? [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: config.storeName,
+          url: storeUrl,
+          ...(config.logoUrl ? { logo: config.logoUrl } : {}),
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: config.storeName,
+          url: storeUrl,
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: { '@type': 'EntryPoint', urlTemplate: `${storeUrl}/search?q={search_term_string}` },
+            'query-input': 'required name=search_term_string',
+          },
+        },
+      ]
+    : [];
   return (
-    <html lang="en" data-theme={themeName}>
+    <html lang={lang} data-theme={themeName}>
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -73,6 +103,9 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ config, categories,
             ))}
           </>
         ) : null}
+        {siteJsonLd.map((ld) => (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(ld) }} />
+        ))}
         <PluginHeadScripts config={config} />
       </head>
       <body class="bg-base-100 text-base-content" data-controller="freshness wishlist" data-store={currentStoreCode || ''}>

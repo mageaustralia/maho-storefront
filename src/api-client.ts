@@ -52,19 +52,23 @@ export class MahoApiClient {
   private baseUrl: string;
   private storeCode?: string;
   private basicAuth?: string;
+  private workerAuth?: string;
 
-  constructor(baseUrl: string, storeCode?: string, basicAuth?: string) {
+  constructor(baseUrl: string, storeCode?: string, basicAuth?: string, workerAuth?: string) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
     this.storeCode = storeCode;
     this.basicAuth = basicAuth;
+    this.workerAuth = workerAuth;
   }
 
   private async fetch<T>(path: string): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const headers: Record<string, string> = {
       'Accept': 'application/ld+json',
-      'X-Worker-Auth': 'maho-storefront-sync-626538104ee3e0ef',
     };
+    if (this.workerAuth) {
+      headers['X-Worker-Auth'] = this.workerAuth;
+    }
     if (this.storeCode) {
       headers['X-Store-Code'] = this.storeCode;
     }

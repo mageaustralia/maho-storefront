@@ -11,6 +11,7 @@ import type { FC } from 'hono/jsx';
 import type { Category, Product, StoreConfig, StorefrontStore } from '../../../types';
 import type { DevData } from '../../../dev-auth';
 import type { FilterablePage, MenuData } from '../types';
+import { safeJsonLd } from '../../../utils/json-ld';
 import { Layout } from '../../../templates/Layout';
 import { Seo } from '../../../templates/components/Seo';
 import { ProductCard } from '../../../templates/components/product-display/card/index';
@@ -158,7 +159,7 @@ export const FilterPage: FC<FilterPageProps> = ({
         canonicalUrl={canonicalUrl}
         keywords={filterPage.metaKeywords}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }} />
 
       <div class="py-6">
         {/* Breadcrumbs */}

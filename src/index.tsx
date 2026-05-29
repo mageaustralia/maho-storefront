@@ -9,6 +9,7 @@ import { Hono } from 'hono';
 import type { Env, Category, Product, StoreConfig, PulseData, CmsPage, Country, BlogPost, BlogCategory, StorefrontStore } from './types';
 import { CloudflareKVStore, TrackedKVStore, type ContentStore } from './content-store';
 import { ASSET_HASH } from './asset-version';
+import { securityHeaders } from './middleware/security-headers';
 import { MahoApiClient, normalizeProduct } from './api-client';
 import { setRenderStore, setRenderApiUrl, setRenderPageConfigOverride, getAvailablePageConfigs } from './page-config';
 import { Home } from './templates/Home';
@@ -144,7 +145,7 @@ function getApiUrl(env: Env, stores: StorefrontStore[], storeCode?: string): str
 }
 
 function createApiClient(env: Env, stores: StorefrontStore[], storeCode?: string): MahoApiClient {
-  return new MahoApiClient(getApiUrl(env, stores, storeCode), storeCode, env.MAHO_API_BASIC_AUTH);
+  return new MahoApiClient(getApiUrl(env, stores, storeCode), storeCode, env.MAHO_API_BASIC_AUTH, env.WORKER_AUTH);
 }
 
 
@@ -159,6 +160,11 @@ import embedScript from '../public/embed.js.txt';
 
 type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession } };
 const app = new Hono<AppEnv>();
+
+// Security response headers (clickjacking, nosniff, Referrer-Policy, HSTS, and a
+// report-only CSP). Registered first so it wraps every response — including
+// cached, proxied, and short-circuited (blocked) ones. See middleware/security-headers.ts.
+app.use('*', securityHeaders);
 
 // ====== ATTACK MITIGATION — early reject malicious/Magento-pattern requests ======
 // Blocks requests before they touch KV, API proxy, or URL resolver.
@@ -662,6 +668,31 @@ async function increment404Count(ip: string, ctx: ExecutionContext): Promise<voi
 
 function getClientIP(c: any): string {
   return c.req.header('CF-Connecting-IP') ?? c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() ?? '0.0.0.0';
+}
+
+// Generic fixed-window rate limiter backed by the edge cache. Returns true when
+// the caller has exceeded `max` requests within `windowSec`. Same mechanism as
+// the 404 limiter above; `bucket` namespaces independent limits.
+async function rateLimitExceeded(
+  bucket: string,
+  id: string,
+  max: number,
+  windowSec: number,
+  ctx: ExecutionContext,
+): Promise<boolean> {
+  const cache = caches.default;
+  const key = new Request(`https://rate-limit/${bucket}/${encodeURIComponent(id)}`);
+  const existing = await cache.match(key);
+  let count = 1;
+  if (existing) {
+    const data = (await existing.json()) as { count: number };
+    count = data.count + 1;
+  }
+  const res = new Response(JSON.stringify({ count }), {
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': `public, max-age=${windowSec}` },
+  });
+  ctx.waitUntil(cache.put(key, res));
+  return count > max;
 }
 
 // Static assets — serve inline since CF Workers don't have a filesystem
@@ -1210,6 +1241,14 @@ app.post('/api/payments/stripe/payment-intents', async (c, next) => {
   // Get Stripe secret key from KV (synced during data sync) or fall back to env var
   const stripeSecretKey = await kvStore.get<string>(`${prefix}stripe:secretKey`) || c.env.STRIPE_SECRET_KEY;
   if (!stripeSecretKey) return next();
+
+  // Throttle PaymentIntent creation per IP — each call hits the live Stripe API
+  // and creates a real PI, so an unbounded loop could burn Stripe quota / inflate
+  // PI counts. 30 per 5 min is generous for a human (shipping/address changes
+  // recreate PIs) while stopping abuse. Best-effort: only when executionCtx exists.
+  if (c.executionCtx && await rateLimitExceeded('stripe-pi', getClientIP(c), 30, 300, c.executionCtx)) {
+    return c.json({ error: true, message: 'Too many payment attempts. Please wait a moment and try again.' }, 429);
+  }
 
   const apiUrl = getApiUrl(c.env, stores, currentStoreCode);
 
@@ -1942,8 +1981,7 @@ app.post('/cache/update', async (c) => {
 
 // Purge edge cache for specific URLs (auth-protected)
 app.post('/cache/purge', async (c) => {
-  const auth = c.req.header('Authorization');
-  if (auth !== `Bearer ${c.env.SYNC_SECRET}`) return c.json({ error: 'Unauthorized' }, 401);
+  if (!hasValidSyncBearer(c)) return c.json({ error: 'Unauthorized' }, 401);
 
   try {
     const body = await c.req.json<{ urls?: string[]; all?: boolean }>();
@@ -2045,9 +2083,36 @@ app.get('/cache/keys', async (c) => {
 
 // ====== AUTH HELPER ======
 
-function checkSyncAuth(c: any): boolean {
+/** Constant-time string comparison — avoids leaking the secret via response timing. */
+function constantTimeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  // Fold the length difference into the accumulator so unequal lengths still fail
+  // without an early return (which would itself be a timing signal).
+  let diff = ab.length ^ bb.length;
+  const max = Math.max(ab.length, bb.length);
+  for (let i = 0; i < max; i++) {
+    diff |= (ab[i] ?? 0) ^ (bb[i] ?? 0);
+  }
+  return diff === 0;
+}
+
+/**
+ * True only when SYNC_SECRET is properly configured AND the request's Bearer
+ * token matches it (constant-time). Fails closed: an unset or placeholder
+ * secret can never authenticate, so a misconfigured deploy is locked, not open.
+ */
+function hasValidSyncBearer(c: any): boolean {
+  const secret = c.env.SYNC_SECRET as string | undefined;
+  if (!secret || secret === 'REPLACE_ME' || secret === 'changeme') return false;
   const auth = c.req.header('Authorization');
-  if (auth === `Bearer ${c.env.SYNC_SECRET}`) return true;
+  if (!auth || !auth.startsWith('Bearer ')) return false;
+  return constantTimeEqual(auth.slice(7), secret);
+}
+
+function checkSyncAuth(c: any): boolean {
+  if (hasValidSyncBearer(c)) return true;
   // Dev toolbar: authenticated dev session can also sync/purge
   const session = c.get('devSession') as DevSession | undefined;
   return !!session;
@@ -2394,6 +2459,7 @@ app.post('/sync', async (c) => {
           getApiUrl(c.env, stores, storeCode),
           storeCode,
           c.env.MAHO_API_BASIC_AUTH,
+          c.env.WORKER_AUTH,
         );
         const filterResult = await syncFilterablePages(filterApi, store, prefix, allCategories);
         results[`${storeCode || 'default'}:filterablePages`] =
@@ -2651,6 +2717,7 @@ app.post('/sync/:type', async (c) => {
           getApiUrl(c.env, registeredStores, requestedStore || undefined),
           requestedStore || undefined,
           c.env.MAHO_API_BASIC_AUTH,
+          c.env.WORKER_AUTH,
         );
         const fpResult = await syncFilterablePages(filterApi, store, prefix, fpAllCats);
         return c.json({ status: 'ok', type: 'filterable-pages', ...fpResult });
@@ -3013,6 +3080,40 @@ app.get('/:slug', withEdgeCache(CACHE_PRODUCT), async (c) => {
       <div class="not-found"><h1>Page Not Found</h1><p>The page you're looking for doesn't exist.</p><a href="/">Go Home</a></div>
     </Layout>,
     404
+  );
+});
+
+// ====== GLOBAL ERROR / NOT-FOUND FALLBACKS ======
+// Dependency-free: these must render even when the backend or KV is unavailable
+// (i.e. when the normal store-data-driven Layout cannot be built). Inline styles
+// only — no reliance on public/styles.css or any API call.
+function fallbackPageHtml(status: number, heading: string, message: string): string {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">` +
+    `<meta name="viewport" content="width=device-width, initial-scale=1">` +
+    `<meta name="robots" content="noindex">` +
+    `<title>${heading}</title>` +
+    `<style>:root{color-scheme:light dark}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;` +
+    `font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f7f7f8;color:#1a1a1a}` +
+    `@media(prefers-color-scheme:dark){body{background:#16181d;color:#e7e7e7}}` +
+    `.box{text-align:center;padding:2rem;max-width:32rem}.code{font-size:3rem;font-weight:700;opacity:.5;margin:0}` +
+    `h1{font-size:1.5rem;margin:.5rem 0}p{opacity:.8;line-height:1.5}a{color:inherit;font-weight:600}</style></head>` +
+    `<body><div class="box"><p class="code">${status}</p><h1>${heading}</h1><p>${message}</p>` +
+    `<p><a href="/">Return home</a></p></div></body></html>`;
+}
+
+app.notFound((c) =>
+  c.html(fallbackPageHtml(404, 'Page not found', "The page you're looking for doesn't exist or has moved."), 404),
+);
+
+app.onError((err, c) => {
+  // Structured-ish log line so Workers logs / logpush can surface the failing route.
+  console.error(
+    `[worker:error] ${c.req.method} ${new URL(c.req.url).pathname} — ` +
+    (err instanceof Error ? `${err.message}\n${err.stack ?? ''}` : String(err)),
+  );
+  return c.html(
+    fallbackPageHtml(500, 'Something went wrong', 'We hit a temporary error rendering this page. Please try again shortly.'),
+    500,
   );
 });
 

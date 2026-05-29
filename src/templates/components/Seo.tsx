@@ -6,6 +6,7 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
+import { safeJsonLd } from '../../utils/json-ld';
 
 interface SeoProps {
   title: string;
@@ -35,7 +36,7 @@ export const Seo: FC<SeoProps> = ({ title, description, canonicalUrl, ogImage, o
       {description && <meta name="twitter:description" content={description} />}
       {ogImage && <meta name="twitter:image" content={ogImage} />}
       {ldBlocks.map((ld) => (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(ld) }} />
       ))}
     </>
   );

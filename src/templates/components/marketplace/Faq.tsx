@@ -6,6 +6,8 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
+import { safeJsonLd } from '../../../utils/json-ld';
+import { sanitizeCmsHtml } from '../../../utils/sanitize-html';
 
 interface FaqItem {
   question: string;
@@ -57,7 +59,7 @@ export const Faq: FC<FaqProps> = ({ items }) => {
               </summary>
               <div
                 class="px-5 pb-5 pt-2 text-sm leading-relaxed text-base-content/70"
-                dangerouslySetInnerHTML={{ __html: item.answer }}
+                dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(item.answer) }}
               />
             </details>
           ))}
@@ -65,7 +67,7 @@ export const Faq: FC<FaqProps> = ({ items }) => {
       </div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd).replace(/<\/script>/gi, '<\\/script>') }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqLd) }}
       />
     </>
   );
