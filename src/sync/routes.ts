@@ -16,6 +16,7 @@ import { CloudflareKVStore } from '../content-store';
 import { MahoApiClient } from '../api-client';
 import { syncCategories } from './entities';
 import { syncStripeConfig } from '../plugins/stripe';
+import { syncBraintreeConfig } from '../plugins/braintree';
 import { FilterablePagesApi, syncFilterablePages } from '../plugins/filterable-pages';
 import type { Env, StorefrontStore, Category, Product, CmsPage } from '../types';
 
@@ -61,6 +62,15 @@ export function registerSyncRoutes(app: Hono<any>, deps: SyncRouteDeps): void {
           config,
           store,
           prefix,
+        });
+
+        // Braintree plugin: register the payment plugin if the backend exposes it (else no-op)
+        await syncBraintreeConfig({
+          apiUrl: getApiUrl(c.env, stores, storeCode),
+          storeCode,
+          basicAuth: c.env.MAHO_API_BASIC_AUTH,
+          syncSecret: c.env.SYNC_SECRET,
+          config,
         });
 
         // Store Google Maps key from config extensions (injected by Storefront module observer)

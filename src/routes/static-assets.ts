@@ -16,6 +16,8 @@ import styles from '../../public/styles.css';
 import controllers from '../../public/controllers.js.txt';
 // @ts-expect-error — static asset imports handled by wrangler (Text rule)
 import stripePlugin from '../../public/plugins/stripe-payment.js.txt';
+// @ts-expect-error — static asset imports handled by wrangler (Text rule)
+import braintreePlugin from '../../public/plugins/braintree-payment.js.txt';
 
 const IMMUTABLE = 'public, max-age=31536000, immutable';
 
@@ -30,6 +32,7 @@ const FAVICON_SVG =
 
 const plugins: Record<string, string> = {
   'stripe-payment.js': stripePlugin,
+  'braintree-payment.js': braintreePlugin,
 };
 
 export function registerStaticAssetRoutes(app: Hono<any>): void {

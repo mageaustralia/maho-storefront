@@ -11,7 +11,9 @@ export default defineConfig({
       enforce: 'pre',
       load(id: string) {
         if (/\/public\/.*\.(css|txt)$/.test(id)) {
-          return 'export default "";';
+          // Non-empty so routes that guard on truthy content (e.g. the
+          // /plugins/:name serve route) behave as they do with real assets.
+          return 'export default "/* stubbed asset */";';
         }
         return null;
       },
