@@ -23,19 +23,29 @@ const mockCaches = {
   },
 };
 
-function mockKV() {
+/** In-memory KV with optional seed. Values are stored as text (as real KV does). */
+function mockKV(seed: Record<string, unknown> = {}) {
   const m = new Map<string, string>();
+  for (const [k, v] of Object.entries(seed)) {
+    m.set(k, typeof v === 'string' ? v : JSON.stringify(v));
+  }
   return {
-    get: async (_k: string, _t?: string) => null,
-    put: async (k: string, v: string) => void m.set(k, v),
+    _map: m,
+    get: async (k: string, typeOrOpts?: unknown) => {
+      const raw = m.get(k);
+      if (raw == null) return null;
+      const type = typeof typeOrOpts === 'string' ? typeOrOpts : (typeOrOpts as { type?: string })?.type;
+      return type === 'json' ? JSON.parse(raw) : raw;
+    },
+    put: async (k: string, v: string) => void m.set(k, typeof v === 'string' ? v : JSON.stringify(v)),
     delete: async (k: string) => void m.delete(k),
-    list: async () => ({ keys: [], list_complete: true, cacheStatus: null }),
+    list: async () => ({ keys: [...m.keys()].map((name) => ({ name })), list_complete: true, cacheStatus: null }),
   };
 }
 
-function testEnv(overrides: Record<string, unknown> = {}) {
+function testEnv(overrides: Record<string, unknown> = {}, seed: Record<string, unknown> = {}) {
   return {
-    CONTENT: mockKV(),
+    CONTENT: mockKV(seed),
     MAHO_API_URL: 'https://backend.test',
     SYNC_SECRET: 'changeme',
     STORES: JSON.stringify([{ code: 'en', name: 'Test', url: 'https://shop.test' }]),
@@ -134,6 +144,72 @@ describe('Worker routes (integration)', () => {
       expect(html).toContain('</head>');
       // Security headers also apply to the rendered page.
       expect(res.headers.get('X-Frame-Options')).toBe('SAMEORIGIN');
+    });
+  });
+
+  describe('page rendering from seeded KV (catch-all PHASE 1, no backend)', () => {
+    it('renders a CMS page from KV', async () => {
+      const env = testEnv({}, {
+        'en:cms:about': {
+          id: 1, identifier: 'about', title: 'About Us', contentHeading: null,
+          content: '<p>About content here</p>', metaKeywords: null, metaDescription: null,
+          pageLayout: 'one_column', status: '1', createdAt: null, updatedAt: null,
+        },
+      });
+      const res = await request('/about', undefined, env);
+      expect(res.status).toBe(200);
+      const html = await res.text();
+      expect(html).toContain('About content here');
+      expect(html).toContain('<title>About Us'); // metaTitle falls back to title
+    });
+
+    it('renders a category page from KV (empty product set seeded)', async () => {
+      const env = testEnv({}, {
+        'en:category:women': {
+          id: 5, parentId: 2, name: 'Women', menuTitle: null, categoryHeading: null,
+          description: null, urlKey: 'women', urlPath: 'women', image: null, level: 2,
+          position: 1, isActive: true, includeInMenu: true, productCount: 0, children: [],
+          childrenIds: [], path: null, displayMode: null, cmsBlock: null,
+          megaMenuDescription: null, metaTitle: null, metaKeywords: null,
+          metaDescription: null, pageLayout: null, createdAt: null, updatedAt: null,
+        },
+        'en:products:category:5:page:1': { products: [], totalItems: 0 },
+      });
+      const res = await request('/women', undefined, env);
+      expect(res.status).toBe(200);
+      const html = await res.text();
+      expect(html).toContain('Women');
+      expect(html).toContain('</html>');
+    });
+  });
+
+  describe('partial /sync/categories writes + stamps _lastChecked (Phase 3.3)', () => {
+    it('stamps _lastChecked on the synced category (no perpetual-stale)', async () => {
+      const env = testEnv({ SYNC_SECRET: 'real-secret' });
+      // URL-aware backend mock: the categories collection endpoint.
+      vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+        if (String(url).includes('/api/rest/v2/categories')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              member: [{ id: 1, urlKey: 'women', name: 'Women', childrenIds: [], children: [] }],
+              totalItems: 1,
+            }),
+          } as Response;
+        }
+        throw new Error(`unexpected fetch: ${url}`);
+      }));
+
+      const res = await request('/sync/categories?store=en', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer real-secret' },
+      }, env);
+
+      expect(res.status).toBe(200);
+      const stored = JSON.parse((env.CONTENT as ReturnType<typeof mockKV>)._map.get('en:category:women')!);
+      expect(stored._lastChecked).toBeTypeOf('number');
+      expect(stored._lastChecked).toBeGreaterThan(0);
     });
   });
 });
