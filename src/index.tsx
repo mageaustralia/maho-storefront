@@ -30,7 +30,6 @@ import { MARKETPLACE_CATEGORY_ID, MARKETPLACE_API_BASE } from './marketplace-hel
 import {
   DEV_COOKIE,
   SESSION_TTL,
-  hashToken,
   getSessionFromRequest,
   isPasswordGateActive,
   validatePassword,
@@ -143,6 +142,7 @@ import { registerAgentRoutes } from './routes/agents';
 import { registerAccountPageRoutes } from './routes/account-pages';
 import { registerUrlResolverRoutes } from './routes/url-resolver';
 import { registerCacheOpsRoutes } from './routes/cache-ops';
+import { registerDevAdminRoutes } from './routes/dev-admin';
 import { syncCategories } from './sync/entities';
 
 type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession } };
@@ -1726,91 +1726,9 @@ function checkSyncAuth(c: any): boolean {
 }
 
 // ====== DEV CONFIG & TOKEN MANAGEMENT ======
-
-// POST /dev/config — set password gate and storefront password (auth-protected via SYNC_SECRET)
-app.post('/dev/config', async (c) => {
-  if (!checkSyncAuth(c)) return c.json({ error: 'Unauthorized' }, 401);
-
-  const body = await c.req.json<{
-    passwordGate?: boolean;
-    storefrontPassword?: string;
-  }>();
-
-  const store = new CloudflareKVStore(c.env.CONTENT);
-
-  if (body.passwordGate !== undefined) {
-    await store.put('config:password_gate', body.passwordGate);
-  }
-  if (body.storefrontPassword !== undefined) {
-    await store.put('config:storefront_password', body.storefrontPassword);
-  }
-
-  return c.json({ ok: true });
-});
-
-// POST /dev/tokens — create a dev token (auth-protected via SYNC_SECRET)
-app.post('/dev/tokens', async (c) => {
-  if (!checkSyncAuth(c)) return c.json({ error: 'Unauthorized' }, 401);
-  const env: Env = c.env;
-  if (!env.DEV_SECRET) return c.json({ error: 'DEV_SECRET not configured' }, 500);
-
-  const body = await c.req.json<{
-    label: string;
-    permissions?: string[];
-    expiresInDays?: number;
-  }>();
-
-  // Generate a random token
-  const rawToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
-    .map(b => b.toString(16).padStart(2, '0')).join('');
-
-  const tokenHash = await hashToken(rawToken, env.DEV_SECRET);
-
-  const store = new CloudflareKVStore(c.env.CONTENT);
-  const now = new Date();
-  const expires = new Date(now.getTime() + (body.expiresInDays || 30) * 24 * 60 * 60 * 1000);
-
-  await store.put(`dev:token:${tokenHash}`, {
-    label: body.label,
-    created: now.toISOString(),
-    expires: expires.toISOString(),
-    permissions: body.permissions || ['gate', 'preview'],
-  });
-
-  return c.json({
-    token: rawToken,
-    hash: tokenHash,
-    label: body.label,
-    expires: expires.toISOString(),
-  });
-});
-
-// DELETE /dev/tokens/:hash — revoke a dev token (auth-protected via SYNC_SECRET)
-app.delete('/dev/tokens/:hash', async (c) => {
-  if (!checkSyncAuth(c)) return c.json({ error: 'Unauthorized' }, 401);
-
-  const hash = c.req.param('hash');
-  const store = new CloudflareKVStore(c.env.CONTENT);
-  await store.delete(`dev:token:${hash}`);
-
-  return c.json({ ok: true, deleted: hash });
-});
-
-// GET /dev/tokens — list all dev tokens (auth-protected via SYNC_SECRET)
-app.get('/dev/tokens', async (c) => {
-  if (!checkSyncAuth(c)) return c.json({ error: 'Unauthorized' }, 401);
-
-  const store = new CloudflareKVStore(c.env.CONTENT);
-  const keys = await store.list('dev:token:');
-  const tokens = [];
-
-  for (const key of keys) {
-    const data = await store.get(key) as Record<string, unknown> | null;
-    if (data) tokens.push({ hash: key.replace('dev:token:', ''), ...data });
-  }
-
-  return c.json({ tokens });
-});
+// Extracted to src/routes/dev-admin.ts (Phase 3.4). The dev *session* routes
+// (/dev/login,/logout,/preview) stay above with the password-gate middleware.
+registerDevAdminRoutes(app, { checkSyncAuth });
 
 // ====== SYNC ROUTES ======
 
