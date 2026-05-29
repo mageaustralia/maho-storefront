@@ -183,6 +183,33 @@ describe('Worker routes (integration)', () => {
     });
   });
 
+  describe('agent / discovery routes (src/routes/agents.ts)', () => {
+    it('serves /robots.txt', async () => {
+      const res = await request('/robots.txt');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Content-Type')).toContain('text/plain');
+      expect(await res.text()).toMatch(/User-agent|Sitemap/i);
+    });
+
+    it('serves /llms.txt (KV-miss fallback)', async () => {
+      const res = await request('/llms.txt');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Content-Type')).toContain('text/plain');
+    });
+
+    it('serves /.well-known/api-catalog as JSON', async () => {
+      const res = await request('/.well-known/api-catalog');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Content-Type')).toContain('application/json');
+    });
+
+    it('/mcp returns a 503 stub', async () => {
+      const res = await request('/mcp');
+      expect(res.status).toBe(503);
+      expect(res.headers.get('Retry-After')).toBeTruthy();
+    });
+  });
+
   describe('partial /sync/categories writes + stamps _lastChecked (Phase 3.3)', () => {
     it('stamps _lastChecked on the synced category (no perpetual-stale)', async () => {
       const env = testEnv({ SYNC_SECRET: 'real-secret' });

@@ -153,6 +153,7 @@ function createApiClient(env: Env, stores: StorefrontStore[], storeCode?: string
 // @ts-expect-error — static asset imports handled by wrangler
 import embedScript from '../public/embed.js.txt';
 import { registerStaticAssetRoutes } from './routes/static-assets';
+import { registerAgentRoutes } from './routes/agents';
 
 type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession } };
 const app = new Hono<AppEnv>();
@@ -853,94 +854,10 @@ app.get('/admin', async (c) => {
   return c.redirect(`${apiUrl}/index.php/admin`, 302);
 });
 
-// Agent-readiness: /llms.txt + storefront-owned /robots.txt.
-// The storefront takes ownership of these so we can serve content signals
-// + AI-bot rules that match our "agent ready" posture rather than whatever
-// Cloudflare or the backend injects. See src/agents/.
-app.get('/llms.txt', async (c) => {
-  const { stores, currentStoreCode } = await getStoreContext(c);
-  const store = createStore(c.env);
-  const origin = new URL(c.req.url).origin;
-  const { config, categories, footerPages } = await getStoreData(store, currentStoreCode, origin);
-  const { generateLlmsTxt } = await import('./agents/llms-txt');
-  const body = generateLlmsTxt({ config, categories, footerPages, origin });
-  return c.body(body, 200, {
-    'Content-Type': 'text/plain; charset=utf-8',
-    'Cache-Control': 'public, max-age=3600',
-  });
-});
-
-app.get('/robots.txt', async (c) => {
-  const origin = new URL(c.req.url).origin;
-  const { generateRobotsTxt } = await import('./agents/robots-txt');
-  return c.body(generateRobotsTxt({ origin }), 200, {
-    'Content-Type': 'text/plain; charset=utf-8',
-    'Cache-Control': 'public, max-age=3600',
-  });
-});
-
-// /sitemap.xml — generated from KV (categories, products, CMS, blog) with
-// <lastmod> on each entry. Backend's own sitemap was 404ing across all
-// storefronts; owning it on the Worker means it always works and carries
-// freshness signals search engines + agents can use to skip unchanged pages.
-app.get('/sitemap.xml', async (c) => {
-  const { currentStoreCode } = await getStoreContext(c);
-  const store = createStore(c.env);
-  const origin = new URL(c.req.url).origin;
-  const { generateSitemap } = await import('./agents/sitemap');
-  const body = await generateSitemap({ store, origin, storeCode: currentStoreCode });
-  return c.body(body, 200, {
-    'Content-Type': 'application/xml; charset=utf-8',
-    'Cache-Control': 'public, max-age=3600',
-  });
-});
-
-// /.well-known/api-catalog (RFC 9727) — JSON descriptor the Link header
-// on every response already advertises. Points at OpenAPI + OAuth + MCP.
-app.get('/.well-known/api-catalog', async (c) => {
-  const origin = new URL(c.req.url).origin;
-  const { generateApiCatalog } = await import('./agents/api-catalog');
-  return c.json(generateApiCatalog({ origin }), 200, {
-    'Cache-Control': 'public, max-age=3600',
-  });
-});
-
-// /.well-known/oauth-authorization-server (RFC 8414) — OAuth 2.0 discovery.
-// Maps the storefront's /api/auth/* endpoints (which proxy to Maho's
-// /api/rest/v2/auth/*) into the standard discovery shape.
-app.get('/.well-known/oauth-authorization-server', async (c) => {
-  const origin = new URL(c.req.url).origin;
-  const { generateOAuthDiscovery } = await import('./agents/oauth-discovery');
-  return c.json(generateOAuthDiscovery({ origin }), 200, {
-    'Cache-Control': 'public, max-age=3600',
-  });
-});
-
-// /.well-known/mcp/server-card.json — descriptor for the MCP server.
-// The card is published now so discovery tooling picks us up; the actual
-// /mcp endpoint is a stub until the dedicated MCP Worker ships.
-app.get('/.well-known/mcp/server-card.json', async (c) => {
-  const { currentStoreCode } = await getStoreContext(c);
-  const store = createStore(c.env);
-  const origin = new URL(c.req.url).origin;
-  const { config } = await getStoreData(store, currentStoreCode, origin);
-  const { generateMcpServerCard } = await import('./agents/mcp-server-card');
-  return c.json(generateMcpServerCard({ origin, storeName: config.storeName }), 200, {
-    'Cache-Control': 'public, max-age=3600',
-  });
-});
-
-// /mcp — stub until the real MCP server lands in a sibling Worker.
-// Returns 503 + a structured "coming soon" so discovery tools can tell
-// us apart from a 404 / non-MCP host.
-app.all('/mcp', async (c) => {
-  const origin = new URL(c.req.url).origin;
-  const { mcpStubBody } = await import('./agents/mcp-server-card');
-  return c.json(mcpStubBody({ origin }), 503, {
-    'Retry-After': '604800', // a week — agents back off, we don't churn
-    'Cache-Control': 'public, max-age=300',
-  });
-});
+// Agent-readiness + SEO discovery routes (/llms.txt, /robots.txt, /sitemap.xml,
+// /.well-known/*, /mcp) — see src/routes/agents.ts. Store helpers are injected
+// since those functions live here in the worker entry.
+registerAgentRoutes(app, { getStoreContext, createStore, getStoreData });
 
 // Backend pass-through routes
 // These paths are proxied directly to the Maho backend instead of being
