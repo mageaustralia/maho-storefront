@@ -76,6 +76,10 @@ ADMIN_THEME_PLAN.md
 *.csv
 .~lock.*#
 
+# Internal remediation tracking doc — references infra + open security items;
+# must NOT be published to this public repo.
+proposals/storefront-review-remediation-plan.md
+
 # Local tooling / editor state (not part of the project)
 .obsidian/
 .playwright-mcp/
