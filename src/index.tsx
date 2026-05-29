@@ -11,7 +11,7 @@ import { CloudflareKVStore, TrackedKVStore, type ContentStore } from './content-
 import { ASSET_HASH } from './asset-version';
 import { securityHeaders } from './middleware/security-headers';
 import { MahoApiClient, normalizeProduct } from './api-client';
-import { setRenderStore, setRenderApiUrl, setRenderPageConfigOverride, getAvailablePageConfigs } from './page-config';
+import { setRenderStore, setRenderApiUrl, setRenderPageConfigOverride, setRenderImageResize, getAvailablePageConfigs } from './page-config';
 import { Home } from './templates/Home';
 import { CategoryPage } from './templates/Category';
 import { ProductPage } from './templates/Product';
@@ -129,6 +129,7 @@ async function getStoreContext(c: any): Promise<{ stores: StorefrontStore[]; cur
   // Set render-time store context BEFORE any JSX evaluation
   setRenderStore(currentStoreCode);
   setRenderApiUrl(getApiUrl(c.env, stores, currentStoreCode));
+  setRenderImageResize(c.env.USE_CF_IMAGE_RESIZE === '1' || c.env.USE_CF_IMAGE_RESIZE === 'true');
   // Apply page config override from dev session (preview mode)
   const devSession = c.get('devSession') as DevSession | undefined;
   setRenderPageConfigOverride(devSession?.pageconfig ?? null);
@@ -703,6 +704,18 @@ app.get('/styles.css', (c) => {
 app.get('/controllers.js', (c) => {
   return c.body(controllers, 200, { 'Content-Type': 'application/javascript', 'Cache-Control': 'public, max-age=31536000, immutable' });
 });
+// Favicon — a small inline SVG mark (no binary asset needed). The <link rel="icon">
+// in Layout points browsers here; /favicon.ico returns 204 so the default
+// browser/crawler probe for /favicon.ico stops 404-ing on every page.
+const FAVICON_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
+  '<rect width="32" height="32" rx="7" fill="#101317"/>' +
+  '<circle cx="16" cy="16" r="8" fill="none" stroke="#c2f04a" stroke-width="3.2"/>' +
+  '</svg>';
+app.get('/favicon.svg', (c) =>
+  c.body(FAVICON_SVG, 200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=604800' }),
+);
+app.get('/favicon.ico', (c) => c.body(null, 204, { 'Cache-Control': 'public, max-age=604800' }));
 
 // Payment plugin static assets
 const plugins: Record<string, string> = {

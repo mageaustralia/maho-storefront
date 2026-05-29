@@ -357,6 +357,7 @@ export interface Env {
   STORES?: string;       // JSON array of StorefrontStore
   GOOGLE_MAPS_KEY?: string; // Google Places Autocomplete API key
   STRIPE_SECRET_KEY?: string; // Stripe secret key for creating PaymentIntents (embed widget)
+  USE_CF_IMAGE_RESIZE?: string; // "1"/"true" → emit responsive srcset via Cloudflare Image Resizing (PAID; default off)
 }
 
 /**
