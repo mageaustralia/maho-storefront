@@ -37,10 +37,22 @@ the request carries `X-Storefront-Sync: <SYNC_SECRET>`. On `/sync`,
 
 `STRIPE_SECRET_KEY` may also be supplied via a Worker env var as a fallback.
 
+## CSP
+
+Stripe's Content-Security-Policy sources (`js.stripe.com`, `api.stripe.com`,
+`hooks.stripe.com`) are declared by the plugin in `csp.ts` (`STRIPE_CSP`) and
+merged into the storefront policy via the aggregator at `src/plugins/csp.ts` —
+they are **not** hardcoded in core. See the "Payment plugins" section of
+`architecture/plugins.md`.
+
 ## Removing Stripe
 
 1. Delete `src/plugins/stripe/`.
 2. Remove the `registerStripeRoutes(...)`, `syncStripeConfig(...)` and
    `getStripePublishableKey(...)` usages from `src/index.tsx`.
-3. (Optional) drop `public/plugins/stripe-payment.js.txt` and the Stripe CSP
-   entries in `src/middleware/security-headers.ts`.
+3. Remove the `STRIPE_CSP` entry from `CONTRIBUTIONS` in `src/plugins/csp.ts`.
+4. (Optional) drop `public/plugins/stripe-payment.js.txt`.
+
+> The **embed widget** (`src/embed/*`) still uses Stripe directly in its own
+> bundle — de-hardcoding that into a plugin-provided payment adapter is a
+> separate, pending follow-up (the "embed plugin refactor").
