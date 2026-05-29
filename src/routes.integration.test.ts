@@ -122,4 +122,18 @@ describe('Worker routes (integration)', () => {
       expect(res.status).toBe(404);
     });
   });
+
+  describe('page rendering (KV-miss fallbacks)', () => {
+    it('renders the home page as a complete HTML document', async () => {
+      const res = await request('/');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Content-Type')).toContain('text/html');
+      const html = await res.text();
+      expect(html).toContain('<html');
+      expect(html).toContain('</html>');
+      expect(html).toContain('</head>');
+      // Security headers also apply to the rendered page.
+      expect(res.headers.get('X-Frame-Options')).toBe('SAMEORIGIN');
+    });
+  });
 });
