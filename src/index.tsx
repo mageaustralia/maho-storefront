@@ -1431,8 +1431,10 @@ app.get('/api/search/suggest', async (c) => {
     .map((p: FooterPage) => ({ title: p.title, identifier: p.identifier }));
 
   return c.json({
-    products: (productsRes as any).products || productsRes.member || [],
-    totalItems: (productsRes as any).totalItems || 0,
+    // searchProducts() already unwraps the Hydra envelope to { products, totalItems },
+    // so read it directly — no `.member` fallback / `as any` needed.
+    products: productsRes.products,
+    totalItems: productsRes.totalItems,
     categories: matchedCategories,
     blogPosts: matchedBlog,
     cmsPages: matchedCms,
@@ -2557,6 +2559,16 @@ app.post('/sync/:type', async (c) => {
               const fullCat = await partialApiClient.fetchCategoryById(cat.id);
               categories[i] = fullCat;
             } catch {}
+          }
+        }
+        // Stamp _lastChecked BEFORE writing — matches full /sync (index.tsx ~2301).
+        // Without this, partial-synced categories carried no timestamp and the
+        // freshness controller treated them as stale, re-fetching every render.
+        const catTimestamp = Math.floor(Date.now() / 1000);
+        for (const cat of categories) {
+          (cat as any)._lastChecked = catTimestamp;
+          if (cat.children) {
+            for (const child of cat.children) (child as any)._lastChecked = catTimestamp;
           }
         }
         await store.put(`${prefix}categories`, categories);
