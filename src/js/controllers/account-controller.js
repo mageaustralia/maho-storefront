@@ -261,9 +261,14 @@ export default class AccountController extends Controller {
     const street2 = this.hasAddrStreet2Target ? this.addrStreet2Target.value.trim() : '';
     const streetArr = street2 ? [street1, street2] : [street1];
 
+    // The Address DTO uses lowercase `firstname`/`lastname` (Magento legacy)
+    // but every OTHER field on the same DTO is camelCase. Match the DTO's
+    // actual field names on the wire — sending `firstName` (camelCase) leaves
+    // `firstname` empty server-side and the API's required-field validator
+    // rejects the request with "First name is required".
     const body = {
-      firstName: this.hasAddrFirstNameTarget ? this.addrFirstNameTarget.value.trim() : '',
-      lastName: this.hasAddrLastNameTarget ? this.addrLastNameTarget.value.trim() : '',
+      firstname: this.hasAddrFirstNameTarget ? this.addrFirstNameTarget.value.trim() : '',
+      lastname: this.hasAddrLastNameTarget ? this.addrLastNameTarget.value.trim() : '',
       company: this.hasAddrCompanyTarget ? this.addrCompanyTarget.value.trim() : null,
       street: streetArr,
       city: this.hasAddrCityTarget ? this.addrCityTarget.value.trim() : '',
@@ -281,7 +286,7 @@ export default class AccountController extends Controller {
       body.region = this.addrRegionTextTarget.value.trim();
     }
 
-    if (!body.firstName || !body.lastName || !street1 || !body.city || !body.postcode || !body.countryId) {
+    if (!body.firstname || !body.lastname || !street1 || !body.city || !body.postcode || !body.countryId) {
       this._showMsg('addressMessage', 'Please fill in all required fields.', 'error');
       return;
     }
