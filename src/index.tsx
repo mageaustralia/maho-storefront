@@ -1015,8 +1015,10 @@ app.get('/media/*', async (c) => {
     const res = await fetch(backendUrl, { headers });
     if (!res.ok) return c.text('Not found', 404);
     const contentType = res.headers.get('Content-Type') || 'application/octet-stream';
-    const body = await res.arrayBuffer();
-    return c.body(body, 200, {
+    // Stream the upstream body straight through instead of buffering the whole
+    // image into Worker memory with arrayBuffer(). Cloudflare still edge-caches
+    // the response per the immutable Cache-Control header.
+    return c.body(res.body, 200, {
       'Content-Type': contentType,
       'Cache-Control': 'public, max-age=31536000, immutable',
     });
@@ -1038,8 +1040,8 @@ for (const proxyPath of ['/core/index/resize/*', '/skin/*']) {
       const res = await fetch(backendUrl, { headers });
       if (!res.ok) return c.text('Not found', 404);
       const contentType = res.headers.get('Content-Type') || 'application/octet-stream';
-      const body = await res.arrayBuffer();
-      return c.body(body, 200, {
+      // Stream through (see /media/* above) rather than buffering in memory.
+      return c.body(res.body, 200, {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000, immutable',
       });
