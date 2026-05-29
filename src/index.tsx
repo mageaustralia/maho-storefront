@@ -154,6 +154,7 @@ function createApiClient(env: Env, stores: StorefrontStore[], storeCode?: string
 import embedScript from '../public/embed.js.txt';
 import { registerStaticAssetRoutes } from './routes/static-assets';
 import { registerAgentRoutes } from './routes/agents';
+import { syncCategories } from './sync/entities';
 
 type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession } };
 const app = new Hono<AppEnv>();
@@ -2169,37 +2170,8 @@ app.post('/sync', async (c) => {
       await store.put(`${prefix}config`, config);
       results[`${storeCode || 'default'}:config`] = 'ok';
 
-      // 2. Sync categories (collection endpoint returns children:[], so fetch individually for those with childrenIds)
-      const categories = await storeApiClient.fetchCategories();
-      for (let i = 0; i < categories.length; i++) {
-        const cat = categories[i];
-        if (cat.id && cat.childrenIds && cat.childrenIds.length > 0) {
-          try {
-            const fullCat = await storeApiClient.fetchCategoryById(cat.id);
-            categories[i] = fullCat;
-          } catch {}
-        }
-      }
-      await store.put(`${prefix}categories`, categories);
-
-      const catTimestamp = Math.floor(Date.now() / 1000);
-      for (const cat of categories) {
-        (cat as any)._lastChecked = catTimestamp;
-        if (cat.urlKey) {
-          await store.put(`${prefix}category:${cat.urlKey}`, cat);
-        }
-        if (cat.children) {
-          for (const child of cat.children) {
-            (child as any)._lastChecked = catTimestamp;
-            if (child.urlKey) {
-              await store.put(`${prefix}category:${child.urlKey}`, child);
-            }
-            if (child.urlPath) {
-              await store.put(`${prefix}category:${child.urlPath?.replace(/\.html$/, '')}`, child);
-            }
-          }
-        }
-      }
+      // 2. Sync categories — shared with /sync/:type via syncCategories (src/sync/).
+      const categories = await syncCategories(storeApiClient, store, prefix);
       results[`${storeCode || 'default'}:categories`] = `${categories.length} synced`;
 
       // Footer pages placeholder (populated below after products)
@@ -2435,36 +2407,9 @@ app.post('/sync/:type', async (c) => {
         return c.json({ status: 'ok', type: 'config' });
       }
       case 'categories': {
-        const categories = await partialApiClient.fetchCategories();
-        for (let i = 0; i < categories.length; i++) {
-          const cat = categories[i];
-          if (cat.id && cat.childrenIds && cat.childrenIds.length > 0) {
-            try {
-              const fullCat = await partialApiClient.fetchCategoryById(cat.id);
-              categories[i] = fullCat;
-            } catch {}
-          }
-        }
-        // Stamp _lastChecked BEFORE writing — matches full /sync (index.tsx ~2301).
-        // Without this, partial-synced categories carried no timestamp and the
-        // freshness controller treated them as stale, re-fetching every render.
-        const catTimestamp = Math.floor(Date.now() / 1000);
-        for (const cat of categories) {
-          (cat as any)._lastChecked = catTimestamp;
-          if (cat.children) {
-            for (const child of cat.children) (child as any)._lastChecked = catTimestamp;
-          }
-        }
-        await store.put(`${prefix}categories`, categories);
-        for (const cat of categories) {
-          if (cat.urlKey) await store.put(`${prefix}category:${cat.urlKey}`, cat);
-          if (cat.children) {
-            for (const child of cat.children) {
-              if (child.urlKey) await store.put(`${prefix}category:${child.urlKey}`, child);
-              if (child.urlPath) await store.put(`${prefix}category:${child.urlPath?.replace(/\.html$/, '')}`, child);
-            }
-          }
-        }
+        // Shared with the full /sync via syncCategories (src/sync/) — single
+        // source of truth, so the _lastChecked stamping can't drift again.
+        const categories = await syncCategories(partialApiClient, store, prefix);
         return c.json({ status: 'ok', type: 'categories', count: categories.length });
       }
       case 'product-details': {
