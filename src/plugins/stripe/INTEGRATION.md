@@ -53,6 +53,6 @@ they are **not** hardcoded in core. See the "Payment plugins" section of
 3. Remove the `STRIPE_CSP` entry from `CONTRIBUTIONS` in `src/plugins/csp.ts`.
 4. (Optional) drop `public/plugins/stripe-payment.js.txt`.
 
-> The **embed widget** (`src/embed/*`) still uses Stripe directly in its own
-> bundle — de-hardcoding that into a plugin-provided payment adapter is a
-> separate, pending follow-up (the "embed plugin refactor").
+> The **embed widget** (`src/embed/*`) is a separate IIFE bundle and can't use
+> this plugin. It applies the same idea locally via a `PaymentAdapter` interface
+> (`src/embed/payments/`); Stripe is `src/embed/payments/stripe.ts`.
