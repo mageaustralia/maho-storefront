@@ -94,10 +94,10 @@ export default class CartController extends Controller {
       if (this.hasLoadingTarget) this.loadingTarget.style.display = 'none';
       if (this.hasEmptyTarget) this.emptyTarget.style.display = '';
       // We're showing the empty state, so the badge must not contradict it — zero it.
-      // Only DROP the cart reference on a definitive 404; transient errors (500,
-      // network) keep the id so the next page-load reconcile can restore the true
-      // count if the cart still has items.
-      if (e.status === 404) localStorage.removeItem('maho_cart_id');
+      // Drop the cart reference on any 4xx (gone/invalid/inaccessible — e.g. a 401
+      // from a guest cart that became a customer cart after login). Transient 5xx /
+      // network errors keep the id so the next reconcile can restore the count.
+      if (e.status >= 400 && e.status < 500) localStorage.removeItem('maho_cart_id');
       localStorage.setItem('maho_cart_qty', '0');
       updateCartBadge();
       return;
