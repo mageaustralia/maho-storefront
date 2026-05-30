@@ -81,7 +81,7 @@ class Mageaustralia_Storefront_OnepageController extends Mage_Checkout_OnepageCo
                AND storefront_order_token != ''
                AND created_at > DATE_SUB(NOW(), INTERVAL 10 MINUTE)
              ORDER BY entity_id DESC
-             LIMIT 1"
+             LIMIT 1",
         );
 
         if ($orderId) {

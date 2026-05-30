@@ -19,6 +19,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_OnboardController extends Ma
         return parent::preDispatch();
     }
 
+    #[Maho\Config\Route('/admin/storefront_onboard/index')]
     public function indexAction(): void
     {
         $this->_title($this->__('System'))
@@ -29,6 +30,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_OnboardController extends Ma
         $this->renderLayout();
     }
 
+    #[Maho\Config\Route('/admin/storefront_onboard/listZones')]
     public function listZonesAction(): void
     {
         try {
@@ -51,6 +53,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_OnboardController extends Ma
         }
     }
 
+    #[Maho\Config\Route('/admin/storefront_onboard/listStores')]
     public function listStoresAction(): void
     {
         try {
@@ -63,6 +66,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_OnboardController extends Ma
         }
     }
 
+    #[Maho\Config\Route('/admin/storefront_onboard/validate')]
     public function validateAction(): void
     {
         $result = ['success' => false];
@@ -147,6 +151,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_OnboardController extends Ma
         $this->sendJson($result);
     }
 
+    #[Maho\Config\Route('/admin/storefront_onboard/provision')]
     public function provisionAction(): void
     {
         $result = ['success' => false];
@@ -231,6 +236,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_OnboardController extends Ma
         $this->sendJson($result);
     }
 
+    #[Maho\Config\Route('/admin/storefront_onboard/provisionStep')]
     public function provisionStepAction(): void
     {
         $result = ['success' => false];
@@ -311,6 +317,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_OnboardController extends Ma
         $this->sendJson($result);
     }
 
+    #[Maho\Config\Route('/admin/storefront_onboard/rollback')]
     public function rollbackAction(): void
     {
         $result = ['success' => false];
@@ -357,6 +364,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_OnboardController extends Ma
         $this->sendJson($result);
     }
 
+    #[Maho\Config\Route('/admin/storefront_onboard/removeStore')]
     public function removeStoreAction(): void
     {
         $result = ['success' => false];

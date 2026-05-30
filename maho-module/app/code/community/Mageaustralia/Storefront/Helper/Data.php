@@ -362,7 +362,7 @@ TOML;
             'details'     => $details,
             'admin_user'  => $this->getAdminUsername(),
             'duration_ms' => $durationMs,
-            'created_at'  => Mage_Core_Model_Locale::now(),
+            'created_at'  => Mage_Core_Model_Locale::nowUtc(),
         ]);
         $log->save();
     }

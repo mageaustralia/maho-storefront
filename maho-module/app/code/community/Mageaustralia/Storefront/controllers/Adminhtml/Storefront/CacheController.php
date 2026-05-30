@@ -19,6 +19,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_CacheController extends Mage
         return parent::preDispatch();
     }
 
+    #[Maho\Config\Route('/admin/storefront_cache/purgeAll')]
     public function purgeAllAction(): void
     {
         $storeId = $this->getSelectedStoreId();
@@ -52,6 +53,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_CacheController extends Mage
         $this->_redirect('*/storefront_dashboard/index', $this->getStoreRedirectParam());
     }
 
+    #[Maho\Config\Route('/admin/storefront_cache/purgeUrls')]
     public function purgeUrlsAction(): void
     {
         $storeId = $this->getSelectedStoreId();
@@ -93,6 +95,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_CacheController extends Mage
         $this->_redirect('*/storefront_dashboard/index', $this->getStoreRedirectParam());
     }
 
+    #[Maho\Config\Route('/admin/storefront_cache/deleteKvAjax')]
     public function deleteKvAjaxAction(): void
     {
         $storeId = $this->getSelectedStoreId();
@@ -138,6 +141,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_CacheController extends Mage
         $this->sendJson($result);
     }
 
+    #[Maho\Config\Route('/admin/storefront_cache/listKvKeys')]
     public function listKvKeysAction(): void
     {
         $storeId = $this->getSelectedStoreId();
