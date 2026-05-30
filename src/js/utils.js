@@ -47,9 +47,11 @@ let _lastBadgeReconcile = 0;
  * Running this on every page load makes the badge self-healing: it can never
  * stay wrong past the next navigation.
  *
- * Safe on failure: a definitively-gone cart (404) resets to 0; transient errors
- * (5xx / network / parse) leave the cached value untouched, so we never wrongly
- * zero a cart that may still have items.
+ * Safe on failure: any 4xx means the stored cart reference is dead — gone (404),
+ * invalid, or no longer ours (401/403, e.g. a guest cart that got attached to a
+ * customer account after login and is now inaccessible once the token expires).
+ * We clear it and zero the badge. 5xx / network / parse errors are transient, so
+ * we leave the cached value untouched and retry on the next load.
  */
 export async function reconcileCartBadge({ force = false } = {}) {
   const cartId = localStorage.getItem('maho_cart_id');
@@ -66,11 +68,13 @@ export async function reconcileCartBadge({ force = false } = {}) {
     const qty = Number(cart?.itemsQty) || (Array.isArray(cart?.items) ? cart.items.length : 0);
     localStorage.setItem('maho_cart_qty', String(qty));
   } catch (e) {
-    if (e && e.status === 404) {
+    if (e && e.status >= 400 && e.status < 500) {
+      // Dead reference (gone / invalid / inaccessible) — drop it so we stop
+      // re-requesting it (the recurring 401) and the badge stops lying.
       localStorage.removeItem('maho_cart_id');
       localStorage.setItem('maho_cart_qty', '0');
     }
-    // else: transient — keep the cached value, retry on next load.
+    // else: transient (5xx / network) — keep the cached value, retry next load.
   }
   updateCartBadge();
 }

@@ -77,7 +77,10 @@ export default class CartDrawerController extends Controller {
       this._renderCartFromData(cart);
     } catch (e) {
       if (this.hasLoadingTarget) this.loadingTarget.style.display = 'none';
-      if (e.status === 404) {
+      // Drop the cart reference on any 4xx (gone/invalid/inaccessible — e.g. 401
+      // from a customer-attached cart after the token expires). showEmpty() zeros
+      // the badge. 5xx / network are transient — keep the id.
+      if (e.status >= 400 && e.status < 500) {
         localStorage.removeItem('maho_cart_id');
       }
       this.showEmpty();
