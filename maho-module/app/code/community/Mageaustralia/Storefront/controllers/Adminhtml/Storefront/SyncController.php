@@ -22,6 +22,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_SyncController extends Mage_
     /**
      * Initialize a full sync — returns step plan for the frontend to drive step-by-step
      */
+    #[Maho\Config\Route('/admin/storefront_sync/full')]
     public function fullAction(): void
     {
         $result = ['success' => false];
@@ -69,6 +70,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_SyncController extends Mage_
     /**
      * Execute one sync step — called sequentially by frontend JS
      */
+    #[Maho\Config\Route('/admin/storefront_sync/step')]
     public function stepAction(): void
     {
         $result = ['success' => false];
@@ -160,6 +162,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_SyncController extends Mage_
     /**
      * Single partial sync by type
      */
+    #[Maho\Config\Route('/admin/storefront_sync/partial')]
     public function partialAction(): void
     {
         $type = $this->getRequest()->getParam('type');

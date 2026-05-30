@@ -19,6 +19,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_DashboardController extends 
         return parent::preDispatch();
     }
 
+    #[Maho\Config\Route('/admin/storefront_dashboard/index')]
     public function indexAction(): void
     {
         $this->_title($this->__('System'))
@@ -30,6 +31,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_DashboardController extends 
         $this->renderLayout();
     }
 
+    #[Maho\Config\Route('/admin/storefront_dashboard/pulse')]
     public function pulseAction(): void
     {
         $result = ['success' => false];
@@ -55,6 +57,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_DashboardController extends 
         $this->sendJson($result);
     }
 
+    #[Maho\Config\Route('/admin/storefront_dashboard/testConnection')]
     public function testConnectionAction(): void
     {
         $result = ['success' => false, 'cloudflare' => false, 'storefront' => false];
@@ -105,6 +108,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_DashboardController extends 
      * Called from system config page before credentials are saved.
      * Accepts unsaved form values directly in the POST body.
      */
+    #[Maho\Config\Route('/admin/storefront_dashboard/discover')]
     public function discoverAction(): void
     {
         $result = ['success' => false];
@@ -137,6 +141,7 @@ class Mageaustralia_Storefront_Adminhtml_Storefront_DashboardController extends 
         $this->sendJson($result);
     }
 
+    #[Maho\Config\Route('/admin/storefront_dashboard/logGrid')]
     public function logGridAction(): void
     {
         $this->loadLayout();

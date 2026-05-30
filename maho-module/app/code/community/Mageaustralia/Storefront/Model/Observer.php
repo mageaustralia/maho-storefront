@@ -6,8 +6,8 @@ declare(strict_types=1);
  * Mageaustralia
  *
  * @package    Mageaustralia_Storefront
- * @copyright  Copyright (c) 2026 Mageaustralia
- * @license    https://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  Copyright (c) 2026 Mage Australia Pty Ltd (https://mageaustralia.com.au)
+ * @license    AGPL-3.0-only Open source release; commercial licence available. See LICENSE-COMMERCIAL.md.
  */
 
 class Mageaustralia_Storefront_Model_Observer
@@ -120,7 +120,7 @@ class Mageaustralia_Storefront_Model_Observer
 
     /**
      * Queue pending invalidations to core_flag for async processing by cron.
-     * This runs at the end of the request but does NOT make HTTP calls — just a fast DB write.
+     * This runs at the end of the request but does NOT make HTTP calls - just a fast DB write.
      */
     public function flushPendingInvalidations(Maho\Event\Observer $observer): void
     {
@@ -227,10 +227,18 @@ class Mageaustralia_Storefront_Model_Observer
      * Prevents 503s on browser prefetch requests caused by concurrent session file locking.
      *
      * Skips checkout/cart/customer routes because those pages consume and clear
-     * session flash messages during rendering — session must stay writable.
+     * session flash messages during rendering - session must stay writable.
      */
     public function releaseSessionForReadRequest(Maho\Event\Observer $observer): void
     {
+        // Skip ALL admin requests regardless of front-name. Module name alone
+        // can't catch this - sites may rename the admin frontname, so admin
+        // GETs would slip past a hardcoded list and corrupt session writes.
+        $controller = $observer->getEvent()->getControllerAction();
+        if ($controller instanceof Mage_Adminhtml_Controller_Action) {
+            return;
+        }
+
         $request = Mage::app()->getRequest();
 
         // Only for GET/HEAD (read-only) requests
@@ -244,7 +252,17 @@ class Mageaustralia_Storefront_Model_Observer
             return;
         }
 
-        // Release the session write lock — data is still readable from $_SESSION
+        // Don't release if there are pending flash messages that need to be consumed
+        try {
+            $coreSession = Mage::getSingleton('core/session');
+            $adminSession = Mage::getSingleton('adminhtml/session');
+            if ($coreSession->getMessages()->count() > 0 || $adminSession->getMessages()->count() > 0) {
+                return;
+            }
+        } catch (\Exception $e) {
+        }
+
+        // Release the session write lock - data is still readable from $_SESSION
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_write_close();
         }
