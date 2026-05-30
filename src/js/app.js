@@ -5,6 +5,7 @@
  */
 
 import { Application } from './stimulus.js';
+import { reconcileCartBadge } from './utils.js';
 
 // Import all controllers
 import CartController from './controllers/cart-controller.js';
@@ -75,7 +76,12 @@ if (!window.__stimulusApp) {
 window.dataLayer = window.dataLayer || [];
 document.addEventListener('turbo:load', () => {
   analytics.pageView();
+  // Keep the header cart badge truthful against the backend on every page load
+  // (self-heals stale counts — e.g. an expired guest cart). Throttled internally.
+  reconcileCartBadge();
 });
+// Initial load (covers non-Turbo first paint / late script load).
+reconcileCartBadge();
 // Make analytics available globally for inline event tracking
 window.mahoAnalytics = analytics;
 

@@ -81,6 +81,9 @@ export default class CartController extends Controller {
     if (!maskedId) {
       if (this.hasLoadingTarget) this.loadingTarget.style.display = 'none';
       if (this.hasEmptyTarget) this.emptyTarget.style.display = '';
+      // No cart → badge must read 0 (never show empty page with a stale count).
+      localStorage.setItem('maho_cart_qty', '0');
+      updateCartBadge();
       return;
     }
 
@@ -90,13 +93,13 @@ export default class CartController extends Controller {
     } catch (e) {
       if (this.hasLoadingTarget) this.loadingTarget.style.display = 'none';
       if (this.hasEmptyTarget) this.emptyTarget.style.display = '';
-      // Only clear cart ID if definitively gone (404). Transient errors (500, network)
-      // should not permanently destroy the cart reference.
-      if (e.status === 404) {
-        localStorage.removeItem('maho_cart_id');
-        localStorage.removeItem('maho_cart_qty');
-        updateCartBadge();
-      }
+      // We're showing the empty state, so the badge must not contradict it — zero it.
+      // Only DROP the cart reference on a definitive 404; transient errors (500,
+      // network) keep the id so the next page-load reconcile can restore the true
+      // count if the cart still has items.
+      if (e.status === 404) localStorage.removeItem('maho_cart_id');
+      localStorage.setItem('maho_cart_qty', '0');
+      updateCartBadge();
       return;
     }
     if (this.hasLoadingTarget) this.loadingTarget.style.display = 'none';

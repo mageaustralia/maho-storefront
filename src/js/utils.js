@@ -37,6 +37,44 @@ export function updateCartBadge() {
   });
 }
 
+let _lastBadgeReconcile = 0;
+/**
+ * Reconcile the header cart badge against the REAL backend cart.
+ *
+ * The badge otherwise renders a cached number (`maho_cart_qty`) that can drift
+ * from the server — guest carts expire, get emptied at checkout in another tab,
+ * etc. — which produced the "badge says 4 but the cart is empty" mismatch.
+ * Running this on every page load makes the badge self-healing: it can never
+ * stay wrong past the next navigation.
+ *
+ * Safe on failure: a definitively-gone cart (404) resets to 0; transient errors
+ * (5xx / network / parse) leave the cached value untouched, so we never wrongly
+ * zero a cart that may still have items.
+ */
+export async function reconcileCartBadge({ force = false } = {}) {
+  const cartId = localStorage.getItem('maho_cart_id');
+  if (!cartId) {
+    localStorage.setItem('maho_cart_qty', '0');
+    updateCartBadge();
+    return;
+  }
+  const now = Date.now();
+  if (!force && now - _lastBadgeReconcile < 10000) return; // throttle rapid Turbo navigations
+  _lastBadgeReconcile = now;
+  try {
+    const cart = await api.get(`/api/guest-carts/${cartId}`);
+    const qty = Number(cart?.itemsQty) || (Array.isArray(cart?.items) ? cart.items.length : 0);
+    localStorage.setItem('maho_cart_qty', String(qty));
+  } catch (e) {
+    if (e && e.status === 404) {
+      localStorage.removeItem('maho_cart_id');
+      localStorage.setItem('maho_cart_qty', '0');
+    }
+    // else: transient — keep the cached value, retry on next load.
+  }
+  updateCartBadge();
+}
+
 /**
  * Dispatch cart updated event
  */
