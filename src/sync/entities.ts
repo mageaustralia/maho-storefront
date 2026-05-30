@@ -35,12 +35,33 @@ export async function syncCategories(
   prefix: string,
 ): Promise<Category[]> {
   const categories = await api.fetchCategories();
+
+  // Snapshot the previously-synced tree. The collection endpoint returns
+  // `childrenIds` but `children: []`, so we re-fetch each parent by id to
+  // populate its children. If that re-fetch fails (transient backend blip) or
+  // comes back childless despite having childrenIds, we must NOT overwrite the
+  // good data with a childless version — that silently wipes the header submenu
+  // until the next clean sync. Fall back to the previously-synced children so a
+  // single hiccup can never regress the menu.
+  const existing = await store.get<Category[]>(`${prefix}categories`);
+  const existingById = new Map<number, Category>();
+  for (const c of existing ?? []) if (c.id != null) existingById.set(c.id, c);
+
   for (let i = 0; i < categories.length; i++) {
     const cat = categories[i];
     if (cat.id && cat.childrenIds && cat.childrenIds.length > 0) {
+      let full: Category | null = null;
       try {
-        categories[i] = await api.fetchCategoryById(cat.id);
-      } catch {}
+        full = await api.fetchCategoryById(cat.id);
+      } catch { /* transient — handled below */ }
+      if (full?.children && full.children.length > 0) {
+        categories[i] = full;
+      } else {
+        // Re-fetch failed or returned no children despite childrenIds — keep the
+        // last-known-good category (with its children) instead of regressing.
+        const prev = existingById.get(cat.id);
+        if (prev?.children && prev.children.length > 0) categories[i] = prev;
+      }
     }
   }
 
