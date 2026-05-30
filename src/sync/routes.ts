@@ -450,24 +450,10 @@ export function registerSyncRoutes(app: Hono<any>, deps: SyncRouteDeps): void {
               }
             } catch {}
           }
-          // Also refresh the full categories list
-          const allCats = await partialApiClient.fetchCategories();
-          for (let i = 0; i < allCats.length; i++) {
-            const ac = allCats[i];
-            if (ac.id && ac.childrenIds && ac.childrenIds.length > 0) {
-              try { allCats[i] = await partialApiClient.fetchCategoryById(ac.id); } catch {}
-            }
-          }
-          await store.put(`${prefix}categories`, allCats);
-          for (const ac of allCats) {
-            if (ac.urlKey) await store.put(`${prefix}category:${ac.urlKey}`, ac);
-            if (ac.children) {
-              for (const child of ac.children) {
-                if (child.urlKey) await store.put(`${prefix}category:${child.urlKey}`, child);
-                if (child.urlPath) await store.put(`${prefix}category:${child.urlPath?.replace(/\.html$/, '')}`, child);
-              }
-            }
-          }
+          // Also refresh the full categories list — via syncCategories so the
+          // children-preservation guard applies (was a duplicate loop with the
+          // same silent-wipe bug).
+          await syncCategories(partialApiClient, store, prefix);
           return c.json({ status: 'ok', type: 'categories-by-id', count: catCount });
         }
         case 'filterable-pages': {

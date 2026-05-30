@@ -121,6 +121,28 @@ export function registerCacheOpsRoutes(app: Hono<any>, deps: CacheOpsDeps): void
       }
 
       const store = new CloudflareKVStore(c.env.CONTENT);
+
+      // Guard the category TREE (`${prefix}categories`): the client freshness
+      // controller refreshes it from the flat /api/categories collection, which
+      // returns `childrenIds` but `children: []`. Writing that verbatim wipes the
+      // header submenu. Merge children back from the existing tree for any parent
+      // that has childrenIds but arrived childless — so a freshness refresh can
+      // pick up structural changes (renames/moves) without ever losing children.
+      if ((body.key === 'categories' || /(^|:)categories$/.test(body.key)) && Array.isArray(body.data)) {
+        const existing = await store.get<any[]>(body.key);
+        if (Array.isArray(existing) && existing.length) {
+          const prevById = new Map(existing.filter(c => c && c.id != null).map(c => [c.id, c]));
+          for (const cat of body.data) {
+            const hasKids = Array.isArray(cat?.children) && cat.children.length > 0;
+            const expectsKids = Array.isArray(cat?.childrenIds) && cat.childrenIds.length > 0;
+            if (expectsKids && !hasKids) {
+              const prev = prevById.get(cat.id);
+              if (prev?.children?.length) cat.children = prev.children;
+            }
+          }
+        }
+      }
+
       await store.put(body.key, body.data, 86400); // 24 hours KV TTL
 
       // Also purge edge cache for the corresponding page URL
