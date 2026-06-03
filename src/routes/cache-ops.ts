@@ -128,7 +128,8 @@ export function registerCacheOpsRoutes(app: Hono<any>, deps: CacheOpsDeps): void
       // header submenu. Merge children back from the existing tree for any parent
       // that has childrenIds but arrived childless — so a freshness refresh can
       // pick up structural changes (renames/moves) without ever losing children.
-      if ((body.key === 'categories' || /(^|:)categories$/.test(body.key)) && Array.isArray(body.data)) {
+      const isCategoryTree = (body.key === 'categories' || /(^|:)categories$/.test(body.key)) && Array.isArray(body.data);
+      if (isCategoryTree) {
         const existing = await store.get<any[]>(body.key);
         if (Array.isArray(existing) && existing.length) {
           const prevById = new Map(existing.filter(c => c && c.id != null).map(c => [c.id, c]));
@@ -143,7 +144,12 @@ export function registerCacheOpsRoutes(app: Hono<any>, deps: CacheOpsDeps): void
         }
       }
 
-      await store.put(body.key, body.data, 86400); // 24 hours KV TTL
+      // The category tree is GLOBAL nav data, written permanently by full sync.
+      // A freshness refresh must NOT downgrade it to a short TTL — otherwise the
+      // whole menu silently expires after 24h on stores whose home page (the
+      // only page that doesn't re-trigger the category refresh) is the entry
+      // point. Persist it with no TTL; per-page caches keep their 24h TTL.
+      await store.put(body.key, body.data, isCategoryTree ? undefined : 86400);
 
       // Also purge edge cache for the corresponding page URL
       const baseUrl = new URL(c.req.url).origin;
