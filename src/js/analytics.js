@@ -12,6 +12,12 @@
 function push(event, params = {}) {
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ ecommerce: null }); // Clear previous ecommerce data
+  // Canonical GA4/GTM dataLayer ecommerce shape: event name + nested `ecommerce`
+  // object ({ items, value, currency, transaction_id, … }). Cloudflare Zaraz
+  // consumes this directly when BOTH "Data layer compatibility mode" and the
+  // "E-commerce Tracking API" are enabled (Zaraz Settings) — that pair is what
+  // maps these into GA4's ecommerce reports. Keep the shape canonical; don't
+  // flatten (the ecommerce API reads the nested object).
   window.dataLayer.push({ event, ...params });
 }
 
@@ -79,6 +85,34 @@ export const analytics = {
         currency,
         value: (product.price || 0) * qty,
         items: [{ ...mapItem(product), quantity: qty }],
+      },
+    });
+  },
+
+  /** Track add to wishlist */
+  addToWishlist(product, currency = 'USD') {
+    push('add_to_wishlist', {
+      ecommerce: {
+        currency,
+        value: product.finalPrice || product.price || 0,
+        items: [mapItem(product)],
+      },
+    });
+  },
+
+  /** Track cart view (full cart page) */
+  viewCart(items, total, currency = 'USD') {
+    push('view_cart', {
+      ecommerce: {
+        currency,
+        value: total,
+        items: items.map((item, i) => ({
+          item_id: item.sku,
+          item_name: item.name,
+          price: item.priceInclTax ?? item.price ?? 0,
+          quantity: item.qty,
+          index: i,
+        })),
       },
     });
   },

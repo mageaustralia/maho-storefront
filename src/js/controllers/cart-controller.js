@@ -120,6 +120,13 @@ export default class CartController extends Controller {
     if (this.hasEmptyTarget) this.emptyTarget.style.display = 'none';
     if (this.hasContentTarget) this.contentTarget.style.display = '';
 
+    // Analytics: cart view — once per render, and only on the full cart page
+    // (hasContentTarget), so the header badge instance never fires it.
+    if (!this._viewCartTracked && this.hasContentTarget) {
+      this._viewCartTracked = true;
+      analytics.viewCart(cart.items, cart.prices?.grandTotal || 0, window.MAHO_CURRENCY || 'USD');
+    }
+
     let hasOos = false;
     if (this.hasItemsTarget) {
       this.itemsTarget.innerHTML = '';
