@@ -83,6 +83,34 @@ export const analytics = {
     });
   },
 
+  /** Track add to wishlist */
+  addToWishlist(product, currency = 'USD') {
+    push('add_to_wishlist', {
+      ecommerce: {
+        currency,
+        value: product.finalPrice || product.price || 0,
+        items: [mapItem(product)],
+      },
+    });
+  },
+
+  /** Track cart view (full cart page) */
+  viewCart(items, total, currency = 'USD') {
+    push('view_cart', {
+      ecommerce: {
+        currency,
+        value: total,
+        items: items.map((item, i) => ({
+          item_id: item.sku,
+          item_name: item.name,
+          price: item.priceInclTax ?? item.price ?? 0,
+          quantity: item.qty,
+          index: i,
+        })),
+      },
+    });
+  },
+
   /** Track checkout begin */
   beginCheckout(items, total, currency = 'USD') {
     push('begin_checkout', {

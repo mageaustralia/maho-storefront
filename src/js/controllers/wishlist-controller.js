@@ -7,6 +7,7 @@
 import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
 import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
+import { analytics } from '../analytics.js';
 
 // Global flag prevents duplicate wishlist fetches across Turbo navigations
 let _wishlistFetched = false;
@@ -80,6 +81,7 @@ export default class WishlistController extends Controller {
     try {
     const isLoggedIn = !!localStorage.getItem('maho_token');
     const existing = this._items.find(i => i.productId === productId);
+    const wasAdd = !existing;
 
     if (existing) {
       // Remove
@@ -110,6 +112,8 @@ export default class WishlistController extends Controller {
 
     this._saveLocal();
     this._dispatchUpdate();
+    // Analytics: only the add direction is an add_to_wishlist event.
+    if (wasAdd) analytics.addToWishlist({ id: productId }, window.MAHO_CURRENCY || 'USD');
     } finally {
       this._busy = false;
     }
