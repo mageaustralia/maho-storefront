@@ -11,8 +11,17 @@
 
 function push(event, params = {}) {
   window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({ ecommerce: null }); // Clear previous ecommerce data
-  window.dataLayer.push({ event, ...params });
+  window.dataLayer.push({ ecommerce: null }); // Clear previous ecommerce data (GTM convention)
+  // GA4 reads ecommerce fields (items/value/currency/transaction_id/…) as
+  // TOP-LEVEL event params. Zaraz's dataLayer→GA4 mapping (and gtag.js) forward
+  // top-level props verbatim, so we flatten the `ecommerce` block up while ALSO
+  // keeping the nested object for GTM-style consumers. Without the flat copy,
+  // GA4 gets the event name but no items/value — the data sits inside an
+  // `ecommerce` object it never unwraps, which reads as "not registering".
+  const { ecommerce, ...rest } = params;
+  window.dataLayer.push(
+    ecommerce ? { event, ...rest, ...ecommerce, ecommerce } : { event, ...rest },
+  );
 }
 
 function mapItem(product, index = 0, listName = '') {
