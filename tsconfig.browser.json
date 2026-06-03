@@ -1,0 +1,12 @@
+{
+  // Browser-side bundle (src/embed/*) — shipped to the customer's site as an
+  // IIFE, so it runs in the DOM, not the Worker. It needs the DOM lib and must
+  // NOT see @cloudflare/workers-types (those globals don't exist in a browser).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": []
+  },
+  "include": ["src/embed/**/*.ts", "src/embed/**/*.tsx"],
+  "exclude": []
+}

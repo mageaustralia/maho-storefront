@@ -69,7 +69,7 @@ export const OrderSuccessPage: FC<OrderSuccessProps> = ({ config, categories, st
             <p class="text-sm text-base-content/60 mb-4">Create an account to track your order and checkout faster.</p>
             <fieldset class="fieldset">
               <label class="input w-full">
-                <input type="password" data-order-success-target="newPassword" placeholder="Choose a password" class="grow" minlength="6" />
+                <input type="password" data-order-success-target="newPassword" placeholder="Choose a password" class="grow" minlength={6} />
               </label>
             </fieldset>
             <button data-order-success-target="createAccountBtn" data-action="click->order-success#createAccount" class="btn btn-sm btn-neutral mt-3 w-full">

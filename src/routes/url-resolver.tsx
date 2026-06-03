@@ -28,6 +28,10 @@ import { CmsPageTemplate } from '../templates/CmsPage';
 import { BlogPostPage } from '../templates/BlogPost';
 import type { Env, Category, Product, CmsPage, StoreConfig, StorefrontStore } from '../types';
 
+// Mirrors the AppEnv in index.tsx (Bindings + per-request Variables) so the
+// injected `app` is fully typed — c.env is Env, not unknown.
+type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession; wantsMarkdown?: boolean } };
+
 export interface UrlResolverDeps {
   createStore: (env: Env, timer?: ReturnType<typeof createDevTimer> | null) => ContentStore;
   getStoreContext: (c: any) => Promise<{ stores: StorefrontStore[]; currentStoreCode: string | undefined }>;
@@ -57,7 +61,7 @@ export interface UrlResolverDeps {
   cacheProduct: number;
 }
 
-export function registerUrlResolverRoutes(app: Hono<any>, deps: UrlResolverDeps): void {
+export function registerUrlResolverRoutes(app: Hono<AppEnv>, deps: UrlResolverDeps): void {
   const {
     createStore, getStoreContext, getStoreData, buildDevData, createApiClient,
     getSidebarBlocks, check404RateLimit, increment404Count, getClientIP,
@@ -192,13 +196,14 @@ export function registerUrlResolverRoutes(app: Hono<any>, deps: UrlResolverDeps)
       childCategory = await store.get<Category>(`${prefix}category:${fullPath}`) ?? undefined;
     }
 
-    if (childCategory) {
+    if (childCategory && childCategory.id != null) {
+      const childId = childCategory.id;
       const page = parseInt(c.req.query('page') ?? '1', 10);
       const itemsPerPage = 12;
-      let productsData = await store.get<{ products: Product[]; totalItems: number }>(`${prefix}products:category:${childCategory.id}:page:${page}`);
+      let productsData = await store.get<{ products: Product[]; totalItems: number }>(`${prefix}products:category:${childId}:page:${page}`);
       if (!productsData) {
         const apiClient = createApiClient(c.env, stores, currentStoreCode);
-        productsData = await apiClient.fetchCategoryProducts(childCategory.id, page, itemsPerPage);
+        productsData = await apiClient.fetchCategoryProducts(childId, page, itemsPerPage);
         if (productsData.products.length > 0) {
           c.executionCtx.waitUntil(store.put(`${prefix}products:category:${childCategory.id}:page:${page}`, productsData, 86400));
         }
@@ -256,13 +261,15 @@ export function registerUrlResolverRoutes(app: Hono<any>, deps: UrlResolverDeps)
 
     // Helper to render category page
     const renderCategory = async (category: Category) => {
+      if (category.id == null) return c.notFound();
+      const categoryId = category.id;
       const page = parseInt(c.req.query('page') ?? '1', 10);
       const itemsPerPage = 12;
-      let productsData = await store.get<{ products: Product[]; totalItems: number }>(`${prefix}products:category:${category.id}:page:${page}`);
+      let productsData = await store.get<{ products: Product[]; totalItems: number }>(`${prefix}products:category:${categoryId}:page:${page}`);
 
       // If no products in KV, fetch from API
       if (!productsData) {
-        productsData = await apiClient.fetchCategoryProducts(category.id, page, itemsPerPage);
+        productsData = await apiClient.fetchCategoryProducts(categoryId, page, itemsPerPage);
         if (productsData.products.length > 0) {
           c.executionCtx.waitUntil(store.put(`${prefix}products:category:${category.id}:page:${page}`, productsData, 86400));
         }

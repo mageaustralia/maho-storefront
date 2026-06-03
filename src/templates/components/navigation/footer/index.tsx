@@ -21,7 +21,7 @@ interface FooterPage { identifier: string; title: string; }
 
 export interface FooterProps {
   config: StoreConfig;
-  footerPages?: FooterPage[];
+  footerPages: FooterPage[];
 }
 
 const variants: Record<string, FC<FooterProps>> = {

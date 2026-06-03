@@ -1,8 +1,8 @@
 import { jsx } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 
-export const PromoTabs: FC<{ controller?: string }> = ({ controller = 'checkout' }) => (
-  <div class="flex flex-col gap-3">
+export const PromoTabs: FC<{ controller?: string; hidden?: boolean }> = ({ controller = 'checkout', hidden = false }) => (
+  <div class="flex flex-col gap-3" hidden={hidden}>
     <h2 class="text-lg font-semibold">Promo Codes</h2>
     <div class="flex gap-2">
       <input type="text" class="input input-sm grow" placeholder="Coupon code"

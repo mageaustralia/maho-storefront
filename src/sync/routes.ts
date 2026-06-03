@@ -35,7 +35,7 @@ export function registerSyncRoutes(app: Hono<any>, deps: SyncRouteDeps): void {
 
     const store = new CloudflareKVStore(c.env.CONTENT);
     const results: Record<string, string> = {};
-    const allSyncedCategories: Array<{ urlKey?: string; urlPath?: string }> = [];
+    const allSyncedCategories: Array<{ urlKey?: string | null; urlPath?: string | null }> = [];
 
     // Get stores to sync
     const stores = await getStoreRegistry(c.env);
@@ -160,6 +160,7 @@ export function registerSyncRoutes(app: Hono<any>, deps: SyncRouteDeps): void {
               imageUrl: post.imageUrl,
               metaKeywords: post.metaKeywords,
               metaDescription: post.metaDescription,
+              pageLayout: null,
               status: post.status,
               createdAt: post.publishDate ?? post.createdAt,
               updatedAt: post.updatedAt,

@@ -12,18 +12,20 @@ interface SeoProps {
   title: string;
   description?: string;
   canonicalUrl?: string;
+  keywords?: string | null;
   ogImage?: string;
   ogType?: string;
   siteName?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-export const Seo: FC<SeoProps> = ({ title, description, canonicalUrl, ogImage, ogType, siteName, jsonLd }) => {
+export const Seo: FC<SeoProps> = ({ title, description, canonicalUrl, keywords, ogImage, ogType, siteName, jsonLd }) => {
   const ldBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
   return (
     <>
       <title>{title}</title>
       {description && <meta name="description" content={description} />}
+      {keywords && <meta name="keywords" content={keywords} />}
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
       <meta property="og:title" content={title} />
       {description && <meta property="og:description" content={description} />}
