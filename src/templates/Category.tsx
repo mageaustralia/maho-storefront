@@ -11,6 +11,7 @@ import type { MenuData } from '../plugins/filterable-pages/types';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
+import { buildHreflangAlternates } from '../i18n/hreflang';
 import { ProductCard } from './components/product-display/card/index';
 import { SubcategoryTiles } from './components/SubcategoryTiles';
 import { getSection } from '../page-config';
@@ -116,6 +117,7 @@ export const CategoryPage: FC<CategoryPageProps> = ({ config, categories, catego
         canonicalUrl={canonicalUrl}
         siteName={config.storeName}
         jsonLd={[collectionLd, breadcrumbLd]}
+        alternates={buildHreflangAlternates({ stores, path: canonicalUrl.replace(config.baseUrl, '') || '/', defaultStoreCode: currentStoreCode })}
       />
       {/* Pagination hints (hoisted into <head> by Hono) */}
       {prevUrl && <link rel="prev" href={prevUrl} />}

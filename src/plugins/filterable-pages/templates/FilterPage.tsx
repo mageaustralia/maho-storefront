@@ -14,6 +14,7 @@ import type { FilterablePage, MenuData } from '../types';
 import { safeJsonLd } from '../../../utils/json-ld';
 import { Layout } from '../../../templates/Layout';
 import { Seo } from '../../../templates/components/Seo';
+import { buildHreflangAlternates } from '../../../i18n/hreflang';
 import { ProductCard } from '../../../templates/components/product-display/card/index';
 import { getSection } from '../../../page-config';
 import { rewriteContentUrls } from '../../../content-rewriter';
@@ -158,6 +159,7 @@ export const FilterPage: FC<FilterPageProps> = ({
         description={description}
         canonicalUrl={canonicalUrl}
         keywords={filterPage.metaKeywords}
+        alternates={buildHreflangAlternates({ stores, path: canonicalUrl.replace(config.baseUrl, '') || '/', defaultStoreCode: currentStoreCode })}
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }} />
 
