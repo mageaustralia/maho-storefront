@@ -11,6 +11,7 @@ import { sanitizeCmsHtml } from '../utils/sanitize-html';
 import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
+import { buildHreflangAlternates } from '../i18n/hreflang';
 import { ProductCard } from './components/product-display/card/index';
 import { getProductLayout } from './components/product-display/layout/index';
 import { Gallery } from './components/product-display/gallery/index';
@@ -101,6 +102,7 @@ export const ProductPage: FC<ProductPageProps> = ({ config, categories, product,
         ogType="product"
         siteName={config.storeName}
         jsonLd={[productLd, breadcrumbLd]}
+        alternates={buildHreflangAlternates({ stores, path: canonicalUrl.replace(config.baseUrl, '') || '/', defaultStoreCode: currentStoreCode })}
       />
 
       {/* Freshness metadata — client JS checks API if _lastChecked > 60s */}

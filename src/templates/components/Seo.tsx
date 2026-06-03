@@ -7,6 +7,7 @@
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import { safeJsonLd } from '../../utils/json-ld';
+import type { HreflangAlternate } from '../../i18n/hreflang';
 
 interface SeoProps {
   title: string;
@@ -17,9 +18,11 @@ interface SeoProps {
   ogType?: string;
   siteName?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** hreflang alternates across store-views — see buildHreflangAlternates(). */
+  alternates?: HreflangAlternate[];
 }
 
-export const Seo: FC<SeoProps> = ({ title, description, canonicalUrl, keywords, ogImage, ogType, siteName, jsonLd }) => {
+export const Seo: FC<SeoProps> = ({ title, description, canonicalUrl, keywords, ogImage, ogType, siteName, jsonLd, alternates }) => {
   const ldBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
   return (
     <>
@@ -27,6 +30,9 @@ export const Seo: FC<SeoProps> = ({ title, description, canonicalUrl, keywords, 
       {description && <meta name="description" content={description} />}
       {keywords && <meta name="keywords" content={keywords} />}
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+      {alternates?.map((alt) => (
+        <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+      ))}
       <meta property="og:title" content={title} />
       {description && <meta property="og:description" content={description} />}
       {ogImage && <meta property="og:image" content={ogImage} />}

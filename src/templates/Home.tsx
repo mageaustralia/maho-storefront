@@ -12,6 +12,7 @@ import { Layout } from './Layout';
 import { LayoutShell } from './components/LayoutShell';
 import type { RootTemplate } from './components/LayoutShell';
 import { Seo } from './components/Seo';
+import { buildHreflangAlternates } from '../i18n/hreflang';
 import { Hero } from './components/homepage/hero/index';
 import { ShopByCategory } from './components/homepage/shop-by-category/index';
 import { djb2 } from '../utils/hash';
@@ -65,6 +66,7 @@ export const Home: FC<HomeProps> = ({ config, categories, cmsPage, stores, curre
         canonicalUrl={config.baseUrl}
         siteName={config.storeName}
         jsonLd={[websiteLd, orgLd]}
+        alternates={buildHreflangAlternates({ stores, path: '/', defaultStoreCode: currentStoreCode })}
       />
       {/* Freshness metadata — client JS checks API if _lastChecked > 60s */}
       {cmsPage && (

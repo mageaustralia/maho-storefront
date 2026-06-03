@@ -11,6 +11,7 @@ import type { DevData } from '../dev-auth';
 import { Layout } from './Layout';
 import { Seo } from './components/Seo';
 import { PromoTabs } from './components/PromoTabs';
+import { createTranslator } from '../i18n';
 
 interface CartPageProps {
   config: StoreConfig;
@@ -20,7 +21,11 @@ interface CartPageProps {
   devData?: DevData | null;
 }
 
-export const CartPage: FC<CartPageProps> = ({ config, categories, stores, currentStoreCode, devData }) => (
+export const CartPage: FC<CartPageProps> = ({ config, categories, stores, currentStoreCode, devData }) => {
+  // i18n groundwork: bind a translator to the store locale, then look copy up
+  // by key. See src/i18n — adopt this pattern in other templates incrementally.
+  const t = createTranslator(config.locale);
+  return (
   <Layout config={config} categories={categories} stores={stores} currentStoreCode={currentStoreCode} devData={devData}>
     <Seo title={`Shopping Cart | ${config.storeName}`} />
     <div class="py-8" data-controller="cart" data-cart-mode-value="page">
@@ -58,8 +63,8 @@ export const CartPage: FC<CartPageProps> = ({ config, categories, stores, curren
 
       {/* Empty */}
       <div class="text-center py-16" data-cart-target="empty" style="display: none">
-        <p class="text-base-content/60 mb-6">Your cart is empty.</p>
-        <a href="/" class="btn btn-primary">Continue Shopping</a>
+        <p class="text-base-content/60 mb-6">{t('cart.empty')}.</p>
+        <a href="/" class="btn btn-primary">{t('common.continue_shopping')}</a>
       </div>
 
       {/* Cart content */}
@@ -124,4 +129,5 @@ export const CartPage: FC<CartPageProps> = ({ config, categories, stores, curren
       </div>
     </div>
   </Layout>
-);
+  );
+};

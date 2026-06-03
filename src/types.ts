@@ -353,6 +353,12 @@ export interface StorefrontStore {
   name: string;
   url: string;
   apiUrl?: string;
+  /**
+   * BCP-47 / Maho locale for this store-view (e.g. "en_US", "sv_SE"). Optional:
+   * when set on two or more store-views, the storefront emits hreflang
+   * alternates linking equivalent pages across them (see src/i18n/hreflang.ts).
+   */
+  locale?: string;
 }
 
 export interface Env {
