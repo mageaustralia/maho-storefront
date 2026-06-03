@@ -802,7 +802,7 @@ type StoreDataCache = { config: StoreConfig; categories: Category[]; footerPages
 const _storeDataCache: Record<string, StoreDataCache> = {};
 const STORE_DATA_TTL = 30_000; // 30 seconds
 
-async function getStoreData(store: ContentStore, storeCode?: string, siteOrigin?: string): Promise<{ config: StoreConfig; categories: Category[]; footerPages: FooterPage[] }> {
+async function getStoreData(store: ContentStore, storeCode?: string, siteOrigin?: string, apiClient?: { fetchCategories: () => Promise<Category[]> }): Promise<{ config: StoreConfig; categories: Category[]; footerPages: FooterPage[] }> {
   const cacheKey = storeCode || '_default';
   const cached = _storeDataCache[cacheKey];
   if (cached && Date.now() - cached.ts < STORE_DATA_TTL) {
@@ -828,8 +828,22 @@ async function getStoreData(store: ContentStore, storeCode?: string, siteOrigin?
   if (siteOrigin) {
     resolved.baseUrl = siteOrigin.replace(/\/$/, '');
   }
+  // Self-heal the nav: if the global category tree is missing from KV (expired,
+  // evicted, or a store that was never synced), rebuild it from the backend so
+  // the header menu never silently disappears. The flat collection carries no
+  // children, so submenus repopulate on the next full sync; the top-level menu
+  // is restored immediately. Backfilled permanently (no TTL) — see cache-ops.
+  let resolvedCategories = categories ?? [];
+  if (resolvedCategories.length === 0 && apiClient) {
+    try {
+      const fresh = await apiClient.fetchCategories();
+      if (fresh.length > 0) {
+        resolvedCategories = fresh;
+        await store.put(`${prefix}categories`, fresh);
+      }
+    } catch { /* leave empty — nav renders without items rather than erroring */ }
+  }
   // Enrich categories with menu data (brand columns for megamenu dropdowns)
-  const resolvedCategories = categories ?? [];
   if (resolvedCategories.length > 0) {
     const menuDataPromises = resolvedCategories
       .filter(cat => cat.id)
@@ -886,7 +900,7 @@ app.get('/', withEdgeCache(CACHE_HOME), async (c) => {
   // We can't know the real homePageId until config resolves, so we speculatively fetch 'home'.
   // If cmsHomePage differs we re-fetch below (rare). Sidebars are gated on pageLayout.
   const [{ config, categories }, defaultCmsPage] = await Promise.all([
-    getStoreData(store, currentStoreCode, new URL(c.req.url).origin),
+    getStoreData(store, currentStoreCode, new URL(c.req.url).origin, createApiClient(c.env, stores, currentStoreCode)),
     store.get<CmsPage>(`${cmsPrefix}cms:home`),
   ]);
   const homePageId = config.cmsHomePage || 'home';
