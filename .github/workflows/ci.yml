@@ -37,3 +37,10 @@ jobs:
       - name: Lint (informational)
         run: npm run lint
         continue-on-error: true
+
+      # Informational until the existing advisories (mostly transitive dev/build
+      # deps) are triaged down; Dependabot raises PRs to chip away. Flip to
+      # gating once `npm audit --audit-level=high` is clean.
+      - name: Dependency audit (informational)
+        run: npm audit --audit-level=high
+        continue-on-error: true

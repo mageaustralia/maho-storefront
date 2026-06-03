@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # npm dependencies (Hono, wrangler, vite/vitest, biome, etc.)
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Batch low-risk dev/build tooling into one PR to cut noise.
+      dev-tooling:
+        dependency-type: development
+    labels:
+      - dependencies
+
+  # Keep the GitHub Actions in the workflows above current + patched.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - ci

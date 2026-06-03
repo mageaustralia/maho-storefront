@@ -1,0 +1,46 @@
+# gitleaks config for maho-storefront (PUBLIC repo).
+# Extends the default secret rules and adds rules for internal infrastructure
+# details that must never land in this repo (see the data-leak policy). CI runs
+# this against PR/push diffs (gitleaks-action), so historical commits aren't
+# re-flagged.
+
+title = "maho-storefront gitleaks"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "internal-hostname"
+description = "Internal/infra hostname (tenniswarehouse / staging / dev server)"
+regex = '''\b(?:[a-z0-9-]+\.)*tenniswarehouse\.com\.au\b'''
+tags = ["internal", "hostname"]
+
+[[rules]]
+id = "internal-ssh"
+description = "SSH login string or non-standard SSH port to an internal box"
+regex = '''(?:[a-z0-9._-]+@(?:[a-z0-9-]+\.)*tenniswarehouse\.com\.au|-p\s*2258[0-9]\b|\bweb26@)'''
+tags = ["internal", "ssh"]
+
+[[rules]]
+id = "internal-server-path"
+description = "Server filesystem path (/var/www/...)"
+regex = '''/var/www/[a-z0-9._/-]+'''
+tags = ["internal", "path"]
+
+[allowlist]
+description = "Non-secret paths and known-safe placeholders"
+paths = [
+  '''(^|/)node_modules/''',
+  '''(^|/)\.git/''',
+  '''(^|/)dist/''',
+  '''(^|/)\.vitepress/(cache|dist)/''',
+  '''package-lock\.json$''',
+  '''(^|/)proposals/''',          # local-only remediation plan (gitignored anyway)
+  '''\.gitleaks\.toml$''',         # this file (contains the patterns themselves)
+]
+regexes = [
+  '''example\.com''',
+  '''store-[abc]\.example\.com''',
+  '''<[a-z-]+>''',                 # placeholders like <backend-host>, <redacted>
+  '''pk_test_[A-Za-z0-9]+''',      # Stripe TEST publishable keys (public by design)
+]

@@ -100,8 +100,12 @@ Variants live in `src/templates/components/{domain}/{slot}/`.
 
 ## Maho PHP Server
 
-SSH: `web26@staging.tenniswarehouse.com.au -p 22582`
-Maho root: `/var/www/maho.tenniswarehouse.com.au/web/`
+This is a **public** repo — connection details (SSH host/user/port, server
+filesystem paths) are kept out of it. Find them in the team's private notes /
+your local `.env`, not here.
+
+SSH: `<ssh-user>@<staging-host> -p <port>`
+Maho root: `/var/www/<staging-host>/web/`
 Admin theme branch: `feature/admin-theme`
 
 ## Private Deployments
