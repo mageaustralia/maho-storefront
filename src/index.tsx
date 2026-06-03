@@ -143,7 +143,7 @@ import { registerCacheOpsRoutes } from './routes/cache-ops';
 import { registerDevAdminRoutes } from './routes/dev-admin';
 import { registerSyncRoutes } from './sync/routes';
 
-type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession } };
+type AppEnv = { Bindings: Env; Variables: { devSession?: DevSession; wantsMarkdown?: boolean } };
 const app = new Hono<AppEnv>();
 
 // Security response headers (clickjacking, nosniff, Referrer-Policy, HSTS, and a
@@ -754,10 +754,14 @@ app.get('/media/*', async (c) => {
     const contentType = res.headers.get('Content-Type') || 'application/octet-stream';
     // Stream the upstream body straight through instead of buffering the whole
     // image into Worker memory with arrayBuffer(). Cloudflare still edge-caches
-    // the response per the immutable Cache-Control header.
-    return c.body(res.body, 200, {
-      'Content-Type': contentType,
-      'Cache-Control': 'public, max-age=31536000, immutable',
+    // the response per the immutable Cache-Control header. new Response() (vs
+    // c.body) accepts a nullable ReadableStream directly.
+    return new Response(res.body, {
+      status: 200,
+      headers: {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      },
     });
   } catch {
     return c.text('Not found', 404);
@@ -778,9 +782,12 @@ for (const proxyPath of ['/core/index/resize/*', '/skin/*']) {
       if (!res.ok) return c.text('Not found', 404);
       const contentType = res.headers.get('Content-Type') || 'application/octet-stream';
       // Stream through (see /media/* above) rather than buffering in memory.
-      return c.body(res.body, 200, {
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000, immutable',
+      return new Response(res.body, {
+        status: 200,
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        },
       });
     } catch {
       return c.text('Not found', 404);
@@ -861,7 +868,7 @@ async function getSidebarBlocks(store: ContentStore, pageType: string, storeCode
 }
 
 /** Create a KV store, optionally wrapped with dev timer tracking */
-function createStore(env: Env, timer: ReturnType<typeof createDevTimer> | null): ContentStore {
+function createStore(env: Env, timer: ReturnType<typeof createDevTimer> | null = null): ContentStore {
   const store = new CloudflareKVStore(env.CONTENT);
   return timer ? new TrackedKVStore(store, timer) : store;
 }

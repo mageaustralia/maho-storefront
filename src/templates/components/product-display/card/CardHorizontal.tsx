@@ -6,12 +6,13 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
-import type { RelatedProduct } from '../../../../types';
+import type { Product } from '../../../../types';
 import { formatPrice } from '../../../../utils/format';
 
 interface CardHorizontalProps {
-  product: RelatedProduct;
-  currency: string;
+  product: Product;
+  currency?: string;
+  priority?: boolean;
 }
 
 /**
@@ -20,7 +21,7 @@ interface CardHorizontalProps {
  * Image left, details right. Good for search results, wishlists,
  * and sidebar recommendations where vertical space is limited.
  */
-export const CardHorizontal: FC<CardHorizontalProps> = ({ product, currency }) => {
+export const CardHorizontal: FC<CardHorizontalProps> = ({ product, currency = 'USD' }) => {
   const hasDiscount = product.specialPrice !== null && product.specialPrice !== undefined && product.specialPrice < (product.price ?? 0);
   const displayPrice = product.finalPrice ?? product.price;
 

@@ -67,6 +67,7 @@ export interface Product {
     price: number | null;
     finalPrice: number | null;
     stockStatus: string;
+    inStock?: boolean;
     thumbnailUrl: string | null;
     defaultQty: number;
     position: number;
@@ -174,8 +175,15 @@ export interface PaymentPlugin {
   config?: Record<string, string>;
 }
 
+export interface SocialLoginProvider {
+  code: string;
+  appId?: string;
+  [key: string]: unknown;
+}
+
 export interface StoreConfigExtensions {
   paymentPlugins?: PaymentPlugin[];
+  socialLoginProviders?: SocialLoginProvider[];
   [key: string]: unknown;
 }
 

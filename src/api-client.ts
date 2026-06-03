@@ -263,9 +263,9 @@ export class MahoApiClient {
    * Resolve a URL path to its entity type and ID
    * Returns null if not found or on error
    */
-  async resolveUrl(path: string): Promise<{ type: string; id: number; identifier: string } | null> {
+  async resolveUrl(path: string): Promise<{ type: string; id: number; identifier: string; redirectUrl?: string } | null> {
     try {
-      const results = await this.fetchCollection<{ type: string; id: number; identifier: string }>(
+      const results = await this.fetchCollection<{ type: string; id: number; identifier: string; redirectUrl?: string }>(
         `/api/rest/v2/url-resolver?path=${encodeURIComponent(path)}`
       );
       const result = results[0];

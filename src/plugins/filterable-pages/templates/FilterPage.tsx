@@ -165,7 +165,7 @@ export const FilterPage: FC<FilterPageProps> = ({
         {/* Breadcrumbs */}
         <nav class="breadcrumbs flex items-center gap-2 text-sm text-base-content/70 mb-5" aria-label="Breadcrumb">
           {breadcrumbItems.map((item, i) => (
-            <Fragment key={i}>
+            <Fragment key={String(i)}>
               {i > 0 && <span class="shrink-0">/</span>}
               {item.url ? (
                 <a href={item.url} data-turbo-prefetch="true" class="hover:text-base-content transition-colors shrink-0">{item.name}</a>

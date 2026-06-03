@@ -147,7 +147,7 @@ describe('MahoApiClient pagination', () => {
         expect.any(Object),
       );
       // Pages 2 and 3 fetched in parallel
-      const urls = mockFetch.mock.calls.map((c: [string]) => c[0]);
+      const urls = mockFetch.mock.calls.map((c: unknown[]) => c[0] as string);
       expect(urls.some((u: string) => u.includes('page=2'))).toBe(true);
       expect(urls.some((u: string) => u.includes('page=3'))).toBe(true);
     });
