@@ -336,9 +336,15 @@ export function registerUrlResolverRoutes(app: Hono<AppEnv>, deps: UrlResolverDe
     if (kvCategory) return renderCategory(kvCategory);
 
     if (kvProduct && kvProduct.urlKey === slug) {
-      // Check if this is a listing stub (missing configurable options) — fetch full product from API
-      const isListingStub = kvProduct.type === 'configurable'
-        && (!kvProduct.configurableOptions || kvProduct.configurableOptions.length === 0);
+      // Category-listing responses drop type-specific child arrays (variants,
+      // grouped children, bundle options, downloadable links, giftcard config).
+      // Detect the stub and pull the full record on demand.
+      const isListingStub =
+        (kvProduct.type === 'configurable' && (!kvProduct.configurableOptions || kvProduct.configurableOptions.length === 0))
+        || (kvProduct.type === 'grouped' && (!kvProduct.groupedProducts || kvProduct.groupedProducts.length === 0))
+        || (kvProduct.type === 'bundle' && (!kvProduct.bundleOptions || kvProduct.bundleOptions.length === 0))
+        || (kvProduct.type === 'downloadable' && (!kvProduct.downloadableLinks || kvProduct.downloadableLinks.length === 0))
+        || (kvProduct.type === 'giftcard' && !kvProduct.giftcardType);
       if (isListingStub && kvProduct.id) {
         try {
           const fullProduct = await apiClient.fetchProductById(kvProduct.id);

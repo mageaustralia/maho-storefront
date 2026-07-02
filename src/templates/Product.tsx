@@ -17,6 +17,7 @@ import { getProductLayout } from './components/product-display/layout/index';
 import { Gallery } from './components/product-display/gallery/index';
 import { InfoPanel } from './components/product-display/info-panel/index';
 import { ContentTabs } from './components/product-display/tabs/index';
+import { ProductOptions, ConfigurableOptions } from './components/product-options';
 import { SizeGuideDrawer } from './components/product-display/size-guide/SizeGuideDrawer';
 import { getVariant, getSection } from '../page-config';
 import { djb2 } from '../utils/hash';
@@ -40,6 +41,7 @@ export const ProductPage: FC<ProductPageProps> = ({ config, categories, product,
   const isGrouped = product.type === 'grouped' && product.groupedProducts?.length;
   const isBundle = product.type === 'bundle' && product.bundleOptions?.length;
   const isDownloadable = product.type === 'downloadable' && product.downloadableLinks?.length;
+  const isGiftcard = product.type === 'giftcard';
   const hasCustomOptions = product.customOptions?.length > 0;
   const variantsJson = isConfigurable ? JSON.stringify(product.variants ?? []) : '';
   const hasRelated = product.relatedProducts && product.relatedProducts.length > 0;
@@ -264,165 +266,11 @@ export const ProductPage: FC<ProductPageProps> = ({ config, categories, product,
                     )}
                   </div>
 
-                  {isGrouped && (
-                    <div class="product-grouped">
-                      <table class="grouped-table">
-                        <thead><tr><th></th><th>Product</th><th>Price</th><th>Qty</th></tr></thead>
-                        <tbody>
-                          {product.groupedProducts!.map((child) => {
-                            const oos = child.inStock === false;
-                            return (
-                            <tr key={child.id} class={oos ? 'opacity-50' : ''}>
-                              <td class="grouped-thumb-cell">
-                                {child.thumbnailUrl ? <img src={child.thumbnailUrl} alt={child.name} class="grouped-thumb" /> : <div class="grouped-thumb-placeholder" />}
-                              </td>
-                              <td class="grouped-name">
-                                {child.name}
-                                {oos && <span class="block text-xs text-error mt-0.5">Out of Stock</span>}
-                              </td>
-                              <td class="grouped-price"><span class="price-current">{formatPrice(child.finalPrice ?? child.price, currency)}</span></td>
-                              <td class="grouped-qty">
-                                <div class="qty-stepper">
-                                  <button type="button" class="qty-btn" data-action="product#groupedQtyDecrement" disabled={oos} aria-label="Decrease quantity">-</button>
-                                  <input type="number" value="0" min="0" max="99" class="qty-input" data-grouped-id={String(child.id)} disabled={oos} />
-                                  <button type="button" class="qty-btn" data-action="product#groupedQtyIncrement" disabled={oos} aria-label="Increase quantity">+</button>
-                                </div>
-                              </td>
-                            </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {isBundle && (
-                    <div class="flex flex-col gap-6">
-                      {product.bundleOptions!.map((option, idx) => (
-                        <fieldset key={option.id} class="fieldset">
-                          <legend class="fieldset-legend">{option.title || `Option ${idx + 1}`}{option.required && <span class="text-error ml-0.5">*</span>}</legend>
-                          {(option.type === 'select' || option.type === 'drop_down') && (
-                            <>
-                              <select class="select w-full" data-bundle-option-id={String(option.id)} data-action="change->product#updateBundlePrice">
-                                <option value="">Choose a selection...</option>
-                                {option.selections.map((sel) => (
-                                  <option key={sel.id} value={String(sel.id)} selected={sel.isDefault}>{sel.name}{sel.price > 0 ? `  +${formatPrice(sel.price, currency)}` : ''}</option>
-                                ))}
-                              </select>
-                              {option.selections.some(s => s.canChangeQty) && (
-                                <div class="flex items-center gap-2 mt-2">
-                                  <span class="text-sm text-base-content/60">Qty:</span>
-                                  <div class="qty-stepper qty-stepper-sm">
-                                    <button type="button" class="qty-btn" data-action="product#bundleQtyDecrement" data-option-id={String(option.id)} aria-label="Decrease quantity">-</button>
-                                    <input type="number" value="1" min="1" max="99" class="qty-input" data-bundle-qty-option={String(option.id)} data-action="input->product#updateBundlePrice" />
-                                    <button type="button" class="qty-btn" data-action="product#bundleQtyIncrement" data-option-id={String(option.id)} aria-label="Increase quantity">+</button>
-                                  </div>
-                                </div>
-                              )}
-                            </>
-                          )}
-                          {option.type === 'radio' && (
-                            <div class="flex flex-col gap-2">
-                              {!option.required && (
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" class="radio radio-sm" name={`bundle_option_${option.id}`} value="" data-bundle-option-id={String(option.id)} /><span class="text-sm text-base-content/60">None</span></label>
-                              )}
-                              {option.selections.map((sel) => (
-                                <label key={sel.id} class="flex items-center gap-2 cursor-pointer">
-                                  <input type="radio" class="radio radio-sm" name={`bundle_option_${option.id}`} value={String(sel.id)} checked={sel.isDefault} data-bundle-option-id={String(option.id)} />
-                                  <span class="text-sm">{sel.name}</span>
-                                  {sel.price > 0 && <span class="text-sm text-base-content/60">+{formatPrice(sel.price, currency)}</span>}
-                                </label>
-                              ))}
-                            </div>
-                          )}
-                          {(option.type === 'checkbox' || option.type === 'multi') && (
-                            <div class="flex flex-col gap-2">
-                              {option.selections.map((sel) => (
-                                <label key={sel.id} class="flex items-center gap-2 cursor-pointer">
-                                  <input type="checkbox" class="checkbox checkbox-sm" value={String(sel.id)} checked={sel.isDefault} data-bundle-option-id={String(option.id)} />
-                                  <span class="text-sm">{sel.name}</span>
-                                  {sel.price > 0 && <span class="text-sm text-base-content/60">+{formatPrice(sel.price, currency)}</span>}
-                                </label>
-                              ))}
-                            </div>
-                          )}
-                        </fieldset>
-                      ))}
-                    </div>
-                  )}
-
-                  {isDownloadable && (
-                    <div class="product-downloadable-links">
-                      <label class="option-label">Available Downloads</label>
-                      {product.downloadableLinks!.map((link) => (
-                        <label key={link.id} class="download-link-option">
-                          {product.linksPurchasedSeparately && <input type="checkbox" data-download-link-id={String(link.id)} />}
-                          <span>{link.title}</span>
-                          {product.linksPurchasedSeparately && link.price > 0 && <span class="download-link-price">+{formatPrice(link.price, currency)}</span>}
-                          {link.sampleUrl && <a href={link.sampleUrl} target="_blank" rel="noopener" class="download-sample-link">Sample</a>}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-
-                  {hasCustomOptions && (
-                    <div class="product-custom-options">
-                      {product.customOptions.map((option) => (
-                        <div key={option.id} class="option-group">
-                          <label class="option-label">{option.title}{option.isRequired && <span class="required">*</span>}</label>
-                          {(option.type === 'drop_down' || option.type === 'select') ? (
-                            <select class="option-select" data-custom-option-id={String(option.id)}>
-                              <option value="">Select {option.title}</option>
-                              {option.values.map((val) => (<option key={val.id} value={String(val.id)}>{val.title} {val.price > 0 ? `(+${formatPrice(val.price, currency)})` : ''}</option>))}
-                            </select>
-                          ) : (option.type === 'checkbox' || option.type === 'multiple') ? (
-                            <div class="custom-option-checkboxes">
-                              {option.values.map((val) => (
-                                <label key={val.id} class="custom-option-check"><input type="checkbox" value={String(val.id)} data-custom-option-id={String(option.id)} /><span>{val.title}</span>{val.price > 0 && <span class="option-price-add">+{formatPrice(val.price, currency)}</span>}</label>
-                              ))}
-                            </div>
-                          ) : (option.type === 'radio') ? (
-                            <div class="custom-option-radios">
-                              {option.values.map((val) => (
-                                <label key={val.id} class="custom-option-radio"><input type="radio" name={`custom_option_${option.id}`} value={String(val.id)} data-custom-option-id={String(option.id)} /><span>{val.title}</span>{val.price > 0 && <span class="option-price-add">+{formatPrice(val.price, currency)}</span>}</label>
-                              ))}
-                            </div>
-                          ) : (option.type === 'file') ? (
-                            <div class="custom-option-file">
-                              <input type="file" class="file-input file-input-bordered w-full" data-custom-option-file-id={String(option.id)} accept="image/*,.pdf" />
-                              <p class="text-xs opacity-60 mt-1">Upload an image or PDF</p>
-                            </div>
-                          ) : (option.type === 'area' || option.type === 'textarea') ? (
-                            <textarea class="option-input" rows={4} data-custom-option-id={String(option.id)} placeholder={option.title} />
-                          ) : (option.type === 'date') ? (
-                            <input type="date" class="option-input" data-custom-option-id={String(option.id)} />
-                          ) : (option.type === 'date_time') ? (
-                            <input type="datetime-local" class="option-input" data-custom-option-id={String(option.id)} />
-                          ) : (option.type === 'time') ? (
-                            <input type="time" class="option-input" data-custom-option-id={String(option.id)} />
-                          ) : (
-                            <input type="text" class="option-input" data-custom-option-id={String(option.id)} placeholder={option.title} />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {/* Product-type-specific options + custom options */}
+                  <ProductOptions product={product} currency={currency} formatPrice={formatPrice} variant="standard" excludeConfigurable={true} />
 
                   <div class="product-actions-sticky" data-product-target="actionsSticky">
-                    {isConfigurable && (
-                      <div class="product-configurable-options" data-product-target="optionsPanel">
-                        {product.configurableOptions.map((option) => (
-                          <div key={option.id} class="option-group">
-                            <label class="option-label">{option.label}: <span class="option-selected-label" data-product-target="optionLabel" data-option-code={option.code}></span></label>
-                            <div class="option-values">
-                              {option.values.map((val) => (
-                                <button key={val.id} type="button" class="swatch-btn" data-action="click->product#selectOption mouseenter->product#swatchEnter mouseleave->product#swatchLeave" data-attribute-code={option.code} data-value={String(val.id)} data-label={val.label}>{val.label}</button>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {isConfigurable && <ConfigurableOptions product={product} currency={currency} formatPrice={formatPrice} />}
 
                     {product.stockStatus === 'in_stock' ? (
                       <div class="product-add-to-cart">
