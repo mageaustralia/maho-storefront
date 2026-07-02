@@ -8,6 +8,7 @@ import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Product as ProductType } from '../../../../types';
 import { sanitizeCmsHtml } from '../../../../utils/sanitize-html';
+import { ProductOptions } from '../../product-options';
 
 interface InfoPanelCompactProps {
   product: ProductType;
@@ -30,6 +31,7 @@ export const InfoPanelCompact: FC<InfoPanelCompactProps> = ({ product, currency,
   const isGrouped = product.type === 'grouped' && product.groupedProducts?.length;
   const isBundle = product.type === 'bundle' && product.bundleOptions?.length;
   const isDownloadable = product.type === 'downloadable' && product.downloadableLinks?.length;
+  const isGiftcard = product.type === 'giftcard';
   const hasCustomOptions = product.customOptions?.length > 0;
 
   return (
@@ -95,177 +97,8 @@ export const InfoPanelCompact: FC<InfoPanelCompactProps> = ({ product, currency,
         <div class="text-sm text-base-content/70 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(product.shortDescription) }} />
       )}
 
-      {/* Configurable Options */}
-      {isConfigurable && (
-        <div data-product-target="optionsPanel">
-          {product.configurableOptions.map((option) => {
-            const isColorOption = option.code === 'color';
-            return (
-              <div key={option.id} class="option-group mb-4">
-                <label class="text-sm font-medium mb-2 block">
-                  {option.label}: <span class="text-base-content/50" data-product-target="optionLabel" data-option-code={option.code}></span>
-                </label>
-                <div class={`flex flex-wrap ${isColorOption ? 'gap-3' : 'gap-2'}`}>
-                  {option.values.map((val) => {
-                    const swatchUrl = isColorOption ? swatchMap[val.label] : undefined;
-                    return swatchUrl ? (
-                      <button
-                        key={val.id}
-                        type="button"
-                        class="swatch-btn swatch-color"
-                        data-action="click->product#selectOption mouseenter->product#swatchEnter mouseleave->product#swatchLeave"
-                        data-attribute-code={option.code}
-                        data-value={String(val.id)}
-                        data-label={val.label}
-                        title={val.label}
-                        style={`background-image:url(${swatchUrl});background-size:cover;background-position:center`}
-                      >
-                        <span class="sr-only">{val.label}</span>
-                      </button>
-                    ) : (
-                      <button
-                        key={val.id}
-                        type="button"
-                        class="swatch-btn"
-                        data-action="click->product#selectOption mouseenter->product#swatchEnter mouseleave->product#swatchLeave"
-                        data-attribute-code={option.code}
-                        data-value={String(val.id)}
-                        data-label={val.label}
-                      >
-                        {val.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Grouped Products */}
-      {isGrouped && (
-        <div class="flex flex-col gap-3">
-          {product.groupedProducts!.map((child) => {
-            const oos = child.inStock === false;
-            return (
-            <div key={child.id} class={`flex items-center gap-3 text-sm${oos ? ' opacity-50' : ''}`}>
-              {child.thumbnailUrl && <img src={child.thumbnailUrl} alt={child.name} class="w-10 h-10 rounded object-cover" />}
-              <div class="flex-1">
-                <p class="font-medium">{child.name}</p>
-                {oos ? (
-                  <p class="text-error text-xs">Out of Stock</p>
-                ) : (
-                  <p class="text-primary font-semibold">{formatPrice(child.finalPrice ?? child.price, currency)}</p>
-                )}
-              </div>
-              <div class="qty-stepper">
-                <button type="button" class="qty-btn" data-action="product#groupedQtyDecrement" disabled={oos} aria-label="Decrease quantity">-</button>
-                <input type="number" value="0" min="0" max="99" class="qty-input" data-grouped-id={String(child.id)} disabled={oos} />
-                <button type="button" class="qty-btn" data-action="product#groupedQtyIncrement" disabled={oos} aria-label="Increase quantity">+</button>
-              </div>
-            </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Bundle Options */}
-      {isBundle && (
-        <div class="flex flex-col gap-4">
-          {product.bundleOptions!.map((option, idx) => (
-            <fieldset key={option.id} class="fieldset">
-              <legend class="fieldset-legend text-sm">
-                {option.title || `Option ${idx + 1}`}
-                {option.required && <span class="text-error ml-0.5">*</span>}
-              </legend>
-              {(option.type === 'select' || option.type === 'drop_down') && (
-                <select class="select select-sm w-full" data-bundle-option-id={String(option.id)} data-action="change->product#updateBundlePrice">
-                  <option value="">Choose...</option>
-                  {option.selections.map((sel) => (
-                    <option key={sel.id} value={String(sel.id)} selected={sel.isDefault}>
-                      {sel.name}{sel.price > 0 ? ` +${formatPrice(sel.price, currency)}` : ''}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {option.type === 'radio' && (
-                <div class="flex flex-col gap-1.5">
-                  {!option.required && (
-                    <label class="flex items-center gap-2 cursor-pointer text-sm">
-                      <input type="radio" class="radio radio-xs" name={`bundle_option_${option.id}`} value="" data-bundle-option-id={String(option.id)} />
-                      <span class="text-base-content/60">None</span>
-                    </label>
-                  )}
-                  {option.selections.map((sel) => (
-                    <label key={sel.id} class="flex items-center gap-2 cursor-pointer text-sm">
-                      <input type="radio" class="radio radio-xs" name={`bundle_option_${option.id}`} value={String(sel.id)} checked={sel.isDefault} data-bundle-option-id={String(option.id)} />
-                      <span>{sel.name}</span>
-                      {sel.price > 0 && <span class="text-base-content/50">+{formatPrice(sel.price, currency)}</span>}
-                    </label>
-                  ))}
-                </div>
-              )}
-              {(option.type === 'checkbox' || option.type === 'multi') && (
-                <div class="flex flex-col gap-1.5">
-                  {option.selections.map((sel) => (
-                    <label key={sel.id} class="flex items-center gap-2 cursor-pointer text-sm">
-                      <input type="checkbox" class="checkbox checkbox-xs" value={String(sel.id)} checked={sel.isDefault} data-bundle-option-id={String(option.id)} />
-                      <span>{sel.name}</span>
-                      {sel.price > 0 && <span class="text-base-content/50">+{formatPrice(sel.price, currency)}</span>}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </fieldset>
-          ))}
-        </div>
-      )}
-
-      {/* Downloadable Links */}
-      {isDownloadable && (
-        <div>
-          <label class="text-sm font-medium mb-2 block">Available Downloads</label>
-          {product.downloadableLinks!.map((link) => (
-            <label key={link.id} class="flex items-center gap-2 text-sm mb-1">
-              {product.linksPurchasedSeparately && <input type="checkbox" class="checkbox checkbox-xs" data-download-link-id={String(link.id)} />}
-              <span>{link.title}</span>
-              {product.linksPurchasedSeparately && link.price > 0 && <span class="text-base-content/50">+{formatPrice(link.price, currency)}</span>}
-            </label>
-          ))}
-        </div>
-      )}
-
-      {/* Custom Options */}
-      {hasCustomOptions && (
-        <div class="flex flex-col gap-3">
-          {product.customOptions.map((option) => (
-            <div key={option.id}>
-              <label class="text-sm font-medium mb-1 block">
-                {option.title}
-                {option.isRequired && <span class="text-error ml-0.5">*</span>}
-              </label>
-              {(option.type === 'drop_down' || option.type === 'select') ? (
-                <select class="select select-sm w-full" data-custom-option-id={String(option.id)}>
-                  <option value="">Select {option.title}</option>
-                  {option.values.map((val) => (
-                    <option key={val.id} value={String(val.id)}>{val.title} {val.price > 0 ? `(+${formatPrice(val.price, currency)})` : ''}</option>
-                  ))}
-                </select>
-              ) : (option.type === 'file') ? (
-                <div>
-                  <input type="file" class="file-input file-input-sm file-input-bordered w-full" data-custom-option-file-id={String(option.id)} accept="image/*,.pdf" />
-                  <p class="text-xs opacity-60 mt-1">Upload an image or PDF</p>
-                </div>
-              ) : (option.type === 'area' || option.type === 'textarea') ? (
-                <textarea class="textarea textarea-sm w-full" rows={3} data-custom-option-id={String(option.id)} placeholder={option.title} />
-              ) : (
-                <input type="text" class="input input-sm w-full" data-custom-option-id={String(option.id)} placeholder={option.title} />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Product-type-specific options + custom options */}
+      <ProductOptions product={product} currency={currency} formatPrice={formatPrice} swatchMap={swatchMap} />
 
       {/* Add to Cart */}
       <div data-product-target="actionsSticky">

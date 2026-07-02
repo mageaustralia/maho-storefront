@@ -112,6 +112,24 @@ export default class ProductController extends Controller {
       try { this._bundleOptions = JSON.parse(this.bundleOptionsValue); } catch { this._bundleOptions = []; }
       if (this._bundleOptions.length) this.updateBundlePrice();
     }
+
+    // Giftcard: toggle custom amount visibility on "Other Amount" selection (combined type)
+    if (this.typeValue === 'giftcard') {
+      const sel = this.element.querySelector('[data-giftcard-field="amount_select"]');
+      const wrap = this.element.querySelector('[data-giftcard-field="custom_wrap"]');
+      const customInput = this.element.querySelector('[data-giftcard-field="custom_amount"]');
+      if (sel && wrap) {
+        sel.addEventListener('change', () => {
+          if (sel.value === 'custom') {
+            wrap.style.display = '';
+            if (customInput) customInput.required = true;
+          } else {
+            wrap.style.display = 'none';
+            if (customInput) { customInput.required = false; customInput.value = ''; }
+          }
+        });
+      }
+    }
   }
 
   groupedQtyIncrement(e) {
@@ -579,101 +597,24 @@ export default class ProductController extends Controller {
       const type = this.typeValue;
       const body = { qty };
 
-      if (type === 'configurable') {
-        body.sku = this._resolvedSku || this.skuValue;
-        if (!this._resolvedSku) {
-          throw new Error('Please select all options');
-        }
-      } else if (type === 'grouped') {
-        body.sku = this.skuValue;
-        const superGroup = {};
-        this.element.querySelectorAll('[data-grouped-id]').forEach(input => {
-          const gQty = parseInt(input.value, 10);
-          if (gQty > 0) superGroup[input.dataset.groupedId] = gQty;
-        });
-        if (Object.keys(superGroup).length === 0) throw new Error('Please select at least one product');
-        body.super_group = superGroup;
-      } else if (type === 'bundle') {
-        body.sku = this.skuValue;
-        const bundleOption = {};
-        const bundleOptionQty = {};
-        const seenOpts = new Set();
-        this.element.querySelectorAll('[data-bundle-option-id]').forEach(el => {
-          const optId = el.dataset.bundleOptionId;
-          if (el.type === 'checkbox') {
-            if (el.checked) {
-              if (!bundleOption[optId]) bundleOption[optId] = [];
-              bundleOption[optId].push(el.value);
-            }
-          } else if (el.type === 'radio') {
-            if (el.checked) bundleOption[optId] = el.value;
-          } else if (el.tagName === 'SELECT') {
-            if (el.value) bundleOption[optId] = el.value;
-          }
-          // Collect qty per option (once per option)
-          if (!seenOpts.has(optId)) {
-            seenOpts.add(optId);
-            const qtyInput = this.element.querySelector(`[data-bundle-qty-option="${optId}"]`);
-            if (qtyInput) bundleOptionQty[optId] = parseInt(qtyInput.value, 10) || 1;
-          }
-        });
-        // Validate required options
-        if (this._bundleOptions) {
-          const bundleData = JSON.parse(this.element.dataset.productBundleOptionsValue || '[]');
-          // We don't have required flag in the JS data, but if any select has value="" it means placeholder
-          const requiredSelects = this.element.querySelectorAll('select[data-bundle-option-id]');
-          for (const sel of requiredSelects) {
-            if (!sel.value) throw new Error('Please select all required options');
-          }
-        }
-        body.bundle_option = bundleOption;
-        body.bundle_option_qty = bundleOptionQty;
-      } else if (type === 'downloadable') {
-        body.sku = this.skuValue;
-        const links = [];
-        this.element.querySelectorAll('[data-download-link-id]:checked').forEach(el => {
-          links.push(parseInt(el.dataset.downloadLinkId, 10));
-        });
-        if (links.length === 0) throw new Error('Please select at least one link');
-        body.links = links;
+      // Per-type body building — each helper mutates `body` in place.
+      const builders = {
+        configurable: () => this._buildConfigurableBody(body),
+        grouped: () => this._buildGroupedBody(body),
+        bundle: () => this._buildBundleBody(body),
+        downloadable: () => this._buildDownloadableBody(body),
+        giftcard: () => this._buildGiftcardBody(body),
+      };
+      if (builders[type]) {
+        builders[type]();
       } else {
-        // Simple / virtual
+        // simple / virtual
         body.sku = this.skuValue;
       }
 
-      // Custom options (applies to any type)
-      const options = {};
-      this.element.querySelectorAll('[data-custom-option-id]').forEach(el => {
-        const optId = el.dataset.customOptionId;
-        if (el.type === 'checkbox') {
-          if (el.checked) {
-            if (!options[optId]) options[optId] = [];
-            options[optId].push(el.value);
-          }
-        } else if (el.value) {
-          options[optId] = el.value;
-        }
-      });
-      if (Object.keys(options).length > 0) body.options = options;
-
-      // File option uploads — convert to base64 for options_files
-      const fileInputs = this.element.querySelectorAll('[data-custom-option-file-id]');
-      if (fileInputs.length > 0) {
-        const optionsFiles = {};
-        for (const input of fileInputs) {
-          const file = input.files?.[0];
-          if (!file) continue;
-          const optId = input.dataset.customOptionFileId;
-          const base64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
-          optionsFiles[optId] = { name: file.name, base64_encoded_data: base64 };
-        }
-        if (Object.keys(optionsFiles).length > 0) body.options_files = optionsFiles;
-      }
+      // Custom options + file uploads apply to any product type.
+      this._appendCustomOptions(body);
+      await this._appendOptionFiles(body);
 
       const response = await api.post(`/api/guest-carts/${maskedId}/items`, body);
 
@@ -722,5 +663,141 @@ export default class ProductController extends Controller {
     if (!this.hasQtyTarget) return;
     const v = parseInt(this.qtyTarget.value, 10) || 1;
     this.qtyTarget.value = Math.max(v - 1, 1);
+  }
+
+  // ---- Per-type add-to-cart body builders ----------------------------------
+
+  _buildConfigurableBody(body) {
+    body.sku = this._resolvedSku || this.skuValue;
+    if (!this._resolvedSku) throw new Error('Please select all options');
+  }
+
+  _buildGroupedBody(body) {
+    body.sku = this.skuValue;
+    const superGroup = {};
+    this.element.querySelectorAll('[data-grouped-id]').forEach((input) => {
+      const gQty = parseInt(input.value, 10);
+      if (gQty > 0) superGroup[input.dataset.groupedId] = gQty;
+    });
+    if (Object.keys(superGroup).length === 0) throw new Error('Please select at least one product');
+    body.superGroup = superGroup;
+  }
+
+  _buildBundleBody(body) {
+    body.sku = this.skuValue;
+    const bundleOption = {};
+    const bundleOptionQty = {};
+    const seenOpts = new Set();
+    this.element.querySelectorAll('[data-bundle-option-id]').forEach((el) => {
+      const optId = el.dataset.bundleOptionId;
+      if (el.type === 'checkbox') {
+        if (el.checked) {
+          if (!bundleOption[optId]) bundleOption[optId] = [];
+          bundleOption[optId].push(el.value);
+        }
+      } else if (el.type === 'radio') {
+        if (el.checked) bundleOption[optId] = el.value;
+      } else if (el.tagName === 'SELECT') {
+        if (el.value) bundleOption[optId] = el.value;
+      }
+      if (!seenOpts.has(optId)) {
+        seenOpts.add(optId);
+        const qtyInput = this.element.querySelector(`[data-bundle-qty-option="${optId}"]`);
+        if (qtyInput) bundleOptionQty[optId] = parseInt(qtyInput.value, 10) || 1;
+      }
+    });
+    // Required-option validation: any bundle-option <select> without a value is unfilled.
+    for (const sel of this.element.querySelectorAll('select[data-bundle-option-id]')) {
+      if (!sel.value) throw new Error('Please select all required options');
+    }
+    body.bundleOption = bundleOption;
+    body.bundleOptionQty = bundleOptionQty;
+  }
+
+  _buildDownloadableBody(body) {
+    body.sku = this.skuValue;
+    const links = [];
+    this.element.querySelectorAll('[data-download-link-id]:checked').forEach((el) => {
+      links.push(parseInt(el.dataset.downloadLinkId, 10));
+    });
+    if (links.length === 0) throw new Error('Please select at least one link');
+    body.links = links;
+  }
+
+  _buildGiftcardBody(body) {
+    body.sku = this.skuValue;
+    const get = (name) => this.element.querySelector(`[data-giftcard-field="${name}"]`);
+    const val = (name) => get(name)?.value.trim() || '';
+
+    const amountSelect = get('amount_select');
+    const customAmount = get('custom_amount');
+    let amount = null;
+    if (amountSelect) {
+      if (amountSelect.value === 'custom') {
+        const raw = parseFloat(customAmount?.value || '');
+        if (!Number.isFinite(raw) || raw <= 0) throw new Error('Please enter a gift card amount');
+        amount = raw;
+      } else if (amountSelect.value) {
+        amount = parseFloat(amountSelect.value);
+      }
+    } else if (customAmount) {
+      const raw = parseFloat(customAmount.value);
+      if (!Number.isFinite(raw) || raw <= 0) throw new Error('Please enter a gift card amount');
+      amount = raw;
+    }
+    if (amount === null || !(amount > 0)) throw new Error('Please select a gift card amount');
+    body.giftcardAmount = amount;
+
+    const senderName = val('sender_name');
+    const senderEmail = val('sender_email');
+    const recipientName = val('recipient_name');
+    const recipientEmail = val('recipient_email');
+    if (!senderName || !senderEmail || !recipientName || !recipientEmail) {
+      throw new Error('Please fill in sender and recipient details');
+    }
+    body.giftcardSenderName = senderName;
+    body.giftcardSenderEmail = senderEmail;
+    body.giftcardRecipientName = recipientName;
+    body.giftcardRecipientEmail = recipientEmail;
+
+    const message = val('message');
+    if (message) body.giftcardMessage = message;
+    const deliveryDate = val('delivery_date');
+    if (deliveryDate) body.giftcardDeliveryDate = deliveryDate;
+  }
+
+  _appendCustomOptions(body) {
+    const options = {};
+    this.element.querySelectorAll('[data-custom-option-id]').forEach((el) => {
+      const optId = el.dataset.customOptionId;
+      if (el.type === 'checkbox') {
+        if (el.checked) {
+          if (!options[optId]) options[optId] = [];
+          options[optId].push(el.value);
+        }
+      } else if (el.value) {
+        options[optId] = el.value;
+      }
+    });
+    if (Object.keys(options).length > 0) body.options = options;
+  }
+
+  async _appendOptionFiles(body) {
+    const fileInputs = this.element.querySelectorAll('[data-custom-option-file-id]');
+    if (fileInputs.length === 0) return;
+    const optionsFiles = {};
+    for (const input of fileInputs) {
+      const file = input.files?.[0];
+      if (!file) continue;
+      const optId = input.dataset.customOptionFileId;
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      optionsFiles[optId] = { name: file.name, base64_encoded_data: base64 };
+    }
+    if (Object.keys(optionsFiles).length > 0) body.options_files = optionsFiles;
   }
 }

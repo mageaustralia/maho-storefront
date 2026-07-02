@@ -100,6 +100,11 @@ export interface Product {
     sampleUrl: string | null;
   }> | null;
   linksPurchasedSeparately: boolean;
+  giftcardType?: 'fixed' | 'range' | 'combined' | null;
+  giftcardAmounts?: number[];
+  giftcardMinAmount?: number | null;
+  giftcardMaxAmount?: number | null;
+  giftcardIsMessageAllowed?: boolean;
   hasRequiredOptions: boolean;
   additionalAttributes?: Array<{ label: string; value: string; code: string }>;
   reviewCount: number;
