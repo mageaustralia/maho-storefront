@@ -36,7 +36,7 @@ export async function syncBraintreeConfig(opts: SyncBraintreeOptions): Promise<v
     if (basicAuth) headers['Authorization'] = `Basic ${btoa(basicAuth)}`;
     if (syncSecret) headers['X-Storefront-Sync'] = syncSecret;
 
-    const res = await fetch(`${apiUrl}/api/payments/braintree/config`, { headers });
+    const res = await fetch(`${apiUrl}/api/rest/v2/payments/braintree/config`, { headers });
     if (!res.ok) return; // Braintree module not installed / not exposing config — skip.
 
     const btConfig = await res.json() as { enabled?: boolean; environment?: string };
