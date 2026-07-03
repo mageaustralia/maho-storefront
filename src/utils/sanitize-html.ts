@@ -36,6 +36,35 @@ whiteList.iframe = ['src', 'width', 'height', 'frameborder', 'allow', 'allowfull
 // execute script in modern browsers; the real XSS vectors are handled below).
 whiteList.style = [];
 
+// Allow inline SVG icons (common in CMS-authored trust bars, feature strips,
+// hero graphics). Presentation-only attributes; xlink:href/foreignObject/script
+// aren't allowed because they can smuggle scripts.
+const SVG_SHARED = ['fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
+  'stroke-dasharray', 'stroke-dashoffset', 'stroke-opacity', 'stroke-miterlimit',
+  'fill-opacity', 'fill-rule', 'opacity', 'transform', 'clip-path', 'mask',
+  'color', 'display', 'visibility'];
+whiteList.svg = ['viewBox', 'width', 'height', 'xmlns', 'preserveAspectRatio',
+  'x', 'y', 'version', 'focusable', 'role', ...SVG_SHARED];
+whiteList.path = ['d', 'pathLength', 'transform', ...SVG_SHARED];
+whiteList.g = ['transform', ...SVG_SHARED];
+whiteList.circle = ['cx', 'cy', 'r', 'transform', ...SVG_SHARED];
+whiteList.rect = ['x', 'y', 'width', 'height', 'rx', 'ry', 'transform', ...SVG_SHARED];
+whiteList.ellipse = ['cx', 'cy', 'rx', 'ry', 'transform', ...SVG_SHARED];
+whiteList.line = ['x1', 'y1', 'x2', 'y2', 'transform', ...SVG_SHARED];
+whiteList.polyline = ['points', 'transform', ...SVG_SHARED];
+whiteList.polygon = ['points', 'transform', ...SVG_SHARED];
+whiteList.text = ['x', 'y', 'dx', 'dy', 'text-anchor', 'font-family', 'font-size',
+  'font-weight', 'font-style', 'transform', ...SVG_SHARED];
+whiteList.tspan = ['x', 'y', 'dx', 'dy', 'text-anchor', ...SVG_SHARED];
+whiteList.defs = [];
+whiteList.title = [];
+whiteList.desc = [];
+whiteList.symbol = ['id', 'viewBox', ...SVG_SHARED];
+whiteList.use = ['x', 'y', 'width', 'height', 'href', ...SVG_SHARED];
+whiteList.linearGradient = ['id', 'x1', 'y1', 'x2', 'y2', 'gradientUnits', 'gradientTransform', 'spreadMethod'];
+whiteList.radialGradient = ['id', 'cx', 'cy', 'r', 'fx', 'fy', 'gradientUnits', 'gradientTransform', 'spreadMethod'];
+whiteList.stop = ['offset', 'stop-color', 'stop-opacity'];
+
 const GLOBAL_ATTRS = /^(class|id|style|role|tabindex|data-[\w-]+|aria-[\w-]+)$/;
 
 const filter = new FilterXSS({
