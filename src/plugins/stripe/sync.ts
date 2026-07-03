@@ -32,7 +32,7 @@ export interface SyncStripeOptions {
 export async function syncStripeConfig(opts: SyncStripeOptions): Promise<void> {
   const { apiUrl, storeCode, basicAuth, syncSecret, config, store, prefix } = opts;
   try {
-    const stripeApiUrl = `${apiUrl}/api/payments/stripe/config`;
+    const stripeApiUrl = `${apiUrl}/api/rest/v2/payments/stripe/config`;
     const stripeHeaders: Record<string, string> = { 'Accept': 'application/json' };
     if (storeCode) stripeHeaders['X-Store-Code'] = storeCode;
     if (basicAuth) stripeHeaders['Authorization'] = `Basic ${btoa(basicAuth)}`;
