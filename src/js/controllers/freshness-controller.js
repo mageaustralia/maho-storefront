@@ -276,7 +276,7 @@ export default class FreshnessController extends Controller {
       const gate = data.extensions?.b2bAccess;
       if (gate?.gateFlags?.hidePrice === true) {
         const msg = gate.hiddenPriceMessage || 'Log in to see pricing';
-        priceBlock.innerHTML = `<span data-b2b-login-prompt="true" class="text-2xl font-bold text-base-content/60"><a href="/customer/account/login/" class="underline hover:text-primary">${escapeHtml(msg)}</a></span>`;
+        priceBlock.innerHTML = `<span data-b2b-login-prompt="true" class="text-2xl font-bold text-base-content/60"><a href="/login" class="underline hover:text-primary">${escapeHtml(msg)}</a></span>`;
         _log('[freshness] price hidden by B2B Access gate');
       } else {
         const hasDiscount = data.specialPrice != null && data.specialPrice < (data.price ?? 0);
