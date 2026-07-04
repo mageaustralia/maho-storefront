@@ -32,14 +32,24 @@ export const GatedPrice: FC<GatedPriceProps> = ({ product, children, class: clas
   if (!hidden) {
     return <>{children}</>;
   }
+  // Backend picks the right pair per caller: guests get "Log in to see
+  // pricing" → /login, signed-in-but-ineligible customers get "Trade customer
+  // pricing" → /trade-application. Fall back to sensible guest defaults when
+  // the backend hasn't emitted the CTA (e.g. older module version).
   const message = gate?.hiddenPriceMessage || 'Log in to see pricing';
+  const cta = gate?.hiddenPriceCta ?? { label: 'Log in', href: '/login' };
+  const isCustomer = gate?.callerIsGuest === false;
   return (
     <span
       data-b2b-login-prompt
+      data-b2b-caller={isCustomer ? 'customer' : 'guest'}
       class={className || 'inline-flex items-baseline text-sm text-base-content/70'}
     >
-      <a href="/login" class="underline hover:text-primary">
-        {message}
+      {isCustomer && message ? (
+        <span class="block text-base-content/70 mb-1">{message}</span>
+      ) : null}
+      <a href={cta.href} class="underline hover:text-primary">
+        {isCustomer ? cta.label : message}
       </a>
     </span>
   );
