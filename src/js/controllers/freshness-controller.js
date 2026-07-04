@@ -276,8 +276,18 @@ export default class FreshnessController extends Controller {
       const gate = data.extensions?.b2bAccess;
       if (gate?.gateFlags?.hidePrice === true) {
         const msg = gate.hiddenPriceMessage || 'Log in to see pricing';
-        priceBlock.innerHTML = `<span data-b2b-login-prompt="true" class="text-2xl font-bold text-base-content/60"><a href="/login" class="underline hover:text-primary">${escapeHtml(msg)}</a></span>`;
-        _log('[freshness] price hidden by B2B Access gate');
+        const cta = gate.hiddenPriceCta || { label: 'Log in', href: '/login' };
+        const isCustomer = gate.callerIsGuest === false;
+        const messageHtml = isCustomer && msg
+          ? `<span class="block text-base-content/70 mb-1">${escapeHtml(msg)}</span>`
+          : '';
+        const linkText = isCustomer ? cta.label : msg;
+        priceBlock.innerHTML =
+          `<span data-b2b-login-prompt="true" data-b2b-caller="${isCustomer ? 'customer' : 'guest'}" class="text-2xl font-bold text-base-content/60">`
+          + messageHtml
+          + `<a href="${escapeHtml(cta.href)}" class="underline hover:text-primary">${escapeHtml(linkText)}</a>`
+          + `</span>`;
+        _log('[freshness] price hidden by B2B Access gate (caller:', isCustomer ? 'customer' : 'guest', ')');
       } else {
         const hasDiscount = data.specialPrice != null && data.specialPrice < (data.price ?? 0);
         if (hasDiscount) {
