@@ -10,6 +10,7 @@ import type { Product as ProductType } from '../../../../types';
 import { sanitizeCmsHtml } from '../../../../utils/sanitize-html';
 import { ProductCard } from '../card/index';
 import { ProductOptions } from '../../product-options';
+import { GatedPrice } from '../../GatedPrice';
 
 interface LayoutMasonryProps {
   product: ProductType;
@@ -126,27 +127,29 @@ export const LayoutMasonry: FC<LayoutMasonryProps> = ({ product, currency, produ
           {/* Price */}
           {!isGrouped && (
             <div data-product-target="price">
-              {isBundle ? (
-                <div>
-                  {product.minimalPrice && (
-                    <div>
-                      <span class="text-sm text-base-content/60">From </span>
-                      <span class="text-2xl font-bold text-primary">{formatPrice(product.minimalPrice, currency)}</span>
+              <GatedPrice product={product} class="text-2xl font-bold text-base-content/60">
+                {isBundle ? (
+                  <div>
+                    {product.minimalPrice && (
+                      <div>
+                        <span class="text-sm text-base-content/60">From </span>
+                        <span class="text-2xl font-bold text-primary">{formatPrice(product.minimalPrice, currency)}</span>
+                      </div>
+                    )}
+                    <div class="text-sm mt-1" data-product-target="bundleConfiguredPrice" style="display:none">
+                      <span class="text-base-content/60">Price as configured: </span>
+                      <span class="font-bold text-lg" data-product-target="bundleTotal"></span>
                     </div>
-                  )}
-                  <div class="text-sm mt-1" data-product-target="bundleConfiguredPrice" style="display:none">
-                    <span class="text-base-content/60">Price as configured: </span>
-                    <span class="font-bold text-lg" data-product-target="bundleTotal"></span>
                   </div>
-                </div>
-              ) : hasDiscount ? (
-                <div class="flex items-baseline gap-3">
-                  <span class="text-2xl font-bold text-error">{formatPrice(product.specialPrice, currency)}</span>
-                  <span class="text-base text-base-content/40 line-through">{formatPrice(product.price, currency)}</span>
-                </div>
-              ) : (
-                <span class="text-2xl font-bold text-primary">{formatPrice(displayPrice, currency)}</span>
-              )}
+                ) : hasDiscount ? (
+                  <div class="flex items-baseline gap-3">
+                    <span class="text-2xl font-bold text-error">{formatPrice(product.specialPrice, currency)}</span>
+                    <span class="text-base text-base-content/40 line-through">{formatPrice(product.price, currency)}</span>
+                  </div>
+                ) : (
+                  <span class="text-2xl font-bold text-primary">{formatPrice(displayPrice, currency)}</span>
+                )}
+              </GatedPrice>
             </div>
           )}
 

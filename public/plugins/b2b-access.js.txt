@@ -1,0 +1,61 @@
+/**
+ * Maho Storefront - B2B Access client-side plugin
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+ * Loaded once on any page where the B2B Access module has registered its
+ * plugin manifest (see plugins/b2b-access/sync.ts). Very small: hooks the
+ * login form so a successful login triggers a Turbo visit back to the current
+ * URL, which re-fetches the product / category data. On the second render
+ * the caller is authenticated and the gate flags evaluate to false, so the
+ * price returns without a full-page reload.
+ *
+ * Gate rendering itself lives in the layout templates - this script only
+ * handles the client-side transition. All enforcement is server-side.
+ */
+(function () {
+  'use strict';
+
+  function refetchOnLoginSuccess() {
+    // Any auth form that lands the customer at /customer/account/ succeeded.
+    // Turbo already navigates after login; we just make sure the current URL
+    // is re-hit rather than staying on the account page if the user was
+    // gated to /customer/account/login/ from a product page.
+    if (!window.MahoAuth || typeof window.MahoAuth.onLoginSuccess !== 'function') return;
+    window.MahoAuth.onLoginSuccess(function (evt) {
+      var returnTo = (evt && evt.returnTo) || sessionStorage.getItem('b2b_return_to') || '/';
+      sessionStorage.removeItem('b2b_return_to');
+      if (typeof window.Turbo !== 'undefined' && window.Turbo.visit) {
+        window.Turbo.visit(returnTo, { action: 'replace' });
+      } else {
+        window.location.href = returnTo;
+      }
+    });
+  }
+
+  function captureReturnTargetForGatedGuest() {
+    // If we're a guest on a gated page (the SSR shows the login prompt), any
+    // click that goes to the login page should preserve the current URL so
+    // the post-login redirect brings the user back to see the now-visible price.
+    var priceLoginLinks = document.querySelectorAll('[data-b2b-login-prompt] a[href*="/customer/account/login"]');
+    priceLoginLinks.forEach(function (a) {
+      a.addEventListener('click', function () {
+        sessionStorage.setItem('b2b_return_to', window.location.pathname + window.location.search);
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      refetchOnLoginSuccess();
+      captureReturnTargetForGatedGuest();
+    });
+  } else {
+    refetchOnLoginSuccess();
+    captureReturnTargetForGatedGuest();
+  }
+
+  // Turbo re-render support - rebind after navigations.
+  document.addEventListener('turbo:load', function () {
+    captureReturnTargetForGatedGuest();
+  });
+})();
