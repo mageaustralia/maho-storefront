@@ -269,13 +269,24 @@ export default class FreshnessController extends Controller {
       const productEl = document.querySelector('[data-product-currency-value]');
       const currency = productEl?.dataset.productCurrencyValue || window.MAHO_CURRENCY;
 
-      const hasDiscount = data.specialPrice != null && data.specialPrice < (data.price ?? 0);
-      if (hasDiscount) {
-        priceBlock.innerHTML = `<span class="price-was">${formatPrice(data.price, currency)}</span><span class="price-now">${formatPrice(data.specialPrice, currency)}</span>`;
+      // B2B Access gate: if the module says to hide the price for this caller,
+      // render the login prompt instead of overwriting the SSR-rendered gate
+      // with an empty price. Mirrors the GatedPrice component so freshness
+      // updates don't undo the server-side gate.
+      const gate = data.extensions?.b2bAccess;
+      if (gate?.gateFlags?.hidePrice === true) {
+        const msg = gate.hiddenPriceMessage || 'Log in to see pricing';
+        priceBlock.innerHTML = `<span data-b2b-login-prompt="true" class="text-2xl font-bold text-base-content/60"><a href="/customer/account/login/" class="underline hover:text-primary">${escapeHtml(msg)}</a></span>`;
+        _log('[freshness] price hidden by B2B Access gate');
       } else {
-        priceBlock.innerHTML = `<span class="price-current">${formatPrice(data.finalPrice ?? data.price, currency)}</span>`;
+        const hasDiscount = data.specialPrice != null && data.specialPrice < (data.price ?? 0);
+        if (hasDiscount) {
+          priceBlock.innerHTML = `<span class="price-was">${formatPrice(data.price, currency)}</span><span class="price-now">${formatPrice(data.specialPrice, currency)}</span>`;
+        } else {
+          priceBlock.innerHTML = `<span class="price-current">${formatPrice(data.finalPrice ?? data.price, currency)}</span>`;
+        }
+        _log('[freshness] updated price to:', data.finalPrice ?? data.price, 'currency:', currency);
       }
-      _log('[freshness] updated price to:', data.finalPrice ?? data.price, 'currency:', currency);
     }
 
     // Update stock status
