@@ -34,9 +34,10 @@
 
   function captureReturnTargetForGatedGuest() {
     // If we're a guest on a gated page (the SSR shows the login prompt), any
-    // click that goes to the login page should preserve the current URL so
-    // the post-login redirect brings the user back to see the now-visible price.
-    var priceLoginLinks = document.querySelectorAll('[data-b2b-login-prompt] a[href*="/customer/account/login"]');
+    // click that goes to the storefront login page should preserve the current
+    // URL so the post-login redirect brings the user back to see the now-visible
+    // price.
+    var priceLoginLinks = document.querySelectorAll('[data-b2b-login-prompt] a[href="/login"], [data-b2b-login-prompt] a[href^="/login"]');
     priceLoginLinks.forEach(function (a) {
       a.addEventListener('click', function () {
         sessionStorage.setItem('b2b_return_to', window.location.pathname + window.location.search);
