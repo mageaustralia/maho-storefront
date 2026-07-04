@@ -18,6 +18,7 @@ import { Gallery } from './components/product-display/gallery/index';
 import { InfoPanel } from './components/product-display/info-panel/index';
 import { ContentTabs } from './components/product-display/tabs/index';
 import { ProductOptions, ConfigurableOptions } from './components/product-options';
+import { GatedPrice } from './components/GatedPrice';
 import { SizeGuideDrawer } from './components/product-display/size-guide/SizeGuideDrawer';
 import { getVariant, getSection } from '../page-config';
 import { djb2 } from '../utils/hash';
@@ -234,27 +235,29 @@ export const ProductPage: FC<ProductPageProps> = ({ config, categories, product,
 
                   {!isGrouped && (
                     <div class="product-price-block" data-product-target="price">
-                      {isBundle ? (
-                        <>
-                          {product.minimalPrice && (
-                            <div>
-                              <span class="text-sm text-base-content/60">From </span>
-                              <span class="price-current">{formatPrice(product.minimalPrice, currency)}</span>
+                      <GatedPrice product={product} class="price-gated">
+                        {isBundle ? (
+                          <>
+                            {product.minimalPrice && (
+                              <div>
+                                <span class="text-sm text-base-content/60">From </span>
+                                <span class="price-current">{formatPrice(product.minimalPrice, currency)}</span>
+                              </div>
+                            )}
+                            <div class="text-sm mt-1" data-product-target="bundleConfiguredPrice" style="display:none">
+                              <span class="text-base-content/60">Price as configured: </span>
+                              <span class="font-bold text-lg" data-product-target="bundleTotal"></span>
                             </div>
-                          )}
-                          <div class="text-sm mt-1" data-product-target="bundleConfiguredPrice" style="display:none">
-                            <span class="text-base-content/60">Price as configured: </span>
-                            <span class="font-bold text-lg" data-product-target="bundleTotal"></span>
-                          </div>
-                        </>
-                      ) : hasDiscount ? (
-                        <>
-                          <span class="price-was">{formatPrice(product.price, currency)}</span>
-                          <span class="price-now">{formatPrice(product.specialPrice, currency)}</span>
-                        </>
-                      ) : (
-                        <span class="price-current">{formatPrice(displayPrice, currency)}</span>
-                      )}
+                          </>
+                        ) : hasDiscount ? (
+                          <>
+                            <span class="price-was">{formatPrice(product.price, currency)}</span>
+                            <span class="price-now">{formatPrice(product.specialPrice, currency)}</span>
+                          </>
+                        ) : (
+                          <span class="price-current">{formatPrice(displayPrice, currency)}</span>
+                        )}
+                      </GatedPrice>
                     </div>
                   )}
 

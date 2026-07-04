@@ -114,6 +114,22 @@ export interface Product {
   upsellProducts: Product[] | null;
   createdAt: string | null;
   updatedAt: string | null;
+  /**
+   * Module-provided extension data, keyed by module code, populated by
+   * `api_product_dto_build` observers on the backend. See
+   * reference/b2b-integration-pattern.
+   */
+  extensions?: {
+    b2bAccess?: {
+      gateFlags: {
+        requiresLogin: boolean;
+        hidePrice: boolean;
+        canCheckout: boolean;
+      };
+      hiddenPriceMessage: string | null;
+    };
+    [key: string]: unknown;
+  };
 }
 
 export interface Category {

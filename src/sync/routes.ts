@@ -17,6 +17,7 @@ import { MahoApiClient } from '../api-client';
 import { syncCategories } from './entities';
 import { syncStripeConfig } from '../plugins/stripe';
 import { syncBraintreeConfig } from '../plugins/braintree';
+import { syncB2bAccessConfig } from '../plugins/b2b-access';
 import { FilterablePagesApi, syncFilterablePages } from '../plugins/filterable-pages';
 import type { Env, StorefrontStore, Category, Product, CmsPage } from '../types';
 
@@ -71,6 +72,16 @@ export function registerSyncRoutes(app: Hono<any>, deps: SyncRouteDeps): void {
           basicAuth: c.env.MAHO_API_BASIC_AUTH,
           syncSecret: c.env.SYNC_SECRET,
           config,
+        });
+
+        // B2B Access plugin: register the gate plugin if the backend exposes it (else no-op)
+        await syncB2bAccessConfig({
+          apiUrl: getApiUrl(c.env, stores, storeCode),
+          storeCode,
+          basicAuth: c.env.MAHO_API_BASIC_AUTH,
+          config,
+          store,
+          prefix,
         });
 
         // Store Google Maps key from config extensions (injected by Storefront module observer)
