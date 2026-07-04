@@ -126,7 +126,15 @@ export interface Product {
         hidePrice: boolean;
         canCheckout: boolean;
       };
+      /**
+       * True when the API request came in without a JWT (or with an anonymous
+       * one). The storefront uses this to pick the guest ("Log in to see
+       * pricing") vs signed-in-but-ineligible ("Trade customer pricing")
+       * message + CTA.
+       */
+      callerIsGuest: boolean;
       hiddenPriceMessage: string | null;
+      hiddenPriceCta: { label: string; href: string } | null;
     };
     [key: string]: unknown;
   };
