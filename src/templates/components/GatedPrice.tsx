@@ -38,7 +38,7 @@ export const GatedPrice: FC<GatedPriceProps> = ({ product, children, class: clas
       data-b2b-login-prompt
       class={className || 'inline-flex items-baseline text-sm text-base-content/70'}
     >
-      <a href="/customer/account/login/" class="underline hover:text-primary">
+      <a href="/login" class="underline hover:text-primary">
         {message}
       </a>
     </span>
