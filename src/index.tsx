@@ -6,7 +6,7 @@
 
 import { jsx, Fragment } from 'hono/jsx';
 import { Hono } from 'hono';
-import type { Env, Category, Product, StoreConfig, PulseData, CmsPage, Country, BlogPost, BlogCategory, StorefrontStore } from './types';
+import type { Env, Category, Product, StoreConfig, PulseData, CmsPage, Country, BlogPost, BlogCategory, StorefrontStore, WaitUntilCtx } from './types';
 import { CloudflareKVStore, TrackedKVStore, type ContentStore } from './content-store';
 import { ASSET_HASH } from './asset-version';
 import { securityHeaders } from './middleware/security-headers';
@@ -619,7 +619,7 @@ async function check404RateLimit(ip: string): Promise<boolean> {
   return false;
 }
 
-async function increment404Count(ip: string, ctx: ExecutionContext): Promise<void> {
+async function increment404Count(ip: string, ctx: WaitUntilCtx): Promise<void> {
   const cache = caches.default;
   const countKey = new Request(`https://rate-limit/404-count/${ip}`);
   const blockKey = new Request(`https://rate-limit/blocked/${ip}`);
@@ -663,7 +663,7 @@ async function rateLimitExceeded(
   id: string,
   max: number,
   windowSec: number,
-  ctx: ExecutionContext,
+  ctx: WaitUntilCtx,
 ): Promise<boolean> {
   const cache = caches.default;
   const key = new Request(`https://rate-limit/${bucket}/${encodeURIComponent(id)}`);

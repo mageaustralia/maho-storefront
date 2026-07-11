@@ -26,7 +26,7 @@ import { CategoryPage } from '../templates/Category';
 import { ProductPage } from '../templates/Product';
 import { CmsPageTemplate } from '../templates/CmsPage';
 import { BlogPostPage } from '../templates/BlogPost';
-import type { Env, Category, Product, CmsPage, StoreConfig, StorefrontStore } from '../types';
+import type { Env, Category, Product, CmsPage, StoreConfig, StorefrontStore, WaitUntilCtx } from '../types';
 
 // Mirrors the AppEnv in index.tsx (Bindings + per-request Variables) so the
 // injected `app` is fully typed — c.env is Env, not unknown.
@@ -54,7 +54,7 @@ export interface UrlResolverDeps {
     storeCode?: string,
   ) => Promise<{ left: string | null; right: string | null }>;
   check404RateLimit: (ip: string) => Promise<boolean>;
-  increment404Count: (ip: string, ctx: ExecutionContext) => void;
+  increment404Count: (ip: string, ctx: WaitUntilCtx) => void;
   getClientIP: (c: any) => string;
   withEdgeCache: (ttlSeconds: number) => any;
   cacheCategory: number;

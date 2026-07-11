@@ -14,13 +14,13 @@
 
 import type { Hono } from 'hono';
 import { CloudflareKVStore } from '../../content-store';
-import type { Env, StoreConfig, StorefrontStore } from '../../types';
+import type { Env, StoreConfig, StorefrontStore, WaitUntilCtx } from '../../types';
 
 export interface StripeRouteDeps {
   getStoreContext: (c: any) => Promise<{ stores: StorefrontStore[]; currentStoreCode: string | undefined }>;
   getApiUrl: (env: Env, stores: StorefrontStore[], storeCode?: string) => string;
   getClientIP: (c: any) => string;
-  rateLimitExceeded: (bucket: string, id: string, max: number, windowSec: number, ctx: ExecutionContext) => Promise<boolean>;
+  rateLimitExceeded: (bucket: string, id: string, max: number, windowSec: number, ctx: WaitUntilCtx) => Promise<boolean>;
 }
 
 export function registerStripeRoutes(app: Hono<any>, deps: StripeRouteDeps): void {
