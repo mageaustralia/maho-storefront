@@ -54,7 +54,7 @@ export async function syncB2bAccessConfig(opts: SyncB2bAccessOptions): Promise<v
 
     config.extensions = config.extensions || {};
     config.extensions.b2bPlugins = config.extensions.b2bPlugins || [];
-    if (config.extensions.b2bPlugins.some((p: { code: string }) => p.code === 'b2b-access')) return;
+    if (config.extensions.b2bPlugins.some((p) => p.code === 'b2b-access')) return;
     config.extensions.b2bPlugins.push({
       code: 'b2b-access',
       script: '/plugins/b2b-access.js',
