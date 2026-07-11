@@ -210,9 +210,26 @@ export interface SocialLoginProvider {
   [key: string]: unknown;
 }
 
+/** Gate flags resolved from the backend's B2B Access module (see plugins/b2b-access). */
+export interface B2bPluginConfig {
+  requireLogin: boolean;
+  hidePrice: boolean;
+  blockPurchase: boolean;
+  loginMessage: string;
+  hiddenPriceMessage: string;
+  loginRedirectUrl: string;
+}
+
+export interface B2bPlugin {
+  code: string;
+  script: string;
+  config?: B2bPluginConfig;
+}
+
 export interface StoreConfigExtensions {
   paymentPlugins?: PaymentPlugin[];
   socialLoginProviders?: SocialLoginProvider[];
+  b2bPlugins?: B2bPlugin[];
   [key: string]: unknown;
 }
 
