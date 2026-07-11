@@ -407,6 +407,18 @@ export interface StorefrontStore {
   locale?: string;
 }
 
+/**
+ * The only slice of the runtime ExecutionContext we actually use.
+ *
+ * Typing against this structural shape rather than the global
+ * `ExecutionContext` keeps us decoupled from @cloudflare/workers-types major
+ * bumps (v5 added `exports` and `tracing`), and it accepts Hono's narrower
+ * `c.executionCtx`, which never carried those members.
+ */
+export interface WaitUntilCtx {
+  waitUntil(promise: Promise<unknown>): void;
+}
+
 export interface Env {
   CONTENT: KVNamespace;
   MAHO_API_URL: string;
