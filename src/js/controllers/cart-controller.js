@@ -471,7 +471,7 @@ export default class CartController extends Controller {
     const maskedId = api.cartId();
     if (!maskedId) return;
     try {
-      const response = await api.post(`/api/guest-carts/${maskedId}/coupon`, { code });
+      const response = await api.put(`/api/guest-carts/${maskedId}/coupon`, { couponCode: code });
       if (!response.ok) {
         const err = await response.json();
         alert(err.message || 'Invalid coupon');
@@ -504,7 +504,7 @@ export default class CartController extends Controller {
     const maskedId = api.cartId();
     if (!maskedId) return;
     try {
-      const response = await api.post(`/api/guest-carts/${maskedId}/giftcard`, { code });
+      const response = await api.post(`/api/guest-carts/${maskedId}/giftcards`, { giftcardCode: code });
       if (!response.ok) {
         const err = await response.json();
         alert(err.message || 'Invalid gift card');
@@ -522,7 +522,7 @@ export default class CartController extends Controller {
     const maskedId = api.cartId();
     if (!maskedId || !code) return;
     try {
-      const response = await api.del(`/api/guest-carts/${maskedId}/giftcard/${encodeURIComponent(code)}`);
+      const response = await api.del(`/api/guest-carts/${maskedId}/giftcards/${encodeURIComponent(code)}`);
       if (response.ok) {
         const cart = await response.json();
         this._renderCart(cart);

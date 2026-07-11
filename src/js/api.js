@@ -34,9 +34,36 @@ export const api = {
       // Retry without auth header
       const retryHeaders = { ...options.headers };
       delete retryHeaders['Authorization'];
-      return fetch(`${api.url()}${path}`, { ...options, headers: retryHeaders });
+      const retry = await fetch(`${api.url()}${path}`, { ...options, headers: retryHeaders });
+      api._syncCartId(retry);
+      return retry;
     }
+    api._syncCartId(response);
     return response;
+  },
+
+  /**
+   * Always trust the newest cart id the backend hands back.
+   *
+   * Adding to a stale/expired guest cart no longer 404s: the backend
+   * transparently creates a fresh guest cart and returns it with a NEW
+   * maskedId (flagged `cartRecreated`). If we keep posting to the old id every
+   * add-to-cart silently spawns another cart, items never accumulate, and the
+   * cart page reads empty. So whenever a response carries a maskedId, persist
+   * it — doing it here covers every call site rather than each one separately.
+   *
+   * Reads a clone so the caller's response body stays unconsumed.
+   */
+  _syncCartId: (response) => {
+    if (!response?.ok) return;
+    if (!(response.headers.get('Content-Type') || '').includes('json')) return;
+    response.clone().json()
+      .then((data) => {
+        if (data && typeof data.maskedId === 'string' && data.maskedId) {
+          api.setCartId(data.maskedId);
+        }
+      })
+      .catch(() => { /* non-JSON or empty body — nothing to sync */ });
   },
 
   get: (path) => api._fetch(path, { headers: api.headers(false), cache: 'no-store' }).then(r => {
