@@ -1,7 +1,7 @@
 {
   "name": "maho-storefront",
   "version": "1.0.0",
-  "mahoCompat": ">=26.7.0 <26.8.0",
+  "mahoCompat": ">=26.5.0 <26.8.0",
   "private": true,
   "type": "module",
   "scripts": {
