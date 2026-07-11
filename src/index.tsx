@@ -1087,6 +1087,30 @@ app.all('/api/*', async (c) => {
     headers.set('Authorization', `Basic ${btoa(c.env.MAHO_API_BASIC_AUTH)}`);
   }
 
+  // Identify ourselves to the backend. Until now only the server-side API
+  // clients sent this; the browser-facing proxy never did, so a backend that
+  // started enforcing X-Worker-Auth would have rejected every cart/checkout
+  // call while server-rendered pages kept working.
+  if (c.env.WORKER_AUTH) headers.set('X-Worker-Auth', c.env.WORKER_AUTH);
+
+  // Forward the shopper's IP.
+  //
+  // Every browser API call is same-origin (window.MAHO_API_URL === '') and so
+  // is relayed by this proxy. The backend therefore sees ONE client — us — and
+  // keys its per-IP rate limits on that, so limits like giftcard_balance (10 /
+  // 60s) and coupon_validate (20 / 60s) become a single bucket shared by the
+  // entire storefront: one shopper's coupon attempts can 429 everyone else.
+  //
+  // Send the real client IP so the backend can key limits per shopper. The
+  // backend must only trust this from us — it should gate the override on a
+  // valid X-Worker-Auth above, never on the header alone, or the limiter
+  // becomes trivially spoofable by anyone hitting the API directly.
+  const clientIp = c.req.header('CF-Connecting-IP');
+  if (clientIp) {
+    headers.set('X-Forwarded-For', clientIp);
+    headers.set('X-Storefront-Client-IP', clientIp);
+  }
+
   // Forward the request body for non-GET methods
   const method = c.req.method;
   const body = method !== 'GET' && method !== 'HEAD' ? await c.req.raw.clone().arrayBuffer() : undefined;
