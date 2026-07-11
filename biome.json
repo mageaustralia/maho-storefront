@@ -1,12 +1,7 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
   "files": {
-    "ignore": [
-      "src/generated/**",
-      "public/**",
-      "node_modules/**",
-      "**/*.test.ts"
-    ]
+    "includes": ["**", "!**/src/generated/**", "!**/public/**", "!**/node_modules/**", "!**/*.test.ts"]
   },
   "vcs": {
     "enabled": true,
@@ -29,7 +24,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "suspicious": {
         "noExplicitAny": "off",
         "noConsole": "off"
