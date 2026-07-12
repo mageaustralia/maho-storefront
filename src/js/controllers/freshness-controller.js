@@ -6,7 +6,7 @@
 
 import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
-import { escapeHtml, formatPrice } from '../utils.js';
+import { escapeHtml, formatPrice, gatedPriceHtml } from '../utils.js';
 import { hydrateTemplate, setSlotHtml, setSlotAttributes, showSlot, PLACEHOLDER_IMAGE } from '../template-helpers.js';
 
 // Client-driven freshness revalidation.
@@ -462,10 +462,11 @@ export default class FreshnessController extends Controller {
     if (hasDiscount) showSlot(el, 'badge-sale');
     if (isOOS) showSlot(el, 'badge-oos');
 
-    // Price
-    const priceHtml = hasDiscount
+    // Price - honour the B2B gate, same as the server-rendered card
+    const gatedHtml = gatedPriceHtml(p);
+    const priceHtml = gatedHtml ?? (hasDiscount
       ? `<span class="line-through text-base-content/40">${formatPrice(p.price)}</span> <span class="font-semibold text-error">${formatPrice(p.specialPrice)}</span>`
-      : `<span class="font-semibold">${formatPrice(displayPrice)}</span>`;
+      : `<span class="font-semibold">${formatPrice(displayPrice)}</span>`);
     setSlotHtml(el, 'price', priceHtml);
 
     // Rating

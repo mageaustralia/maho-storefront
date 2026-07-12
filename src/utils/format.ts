@@ -14,7 +14,11 @@ export function cleanUrlPath(path: string | undefined | null): string {
   return path.replace(/\.html$/, '');
 }
 
-export function formatPrice(amount: number | null, currency: string = 'USD'): string {
-  if (amount === null) return '';
+export function formatPrice(amount: number | null | undefined, currency: string = 'USD'): string {
+  // `== null` catches undefined too. The catalog API OMITS price / finalPrice
+  // when the B2B gate withholds them, so they arrive undefined rather than
+  // null — and Intl formats undefined as "$NaN", which is what shoppers saw on
+  // gated listings.
+  if (amount == null) return '';
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(amount);
 }
