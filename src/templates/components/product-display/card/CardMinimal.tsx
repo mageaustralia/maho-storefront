@@ -8,6 +8,7 @@ import { jsx, Fragment } from 'hono/jsx';
 import type { FC } from 'hono/jsx';
 import type { Product } from '../../../../types';
 import { formatPrice } from '../../../../utils/format';
+import { GatedPrice } from '../../GatedPrice';
 
 interface ProductCardProps {
   product: Product;
@@ -60,14 +61,16 @@ export const ProductCard: FC<ProductCardProps> = ({ product, currency = 'USD', p
         <div class="flex-1 space-y-1">
           <h3 class="text-sm leading-snug line-clamp-2">{product.name}</h3>
           <div class="flex items-baseline gap-2 text-sm">
-            {hasDiscount ? (
-              <>
-                <span class="font-semibold text-error">{formatPrice(product.specialPrice, currency)}</span>
-                <span class="line-through text-base-content/40 text-xs">{formatPrice(product.price, currency)}</span>
-              </>
-            ) : (
-              <span class="font-medium">{formatPrice(displayPrice, currency)}</span>
-            )}
+            <GatedPrice product={product}>
+              {hasDiscount ? (
+                <>
+                  <span class="font-semibold text-error">{formatPrice(product.specialPrice, currency)}</span>
+                  <span class="line-through text-base-content/40 text-xs">{formatPrice(product.price, currency)}</span>
+                </>
+              ) : (
+                <span class="font-medium">{formatPrice(displayPrice, currency)}</span>
+              )}
+            </GatedPrice>
           </div>
         </div>
       </a>

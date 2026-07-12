@@ -9,6 +9,7 @@ import type { FC } from 'hono/jsx';
 import type { Product } from '../../../../types';
 import { formatPrice } from '../../../../utils/format';
 import { imageSrcset } from '../../../../utils/image';
+import { GatedPrice, canPurchase } from '../../GatedPrice';
 
 interface ProductCardProps {
   product: Product;
@@ -51,14 +52,16 @@ export const ProductCard: FC<ProductCardProps> = ({ product, currency = 'USD', p
         <div class="card-body p-3 gap-1.5 flex-1">
           <h3 class="text-sm font-medium line-clamp-2">{product.name}</h3>
           <div class="flex items-baseline gap-2 text-sm">
-            {hasDiscount ? (
-              <>
-                <span class="line-through text-base-content/40">{formatPrice(product.price, currency)}</span>
-                <span class="font-semibold text-error">{formatPrice(product.specialPrice, currency)}</span>
-              </>
-            ) : (
-              <span class="font-semibold">{formatPrice(displayPrice, currency)}</span>
-            )}
+            <GatedPrice product={product}>
+              {hasDiscount ? (
+                <>
+                  <span class="line-through text-base-content/40">{formatPrice(product.price, currency)}</span>
+                  <span class="font-semibold text-error">{formatPrice(product.specialPrice, currency)}</span>
+                </>
+              ) : (
+                <span class="font-semibold">{formatPrice(displayPrice, currency)}</span>
+              )}
+            </GatedPrice>
           </div>
           {product.reviewCount > 0 && (
             <div class="flex items-center gap-1 text-xs text-base-content/60">
@@ -71,6 +74,11 @@ export const ProductCard: FC<ProductCardProps> = ({ product, currency = 'USD', p
       <div class="px-3 pb-3 mt-auto">
         {isOutOfStock ? (
           <button class="btn btn-sm btn-disabled w-full" disabled>Out of Stock</button>
+        ) : !canPurchase(product) ? (
+          // B2B Access blocks purchasing for this caller. The backend rejects the
+          // add outright (422), so the button would only ever error — send them to
+          // the PDP, which carries the login prompt.
+          <a href={productUrl} class="btn btn-sm btn-outline w-full" data-turbo-prefetch="true">View Details</a>
         ) : needsOptions ? (
           <a href={productUrl} class="btn btn-sm btn-primary btn-outline w-full" data-turbo-prefetch="true"><span class="hidden sm:inline">Select </span>Options</a>
         ) : (

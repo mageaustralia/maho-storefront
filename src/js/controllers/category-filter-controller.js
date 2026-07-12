@@ -6,7 +6,7 @@
 
 import { Controller } from '../stimulus.js';
 import { api } from '../api.js';
-import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart } from '../utils.js';
+import { escapeHtml, formatPrice, updateCartBadge, dispatchCartEvent, ensureCart, gatedPriceHtml } from '../utils.js';
 import { hydrateTemplate, setSlotHtml, setSlotAttributes, showSlot } from '../template-helpers.js';
 import { analytics } from '../analytics.js';
 
@@ -727,10 +727,10 @@ export default class CategoryFilterController extends Controller {
           if (hasDiscount) showSlot(el, 'badge-sale');
           if (isOos) showSlot(el, 'badge-oos');
 
-          // Price
-          const priceHtml = hasDiscount
+          // Price — honour the B2B gate, same as the server-rendered card
+          const priceHtml = gatedPriceHtml(p) ?? (hasDiscount
             ? `<span class="line-through text-base-content/40 text-xs">${formatPrice(p.price, this.currencyValue)}</span> <span class="text-error font-semibold">${formatPrice(p.specialPrice, this.currencyValue)}</span>`
-            : `<span class="font-semibold">${formatPrice(displayPrice, this.currencyValue)}</span>`;
+            : `<span class="font-semibold">${formatPrice(displayPrice, this.currencyValue)}</span>`);
           setSlotHtml(el, 'price', priceHtml);
 
           // Rating

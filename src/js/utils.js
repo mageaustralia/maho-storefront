@@ -152,3 +152,37 @@ export function normalizeAddress(addr) {
   if (addr.lastname && !addr.lastName) addr.lastName = addr.lastname;
   return addr;
 }
+
+/**
+ * B2B Access price gate, for client-side card renders.
+ *
+ * Mirrors the server-side GatedPrice component. Returns the login-prompt HTML
+ * when the backend withheld the price for this caller, or null when the price
+ * should render normally.
+ *
+ * Without this, a gated product re-rendered client-side (category filtering,
+ * freshness revalidation) showed a blank price where the server had shown
+ * "Log in to see pricing".
+ */
+export function gatedPriceHtml(product) {
+  const gate = product?.extensions?.b2bAccess;
+  if (gate?.gateFlags?.hidePrice !== true) return null;
+
+  const message = gate.hiddenPriceMessage || 'Log in to see pricing';
+  const cta = gate.hiddenPriceCta || { label: 'Log in', href: '/login' };
+  const isCustomer = gate.callerIsGuest === false;
+  const lead = isCustomer && message
+    ? `<span class="block text-base-content/70 mb-1">${escapeHtml(message)}</span>`
+    : '';
+  const linkText = isCustomer ? cta.label : message;
+
+  return `<span data-b2b-login-prompt="true" data-b2b-caller="${isCustomer ? 'customer' : 'guest'}"`
+    + ` class="inline-flex items-baseline text-sm text-base-content/70">${lead}`
+    + `<a href="${escapeHtml(cta.href)}" class="underline hover:text-primary">${escapeHtml(linkText)}</a></span>`;
+}
+
+/** Should the add-to-cart button render for this product? */
+export function canPurchase(product) {
+  const flags = product?.extensions?.b2bAccess?.gateFlags;
+  return flags ? flags.canCheckout !== false : true;
+}
