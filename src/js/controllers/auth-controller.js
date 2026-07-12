@@ -139,7 +139,7 @@ export default class AuthController extends Controller {
 
     this._setLoading(true);
     try {
-      await api.post('/api/auth/forgot-password', { email });
+      await api.post('/api/customers/forgot-password', { email });
       // Always show success (anti-enumeration)
       this._showMessage('If an account exists with that email, a reset link has been sent.', 'success');
     } catch {
@@ -170,7 +170,11 @@ export default class AuthController extends Controller {
 
     this._setLoading(true);
     try {
-      const response = await api.post('/api/auth/reset-password', { email, token, password });
+      const response = await api.post('/api/customers/reset-password', {
+        email,
+        resetToken: token,
+        newPassword: password,
+      });
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         throw new Error(err['hydra:description'] || err.detail || err.message || 'Password reset failed.');
