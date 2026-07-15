@@ -24,7 +24,7 @@
     "docs:build": "cd docs && npx vitepress build"
   },
   "dependencies": {
-    "hono": "^4.12.29",
+    "hono": "^4.12.30",
     "xss": "^1.0.15"
   },
   "devDependencies": {
