@@ -28,16 +28,16 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.3",
-    "@cloudflare/workers-types": "^5.20260711.1",
+    "@biomejs/biome": "^2.5.10",
+    "@cloudflare/workers-types": "^5.20260823.1",
     "@hotwired/stimulus": "^3.2.2",
-    "@unocss/cli": "^66.7.5",
-    "@unocss/preset-typography": "^66.7.5",
-    "daisyui": "^5.6.16",
-    "esbuild": "^0.28.1",
+    "@unocss/cli": "^66.8.1",
+    "@unocss/preset-typography": "^66.8.1",
+    "daisyui": "^5.7.20",
+    "esbuild": "^0.28.2",
     "typescript": "^7.0.2",
-    "unocss": "^66.7.5",
-    "vitest": "^4.1.10",
-    "wrangler": "^4.110.0"
+    "unocss": "^66.8.1",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.125.0"
   }
 }
